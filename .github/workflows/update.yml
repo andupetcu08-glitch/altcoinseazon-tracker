@@ -1,0 +1,30 @@
+name: Update Tracker Site
+on:
+  workflow_dispatch: # Permite pornirea manuală
+  schedule:
+    - cron: '*/30 * * * *' # Se actualizează automat la fiecare 30 de minute
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+          
+      - name: Run script
+        run: python tracker.py
+        
+      - name: Commit and Push index.html
+        run: |
+          git config --global user.name "GitHub Action"
+          git config --global user.email "actions@github.com"
+          git add index.html
+          git commit -m "Update live data" || exit 0
+          git push
