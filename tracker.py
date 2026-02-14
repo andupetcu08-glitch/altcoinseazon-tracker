@@ -24,9 +24,9 @@ def fetch(url):
 
 def main():
     ids = list(PORTFOLIO.keys()) + ["bitcoin", "ethereum"]
-    prices = fetch(f"https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids={','.join(ids)}&price_change_percentage=24h")
+    prices = fetch(f"https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids={','.join(ids)}")
     global_api = fetch("https://api.coingecko.com/api/v3/global")
-    fng_data = fetch("https://api.alternative.me/fng/")
+    fng_api = fetch("https://api.alternative.me/fng/")
     
     price_map = {c["id"]: c for c in prices} if prices else {}
     global_data = global_api["data"] if global_api else {}
@@ -34,15 +34,13 @@ def main():
     btc_p = price_map.get("bitcoin", {}).get("current_price", 1)
     eth_p = price_map.get("ethereum", {}).get("current_price", 0)
     eth_btc = eth_p / btc_p if eth_p > 0 else 0
-    
-    # Calcul scor si trend
     btc_d = global_data.get("market_cap_percentage", {}).get("btc", 56.5)
     usdtd = global_data.get("market_cap_percentage", {}).get("usdt", 7.5)
-    score = 40 # Dinamic in dashboard
+    fng_val = fng_api["data"][0]["value"] if fng_api else "N/A"
 
     results = []
     total_val_usd = 0
-    total_exit_mai_usd = 0 # Initializare corecta
+    total_val_mai_usd = 0
 
     for cid, d in PORTFOLIO.items():
         if cid in ["bitcoin", "ethereum"]: continue
@@ -50,7 +48,7 @@ def main():
         if p == 0 and "synthetix" in cid: p = 0.3026 
         
         total_val_usd += (p * d["q"])
-        total_exit_mai_usd += (d["mai"] * d["q"]) # Calculam suma totala la target Mai
+        total_val_mai_usd += (d["mai"] * d["q"])
         
         symbol = cid.upper().split('-')[0]
         if "governance" in cid: symbol = "JTO"
@@ -66,17 +64,19 @@ def main():
         })
 
     portfolio_eur = total_val_usd * USD_EUR
-    profit_eur = (total_exit_mai_usd - INVESTITIE_TOTALA_USD) * USD_EUR
     investit_eur = INVESTITIE_TOTALA_USD * USD_EUR
+    profit_mai_eur = (total_val_mai_usd - INVESTITIE_TOTALA_USD) * USD_EUR
 
     with open("data.json", "w") as f:
         json.dump({
             "btc_d": round(btc_d, 1), "eth_btc": round(eth_btc, 4),
-            "rotation_score": score, "portfolio_eur": round(portfolio_eur, 0),
-            "profit_teoretic_eur": f"{profit_eur:,.0f}",
-            "investit_eur": round(investit_eur, 0), "multiplier": round(portfolio_eur / investit_eur, 2),
-            "coins": results, "usdtd": round(usdtd, 1), "vix": 14.1, "dxy": 101, "urpd": 84.2, 
-            "total3": "0.98T", "fng": "9 (Extreme Fear)", "m2": "21.2T"
+            "rotation_score": 75,
+            "portfolio_eur": round(portfolio_eur, 0),
+            "profit_mai_eur": f"{profit_mai_eur:,.0f}",
+            "investit_eur": round(investit_eur, 0), 
+            "multiplier": round(portfolio_eur / investit_eur, 2),
+            "coins": results, "usdtd": round(usdtd, 1),
+            "vix": 13.8, "dxy": 101, "urpd": 84.2, "total3": "0.98T", "m2": "21.2T", "fng": fng_val
         }, f)
 
 if __name__ == "__main__": main()
