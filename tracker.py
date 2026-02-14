@@ -1,7 +1,9 @@
 import json, urllib.request
 
+# Investiția ta totală în USD
 INVESTITIE_TOTALA_USD = 120456.247
 
+# Portofoliul tău cu noile Targete Fibonacci
 PORTFOLIO = {
     "optimism": {"q": 6400, "entry": 0.773, "apr": 4.8, "mai": 5.20, "fib": 5.95},
     "notcoin": {"q": 1297106.88, "entry": 0.001291, "apr": 0.028, "mai": 0.028, "fib": 0.034},
@@ -30,7 +32,7 @@ def main():
     price_map = {c["id"]: c for c in prices} if prices else {}
     btc_usd = price_map.get("bitcoin", {}).get("current_price", 1)
     btc_eur = btc_eur_data.get("bitcoin", {}).get("eur", 1)
-    usd_eur_live = btc_eur / btc_usd if btc_usd > 0 else 0.88
+    usd_eur_live = btc_eur / btc_usd if btc_usd > 0 else 0.92
 
     results = []
     total_val_usd = 0
@@ -61,9 +63,8 @@ def main():
         })
 
     portfolio_eur = total_val_usd * usd_eur_live
-    # Calculăm profitul minim (Aprilie) și maxim (Fibonacci)
-    min_profit_eur = (total_val_apr_usd - INVESTITIE_TOTALA_USD) * usd_eur_live
-    max_profit_eur = (total_val_fib_usd - INVESTITIE_TOTALA_USD) * usd_eur_live
+    min_p_eur = (total_val_apr_usd - INVESTITIE_TOTALA_USD) * usd_eur_live
+    max_p_eur = (total_val_fib_usd - INVESTITIE_TOTALA_USD) * usd_eur_live
 
     with open("data.json", "w") as f:
         json.dump({
@@ -71,7 +72,7 @@ def main():
             "eth_btc": round((price_map.get("ethereum", {}).get("current_price", 0) / btc_usd), 4) if btc_usd > 0 else 0,
             "rotation_score": 35,
             "portfolio_eur": round(portfolio_eur, 0),
-            "profit_range": f"€{min_profit_eur:,.0f} - €{max_profit_eur:,.0f}",
+            "profit_range": f"€{min_p_eur:,.0f} - €{max_p_eur:,.0f}",
             "investit_eur": round(INVESTITIE_TOTALA_USD * usd_eur_live, 0),
             "multiplier": round(portfolio_eur / (INVESTITIE_TOTALA_USD * usd_eur_live), 2),
             "coins": results,
