@@ -37,7 +37,7 @@ def main():
     usdtd = round(global_data.get("market_cap_percentage", {}).get("usdt", 7.5), 1)
 
     # Scor Dinamic
-    rotation_score = 75 
+    rotation_score = 40 
     
     results = []
     total_val_usd = 0
