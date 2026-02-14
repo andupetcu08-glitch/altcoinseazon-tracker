@@ -1,85 +1,110 @@
-import json, urllib.request
+<!DOCTYPE html><html lang="ro"><head>
+    <meta charset="UTF-8">
+    <style>
+        body { background: #0b0e14; color: #e1e1e1; font-family: sans-serif; padding: 15px; font-size: 11px; }
+        .target-panel { 
+            background: #052e16; border: 2px solid #22c55e; padding: 25px; border-radius: 12px; 
+            margin-bottom: 25px; text-align: center; font-size: 18px; font-weight: bold; color: #fff; 
+            box-shadow: 0 4px 20px rgba(34, 197, 94, 0.3);
+        }
+        .top-nav { display: grid; grid-template-columns: repeat(4, 1fr) 1.5fr; gap: 10px; margin-bottom: 20px; }
+        .m-card { background: #1a1c24; padding: 12px; border-radius: 8px; border: 1px solid #333; text-align: center; }
+        .m-label { font-size: 8px; color: #888; text-transform: uppercase; margin-bottom: 6px; }
+        .m-val { font-weight: bold; font-size: 16px; }
+        .status-box { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+        .st-btn { background: #111; border: 1px solid #222; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: #222; }
+        .active-h { border-color: #ef4444 !important; color: #ef4444 !important; box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); }
+        .active-p { border-color: #fbbf24 !important; color: #fbbf24 !important; box-shadow: 0 0 15px rgba(251, 191, 36, 0.4); }
+        .stats-main { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px; }
+        .card-big { background: #1a1c24; padding: 25px; border-radius: 12px; border: 1px solid #444; text-align: center; }
+        .val-big { font-size: 32px; font-weight: bold; color: #00ff88; }
+        .macro-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 25px; }
+        table { width: 100%; border-collapse: collapse; background: #0d0f14; border-radius: 10px; overflow: hidden; }
+        th { text-align: left; color: #555; font-size: 8px; padding: 15px; border-bottom: 2px solid #222; }
+        td { padding: 15px; border-bottom: 1px solid #1a1c24; text-align: left; transition: 0.2s; }
+        tr:hover td { color: #fff !important; text-shadow: 0 0 10px #fff; background: rgba(255,255,255,0.03); }
+        .prog-bg { width: 100%; background: #222; height: 3px; border-radius: 2px; margin-top: 6px; }
+        .prog-fill { height: 100%; background: linear-gradient(90deg, #fbbf24, #00ff88); border-radius: 2px; }
+        .fib-col { font-weight: bold; color: #a855f7; border-left: 1px solid #222; }
+        .trend-up { color: #00ff88; } .trend-down { color: #ef4444; }
+    </style></head><body>
 
-INVESTITIE_TOTALA_USD = 120456.247
-USD_EUR = 0.96 
+    <div class="target-panel" id="banner-targets">🎯 TARGETS: BTC.D: 46% | VIX: 13.8 | DXY: 101 | ETH/BTC: 0.06 | ROTATION SCORE: 70%</div>
 
-PORTFOLIO = {
-    "optimism": {"q": 6400, "entry": 0.773, "apr": 4.8, "mai": 5.6, "fib": 5.95},
-    "notcoin": {"q": 1297106.88, "entry": 0.001291, "apr": 0.028, "mai": 0.03, "fib": 0.034},
-    "arbitrum": {"q": 14326.44, "entry": 1.134, "apr": 3.0, "mai": 3.6, "fib": 3.82},
-    "celestia": {"q": 4504.47, "entry": 5.911, "apr": 12.0, "mai": 14.0, "fib": 17.50},
-    "jito-governance-token": {"q": 7366.42, "entry": 2.711, "apr": 8.0, "mai": 8.5, "fib": 9.20},
-    "lido-dao": {"q": 9296.65, "entry": 1.121, "apr": 5.6, "mai": 6.4, "fib": 6.90},
-    "cartesi": {"q": 49080, "entry": 0.19076, "apr": 0.2, "mai": 0.2, "fib": 0.24},
-    "immutable-x": {"q": 1551.82, "entry": 3.4205, "apr": 3.5, "mai": 4.3, "fib": 4.85},
-    "sonic-3": {"q": 13449.38, "entry": 0.61633, "apr": 1.05, "mai": 1.2, "fib": 1.45},
-    "synthetix-network-token": {"q": 20073.76, "entry": 0.8773, "apr": 7.8, "mai": 9.3, "fib": 10.20}
-}
+    <div class="top-nav">
+        <div class="m-card"><div class="m-label">Rotation Score</div><div id="score" class="m-val">--</div></div>
+        <div class="m-card"><div class="m-label">BTC.D LIVE</div><div id="btcd" class="m-val">--</div></div>
+        <div class="m-card"><div class="m-label">ETH / BTC</div><div id="ethbtc" class="m-val">--</div></div>
+        <div class="m-card"><div class="m-label">USDT.D LIVE</div><div id="usdtd" class="m-val">--</div></div>
+        <div class="status-box">
+            <div id="btn-h" class="st-btn">HOLD</div>
+            <div id="btn-p" class="st-btn">PREPARE</div>
+            <div id="btn-s" class="st-btn">SELL</div>
+        </div>
+    </div>
 
-def fetch(url):
-    try:
-        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
-        with urllib.request.urlopen(req, timeout=15) as r: return json.loads(r.read().decode())
-    except: return None
+    <div class="stats-main">
+        <div class="card-big"><div class="m-label">PORTOFOLIU ACTUAL (EUR)</div><div id="v" class="val-big">--</div></div>
+        <div class="card-big"><div class="m-label">PROFIT TEORETIC MAI (EUR)</div><div id="profit" class="val-big" style="color:#fbbf24">--</div></div>
+        <div class="card-big">
+            <div class="m-label">MULTIPLIER ACTUAL</div>
+            <div id="m" class="val-big">--</div>
+            <span id="investit" style="color:#888; font-size:11px">--</span>
+        </div>
+    </div>
 
-def main():
-    ids = list(PORTFOLIO.keys()) + ["bitcoin", "ethereum"]
-    prices = fetch(f"https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids={','.join(ids)}")
-    global_api = fetch("https://api.coingecko.com/api/v3/global")
-    
-    price_map = {c["id"]: c for c in prices} if prices else {}
-    global_data = global_api["data"] if global_api else {}
-    
-    btc_p = price_map.get("bitcoin", {}).get("current_price", 1)
-    eth_p = price_map.get("ethereum", {}).get("current_price", 0)
-    eth_btc = eth_p / btc_p if eth_p > 0 else 0
-    btc_d = global_data.get("market_cap_percentage", {}).get("btc", 56.5)
-    vix = 13.8 
+    <div class="macro-row">
+        <div class="m-card"><div class="m-label">TOTAL 3</div><div id="t3" class="m-val">--</div></div>
+        <div class="m-card"><div class="m-label">SENTIMENT</div><div id="fng" class="m-val">--</div></div>
+        <div class="m-card"><div class="m-label">VIX INDEX</div><div id="vix" class="m-val" style="color:#ef4444">--</div></div>
+        <div class="m-card"><div class="m-label">URPD PROFIT</div><div id="urpd" class="m-val">--</div></div>
+        <div class="m-card"><div class="m-label">DXY INDEX</div><div id="dxy" class="m-val">--</div></div>
+        <div class="m-card"><div class="m-label">M2 SUPPLY</div><div id="m2" class="m-val">--</div></div>
+    </div>
 
-    # Logica Scor (Multi-factor)
-    score = 50 
-    if btc_d > 55: score -= 15
-    if eth_btc > 0.04: score += 15
-    if vix > 20: score -= 20
-    score = max(0, min(100, score))
+    <table>
+        <thead>
+            <tr><th>MONEDA</th><th>CANTITATE</th><th>ENTRY</th><th>TARGET APR</th><th>X APR</th><th>TARGET MAI</th><th>X MAI</th><th class="fib-col">FINAL TARGET PRICE</th></tr>
+        </thead>
+        <tbody id="rows"></tbody>
+    </table>
 
-    results = []
-    total_val_usd = 0
-    total_val_mai_usd = 0
+    <script>
+        async function load() {
+            const r = await fetch('data.json?v=' + Date.now());
+            const d = await r.json();
+            
+            const sc = d.rotation_score;
+            document.getElementById('banner-targets').textContent = `🎯 TARGETS: BTC.D: 46% | VIX: 13.8 | DXY: 101 | ETH/BTC: 0.06 | ROTATION SCORE: 70%`;
+            
+            document.getElementById('score').textContent = sc + '%';
+            // Verde doar cand atinge 70%
+            document.getElementById('score').style.color = sc >= 70 ? '#00ff88' : '#ef4444';
+            
+            // MODIFICARE VIOLET + TREND
+            const arrow = d.eth_btc_trend === 'up' ? '▲' : '▼';
+            const tClass = d.eth_btc_trend === 'up' ? 'trend-up' : 'trend-down';
+            document.getElementById('ethbtc').innerHTML = `<span style="color:#a855f7">${d.eth_btc}</span> <span class="${tClass}">${arrow}</span>`;
 
-    for cid, d in PORTFOLIO.items():
-        p = price_map.get(cid, {}).get("current_price", 0)
-        if p == 0 and "synthetix" in cid: p = 0.3026 
-        
-        total_val_usd += (p * d["q"])
-        total_val_mai_usd += (d["mai"] * d["q"])
-        
-        prog = ((p - d["entry"]) / (d["fib"] - d["entry"])) * 100 if d["fib"] > d["entry"] else 0
-        prog = max(0, min(100, prog))
+            document.getElementById('btcd').textContent = d.btc_d + '%';
+            document.getElementById('usdtd').textContent = d.usdtd + '%';
+            document.getElementById('v').textContent = '€' + d.portfolio_eur.toLocaleString();
+            document.getElementById('profit').textContent = '€' + d.profit_mai_eur;
+            document.getElementById('m').textContent = d.multiplier + 'x';
+            document.getElementById('investit').textContent = 'Investit: €' + d.investit_eur.toLocaleString();
+            
+            document.getElementById('t3').textContent = d.total3; document.getElementById('fng').textContent = d.fng;
+            document.getElementById('vix').textContent = d.vix; document.getElementById('urpd').textContent = d.urpd + '%';
+            document.getElementById('dxy').textContent = d.dxy; document.getElementById('m2').textContent = d.m2;
 
-        symbol = cid.upper().split('-')[0]
-        if "governance" in cid: symbol = "JTO"
-        if "network" in cid: symbol = "SNX"
-        if "sonic" in cid: symbol = "SONIC"
+            document.getElementById('btn-h').className = 'st-btn' + (sc < 45 ? ' active-h' : '');
+            document.getElementById('btn-p').className = 'st-btn' + (sc >= 45 ? ' active-p' : '');
 
-        results.append({
-            "symbol": symbol, "q": d["q"], "entry": d["entry"], "progres": round(prog, 1),
-            "price": f"{p:.7f}" if d["entry"] < 0.01 else f"{p:.4f}", 
-            "apr": d["apr"], "mai": d["mai"], "fib": d["fib"],
-            "x_apr": round(d["apr"] / d["entry"], 2), "x_mai": round(d["mai"] / d["entry"], 2)
-        })
-
-    portfolio_eur = total_val_usd * USD_EUR
-    profit_mai_eur = (total_val_mai_usd - INVESTITIE_TOTALA_USD) * USD_EUR
-
-    with open("data.json", "w") as f:
-        json.dump({
-            "btc_d": round(btc_d, 1), "eth_btc": round(eth_btc, 4), "eth_btc_trend": "up" if eth_btc > 0.029 else "down",
-            "rotation_score": score, "portfolio_eur": round(portfolio_eur, 0),
-            "profit_mai_eur": f"{profit_mai_eur:,.0f}", "investit_eur": round(INVESTITIE_TOTALA_USD * USD_EUR, 0), 
-            "multiplier": round(portfolio_eur / (INVESTITIE_TOTALA_USD * USD_EUR), 2),
-            "coins": results, "usdtd": round(global_data.get("market_cap_percentage", {}).get("usdt", 7.5), 1),
-            "vix": vix, "dxy": 101, "urpd": 84.2, "total3": "0.98T", "m2": "21.2T", "fng": "9 (Extreme Fear)"
-        }, f)
-
-if __name__ == "__main__": main()
+            let h = '';
+            d.coins.forEach(c => {
+                h += `<tr><td><b>${c.symbol}</b><br><small style="color:#555">$${c.price}</small><div class="prog-bg"><div class="prog-fill" style="width:${c.progres}%"></div></div></td><td>${c.q.toLocaleString()}</td><td>$${c.entry}</td><td style="color:#fbbf24">$${c.apr}</td><td style="color:#00ff88">${c.x_apr}x</td><td style="color:#fbbf24">$${c.mai}</td><td style="color:#00ff88">${c.x_mai}x</td><td class="fib-col">$${c.fib}</td></tr>`;
+            });
+            document.getElementById('rows').innerHTML = h;
+        }
+        load(); setInterval(load, 60000);
+    </script></body></html>
