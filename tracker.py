@@ -1,8 +1,6 @@
 import json, urllib.request
 
-# Investiția ta totală în USD
 INVESTITIE_TOTALA_USD = 120456.247
-
 PORTFOLIO = {
     "optimism": {"q": 6400, "entry": 0.773, "apr": 4.8, "mai": 5.20, "fib": 5.95},
     "notcoin": {"q": 1297106.88, "entry": 0.001291, "apr": 0.028, "mai": 0.028, "fib": 0.034},
@@ -22,13 +20,24 @@ def fetch(url):
         with urllib.request.urlopen(req, timeout=15) as r: return json.loads(r.read().decode())
     except: return None
 
-def calculate_rotation_score(btc_d, eth_btc, fng):
-    # Logica de calcul automata
-    score = 15
-    if btc_d < 52: score += 25
-    if eth_btc > 0.045: score += 25
-    if fng > 60: score += 15
-    return min(100, score + 10)
+def calculate_rotation_score(btc_d, eth_btc, fng, usdt_d):
+    score = 10
+    if btc_d < 50: score += 25
+    elif btc_d <= 55: score += 15
+    else: score += 5
+    
+    if eth_btc > 0.05: score += 25
+    elif eth_btc >= 0.04: score += 15
+    else: score += 5
+    
+    if fng > 70: score += 20
+    elif fng >= 40: score += 10
+    else: score += 5
+    
+    if usdt_d < 5.5: score += 20
+    elif usdt_d <= 7.5: score += 10
+    else: score += 0
+    return min(100, score)
 
 def main():
     ids = list(PORTFOLIO.keys()) + ["bitcoin", "ethereum"]
@@ -43,11 +52,15 @@ def main():
     usd_eur_live = btc_eur / btc_usd if btc_usd > 0 else 0.92
 
     btc_d = round(global_api["data"]["market_cap_percentage"]["btc"], 1) if global_api else 56.5
-    eth_btc = round((price_map.get("ethereum", {}).get("current_price", 0) / btc_usd), 4) if btc_usd > 0 else 0.03
-    fng_val = int(fng_api["data"][0]["value"]) if fng_api else 50
-    fng_text = fng_api["data"][0]["value_classification"] if fng_api else "Neutral"
-
-    rotation_score = calculate_rotation_score(btc_d, eth_btc, fng_val)
+    eth_btc = round((price_map.get("ethereum", {}).get("current_price", 0) / btc_usd), 4) if btc_usd > 0 else 0.0299
+    fng_val = int(fng_api["data"][0]["value"]) if fng_api else 9
+    
+    # Simulare date live (în mod normal vin din API-uri macro)
+    usdt_d = 7.5 
+    total3 = 0.98 # Trilioane
+    m2_supply = 21.2 # Trilioane
+    
+    rotation_score = calculate_rotation_score(btc_d, eth_btc, fng_val, usdt_d)
 
     results = []
     total_val_usd = 0
@@ -56,7 +69,7 @@ def main():
 
     for cid, d in PORTFOLIO.items():
         p = price_map.get(cid, {}).get("current_price", 0)
-        if p == 0 and "synthetix" in cid: p = 0.3026 
+        if p == 0 and "synthetix" in cid: p = 0.3026
         total_val_usd += (p * d["q"])
         total_val_apr_usd += (d["apr"] * d["q"])
         total_val_fib_usd += (d["fib"] * d["q"])
@@ -74,19 +87,16 @@ def main():
             "x_apr": round(d["apr"] / d["entry"], 2), "x_mai": round(d["mai"] / d["entry"], 2)
         })
 
-    portfolio_eur = total_val_usd * usd_eur_live
-    min_p_eur = (total_val_apr_usd - INVESTITIE_TOTALA_USD) * usd_eur_live
-    max_p_eur = (total_val_fib_usd - INVESTITIE_TOTALA_USD) * usd_eur_live
-
     with open("data.json", "w") as f:
         json.dump({
             "btc_d": btc_d, "eth_btc": eth_btc, "rotation_score": rotation_score,
-            "portfolio_eur": round(portfolio_eur, 0),
-            "profit_range": f"€{min_p_eur:,.0f} - €{max_p_eur:,.0f}",
+            "portfolio_eur": round(total_val_usd * usd_eur_live, 0),
+            "profit_range": f"€{((total_val_apr_usd - INVESTITIE_TOTALA_USD) * usd_eur_live):,.0f} - €{((total_val_fib_usd - INVESTITIE_TOTALA_USD) * usd_eur_live):,.0f}",
             "investit_eur": round(INVESTITIE_TOTALA_USD * usd_eur_live, 0),
-            "multiplier": round(portfolio_eur / (INVESTITIE_TOTALA_USD * usd_eur_live), 2),
-            "coins": results, "vix": 13.8, "dxy": 101, "total3": "0.98T", 
-            "fng": f"{fng_val} ({fng_text})", "usdt_d": 7.5, "urpd": "84.2%", "m2": "21.2T"
+            "multiplier": round((total_val_usd * usd_eur_live) / (INVESTITIE_TOTALA_USD * usd_eur_live), 2),
+            "coins": results, "vix": 13.8, "dxy": 101, "total3": f"{total3}T", 
+            "fng": f"{fng_val} ({fng_api['data'][0]['value_classification']})", 
+            "usdt_d": usdt_d, "urpd": "84.2%", "m2": f"{m2_supply}T"
         }, f)
 
 if __name__ == "__main__": main()
