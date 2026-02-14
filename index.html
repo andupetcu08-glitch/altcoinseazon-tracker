@@ -3,63 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <style>
-        body { background: #0b0e14; color: #e1e1e1; font-family: sans-serif; padding: 15px; }
-        .header-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-        .btn { padding: 15px; text-align: center; border-radius: 8px; font-weight: bold; border: 1px solid #333; opacity: 0.3; }
-        .active-hold { background: #7f1d1d; color: white; opacity: 1; border-color: #ef4444; }
-        .active-prepare { background: #854d0e; color: white; opacity: 1; border-color: #eab308; }
-        .active-sell { background: #14532d; color: white; opacity: 1; border-color: #22c55e; }
+        body { background: #0b0e14; color: #e1e1e1; font-family: sans-serif; padding: 10px; font-size: 12px; }
+        .target-panel { background: #052e16; border: 1px solid #22c55e; padding: 10px; border-radius: 8px; margin-bottom: 15px; text-align: center; }
+        .status-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px; }
+        .btn { padding: 12px; text-align: center; border-radius: 6px; font-weight: bold; background: #1a1c24; border: 1px solid #333; color: #444; }
+        .active-hold { border-color: #ef4444; color: #ef4444; box-shadow: 0 0 10px rgba(239, 68, 68, 0.2); }
         
-        .main-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 20px; }
-        .card { background: #1a1c24; padding: 20px; border-radius: 12px; border: 1px solid #333; }
-        .val { font-size: 32px; font-weight: bold; color: #00ff88; }
-        .rotation-box { background: #1a1c24; padding: 15px; border-radius: 12px; margin-bottom: 20px; border-left: 5px solid #00ff88; }
-        
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #16181d; border-radius: 10px; overflow: hidden; }
-        th { background: #222; padding: 15px; text-align: left; font-size: 11px; color: #888; }
-        td { padding: 15px; border-bottom: 1px solid #222; }
-        .pot-x { color: #00ff88; font-weight: bold; }
+        .macro-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 10px; }
+        .m-card { background: #1a1c24; padding: 8px; border-radius: 6px; border: 1px solid #333; text-align: center; }
+        .m-label { font-size: 9px; color: #888; text-transform: uppercase; }
+        .m-val { font-weight: bold; font-size: 13px; margin-top: 4px; }
+
+        .stats-main { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .card-big { background: #16181d; padding: 15px; border-radius: 10px; border: 1px solid #333; }
+        .val-big { font-size: 24px; font-weight: bold; color: #00ff88; }
+        .profit-gold { color: #fbbf24 !important; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { text-align: left; color: #666; font-size: 10px; padding: 10px; border-bottom: 2px solid #222; }
+        td { padding: 12px 10px; border-bottom: 1px solid #1a1c24; }
+        .pot { color: #00ff88; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <div class="header-grid">
-        <div id="btn-hold" class="btn">🔴 HOLD</div>
-        <div id="btn-prepare" class="btn">🟡 PREPARE</div>
-        <div id="btn-sell" class="btn">🟢 SELL / EXECUȚIE</div>
+    <div class="status-grid">
+        <div id="h" class="btn">🔴 HOLD</div>
+        <div id="p" class="btn">🟡 PREPARE</div>
+        <div id="s" class="btn">🟢 EXECUȚIE</div>
     </div>
 
-    <div class="rotation-box">
-        <div style="font-size: 11px; color: #888;">ROTATION SCORE (ALT SEASON SIGNAL)</div>
-        <div id="score" style="font-size: 28px; font-weight: bold; color: #00ff88;">--%</div>
+    <div class="macro-row">
+        <div class="m-card"><div class="m-label">Rotation Score</div><div id="score" class="m-val" style="color:#00ff88">--%</div></div>
+        <div class="m-card"><div class="m-label">BTC.D</div><div id="btcd" class="m-val">--</div></div>
+        <div class="m-card"><div class="m-label">TOTAL 3</div><div id="t3" class="m-val">--</div></div>
+        <div class="m-card"><div class="m-label">Sentiment</div><div id="fng" class="m-val">--</div></div>
     </div>
 
-    <div class="main-stats">
-        <div class="card">
-            <div style="color: #888; font-size: 12px;">PORTOFOLIU ACTUAL</div>
-            <div id="port-val" class="val">--</div>
-        </div>
-        <div class="card">
-            <div style="color: #888; font-size: 12px;">MULTIPLIER (Investit $120k)</div>
-            <div id="mult-val" class="val">--</div>
-        </div>
-        <div class="card" style="border-color: #fbbf24;">
-            <div style="color: #fbbf24; font-size: 12px;">PROFIT TEORETIC TINTĂ (MAI)</div>
-            <div id="profit-eur" class="val" style="color: #fbbf24;">--</div>
-        </div>
-        <div class="card">
-            <div style="color: #888; font-size: 12px;">BTC.D / TOTAL3</div>
-            <div id="macro-meta" class="val" style="font-size: 20px; color: #fff;">--</div>
-        </div>
+    <div class="stats-main">
+        <div class="card-big"><div class="m-label">Portofoliu Actual</div><div id="v" class="val-big">--</div></div>
+        <div class="card-big"><div class="m-label">Multiplier (Investit $120k)</div><div id="m" class="val-big">--</div></div>
+        <div class="card-big" style="border-color: #fbbf24;"><div class="m-label" style="color:#fbbf24">Profit Teoretic Mai</div><div id="profit" class="val-big profit-gold">--</div></div>
+        <div class="card-big"><div class="m-label">URPD Profit</div><div id="urpd" class="m-val" style="font-size: 20px;">--</div></div>
+    </div>
+
+    <div class="macro-row">
+        <div class="m-card"><div class="m-label">VIX Index</div><div id="vix" class="m-val" style="color:#ff4d4d">--</div></div>
+        <div class="m-card"><div class="m-label">DXY</div><div id="dxy" class="m-val">--</div></div>
+        <div class="m-card"><div class="m-label">M2 Supply</div><div id="m2" class="m-val">--</div></div>
+        <div class="m-card"><div class="m-label">USDT.D</div><div id="usdtd" class="m-val">--</div></div>
     </div>
 
     <table>
         <thead>
             <tr>
-                <th>MONEDA</th>
+                <th>COIN</th>
                 <th>CANTITATE</th>
+                <th>VALOARE</th>
                 <th>ENTRY</th>
-                <th>TARGETS (APR/MAI)</th>
+                <th>TARGETS</th>
                 <th>POTENȚIAL</th>
             </tr>
         </thead>
@@ -71,25 +73,32 @@
             const r = await fetch('data.json?v=' + Date.now());
             const d = await r.json();
             
-            document.getElementById('port-val').textContent = '$' + d.portfolio.toLocaleString();
-            document.getElementById('mult-val').textContent = d.multiplier + 'x';
+            document.getElementById('v').textContent = '$' + d.portfolio.toLocaleString();
+            document.getElementById('m').textContent = d.multiplier + 'x';
+            document.getElementById('profit').textContent = '€' + d.profit_teoretic;
             document.getElementById('score').textContent = d.rotation_score + '%';
-            document.getElementById('profit-eur').textContent = '€ ' + d.profit_teoretic;
-            document.getElementById('macro-meta').textContent = d.btc_d + '% / ' + d.total3 + 'T';
+            
+            document.getElementById('btcd').textContent = d.btc_d + '%';
+            document.getElementById('t3').textContent = d.total3 + 'T';
+            document.getElementById('fng').textContent = d.fng;
+            document.getElementById('urpd').textContent = d.urpd + '%';
+            document.getElementById('vix').textContent = d.vix;
+            document.getElementById('dxy').textContent = d.dxy;
+            document.getElementById('m2').textContent = d.m2;
+            document.getElementById('usdtd').textContent = d.usdtd + '%';
 
-            // Logica Butoane Status
-            if(d.rotation_score >= 75) document.getElementById('btn-sell').className = 'btn active-sell';
-            else if(d.rotation_score >= 50) document.getElementById('btn-prepare').className = 'btn active-prepare';
-            else document.getElementById('btn-hold').className = 'btn active-hold';
+            // Status Button
+            if(d.rotation_score < 50) document.getElementById('h').classList.add('active-hold');
 
             let h = '';
             d.coins.forEach(c => {
                 h += `<tr>
                     <td><b>${c.symbol}</b><br><small style="color:#666">$${c.price}</small></td>
                     <td>${c.q.toLocaleString()}</td>
-                    <td>$${c.entry}</td>
+                    <td>$${c.value.toLocaleString()}</td>
+                    <td style="color:#888">$${c.entry}</td>
                     <td>$${c.apr} / $${c.mai}</td>
-                    <td class="pot-x">${c.pot_mai}x</td>
+                    <td class="pot">${c.pot_mai}x</td>
                 </tr>`;
             });
             document.getElementById('rows').innerHTML = h;
