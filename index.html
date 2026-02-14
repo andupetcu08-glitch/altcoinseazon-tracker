@@ -17,8 +17,8 @@
         
         .status-box { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
         .st-btn { background: #111; border: 1px solid #222; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: #222; }
-        .active-h { border-color: #ef4444 !important; color: #ef4444 !important; }
-        .active-p { border-color: #fbbf24 !important; color: #fbbf24 !important; }
+        .active-h { border-color: #ef4444 !important; color: #ef4444 !important; box-shadow: 0 0 10px rgba(239, 68, 68, 0.3); }
+        .active-p { border-color: #fbbf24 !important; color: #fbbf24 !important; box-shadow: 0 0 10px rgba(251, 191, 36, 0.3); }
 
         .stats-main { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px; }
         .card-big { background: #1a1c24; padding: 25px; border-radius: 12px; border: 1px solid #444; text-align: center; }
@@ -26,20 +26,27 @@
         
         .macro-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 25px; }
 
-        /* TABEL + BARE DINAMICE */
+        /* TABEL + EFECTE HOVER */
         table { width: 100%; border-collapse: collapse; background: #0d0f14; border-radius: 10px; overflow: hidden; }
         th { text-align: left; color: #555; font-size: 8px; padding: 15px; border-bottom: 2px solid #222; }
-        td { padding: 15px; border-bottom: 1px solid #1a1c24; text-align: left; }
+        td { padding: 15px; border-bottom: 1px solid #1a1c24; text-align: left; transition: all 0.3s ease; }
         
-        /* Logica Bare Progres */
-        .prog-bg { width: 100%; background: #222; height: 4px; border-radius: 2px; margin-top: 6px; overflow: hidden;}
-        .prog-fill { height: 100%; transition: 0.5s width; border-radius: 2px; }
+        /* Efectul de Glow pe rând la mouseover */
+        tr:hover td { 
+            color: #fff !important; 
+            background: rgba(255, 255, 255, 0.04); 
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.5); 
+        }
+
+        /* Bare Progres Dinamice */
+        .prog-bg { width: 100%; background: #222; height: 4px; border-radius: 2px; margin-top: 6px; overflow: hidden; }
+        .prog-fill { height: 100%; transition: 0.5s width, 0.3s box-shadow; border-radius: 2px; }
         
         /* Animatie Pulsare pentru > 85% */
         @keyframes pulse-neon {
-            0% { box-shadow: 0 0 2px #00ff88; opacity: 1; }
-            50% { box-shadow: 0 0 12px #00ff88; opacity: 0.7; }
-            100% { box-shadow: 0 0 2px #00ff88; opacity: 1; }
+            0% { opacity: 1; filter: brightness(1); }
+            50% { opacity: 0.7; filter: brightness(1.5); box-shadow: 0 0 10px #00ff88; }
+            100% { opacity: 1; filter: brightness(1); }
         }
         .pulse { animation: pulse-neon 1.5s infinite ease-in-out; }
 
@@ -98,7 +105,6 @@
             document.getElementById('score').textContent = sc + '%';
             document.getElementById('score').style.color = sc >= 70 ? '#00ff88' : '#ef4444';
             
-            // ETH/BTC VIOLET
             const arrow = d.eth_btc_trend === 'up' ? '▲' : '▼';
             const tClass = d.eth_btc_trend === 'up' ? 'trend-up' : 'trend-down';
             document.getElementById('ethbtc').innerHTML = `<span style="color:#a855f7">${d.eth_btc}</span> <span class="${tClass}">${arrow}</span>`;
@@ -119,12 +125,10 @@
 
             let h = '';
             d.coins.forEach(c => {
-                // LOGICA CULORI BARE
-                let barColor = '#fbbf24'; // Galben implicit
+                let barColor = '#fbbf24'; 
                 let pulseClass = '';
-                
-                if (c.progres >= 80) barColor = '#00ff88'; // Verde neon de la 80%
-                if (c.progres >= 85) pulseClass = 'pulse'; // Pulsare de la 85%
+                if (c.progres >= 80) barColor = '#00ff88'; 
+                if (c.progres >= 85) pulseClass = 'pulse';
 
                 h += `<tr><td><b>${c.symbol}</b><br><small style="color:#555">$${c.price}</small>
                     <div class="prog-bg"><div class="prog-fill ${pulseClass}" style="width:${c.progres}%; background:${barColor};"></div></div></td>
