@@ -1,8 +1,8 @@
 import json, urllib.request, time
 
+# Configurații de bază conform tabelului tău
 INVESTITIE_TOTALA_USD = 120456.247
-# Curs ajustat pentru a atinge profitul tau de ~393k EUR
-USD_EUR = 0.96 
+USD_EUR = 0.96 # Curs ajustat pentru a reflecta ~393k EUR profit teoretic
 
 PORTFOLIO = {
     "optimism": {"q": 6400, "entry": 0.773, "apr": 4.8, "mai": 5.6},
@@ -24,13 +24,13 @@ def fetch(url):
     except: return None
 
 def main():
+    # Fetch date live
     coin_ids = ",".join(PORTFOLIO.keys())
     prices = fetch(f"https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids={coin_ids}")
     global_api = fetch("https://api.coingecko.com/api/v3/global")
     fng_data = fetch("https://api.alternative.me/fng/")
     
     price_map = {c["id"]: c for c in prices} if prices else {}
-    
     results = []
     total_val_usd = 0
     total_exit_mai_usd = 0
@@ -40,6 +40,7 @@ def main():
         total_val_usd += (p * d["q"])
         total_exit_mai_usd += (d["mai"] * d["q"])
         
+        # Corecție nume afișate
         symbol = cid.split('-')[0].upper()
         if cid == "sonic-3": symbol = "SONIC"
         if "synthetix" in cid: symbol = "SNX"
@@ -49,31 +50,37 @@ def main():
             "price": f"{p:.7f}" if d["entry"] < 0.01 else f"{p:.4f}",
             "value": round(p * d["q"], 0),
             "apr": d["apr"], "mai": d["mai"],
-            "pot_apr": round(d["apr"] / d["entry"], 2),
             "pot_mai": round(d["mai"] / d["entry"], 2)
         })
 
-    # Logica Rotation Score
+    # Logica Rotation Score bazată pe targetele tale
     btcd = global_api["data"]["market_cap_percentage"]["btc"] if global_api else 56.7
     fng = int(fng_data["data"][0]["value"]) if fng_data else 70
+    urpd = 84.2 # Placeholder - necesită API on-chain pentru automatizare completă
+    usdtd = 5.1 # Placeholder
+    
     score = 0
     if btcd < 46: score += 25
     if fng < 80: score += 25
-    score += 25 # URPD default OK
-    
-    profit_teoretic_eur = (total_exit_mai_usd - INVESTITIE_TOTALA_USD) * USD_EUR
+    if urpd > 80: score += 25
+    if usdtd < 5: score += 25
+
+    profit_teoretic_eur = (total_exit_mai_usd - INVESTITIE_TOTAL_USD) * USD_EUR
+
+    data = {
+        "btc_d": round(btcd, 1),
+        "total3": round(global_api["data"]["total_market_cap"]["usd"] / 1e12, 2) if global_api else 2.48,
+        "fng": fng,
+        "rotation_score": score,
+        "portfolio": round(total_val_usd, 0),
+        "multiplier": round(total_val_usd / INVESTITIE_TOTAL_USD, 2),
+        "profit_teoretic": f"{profit_teoretic_eur:,.0f}",
+        "coins": results,
+        "vix": 14.1, "urpd": urpd, "dxy": 103.8, "m2": "21.2T", "usdtd": usdtd,
+        "updated": time.strftime("%Y-%m-%d %H:%M")
+    }
 
     with open("data.json", "w") as f:
-        json.dump({
-            "btc_d": round(btcd, 1),
-            "total3": round(global_api["data"]["total_market_cap"]["usd"] / 1e12, 2) if global_api else 2.48,
-            "fng": fng,
-            "rotation_score": score,
-            "portfolio": round(total_val_usd, 0),
-            "multiplier": round(total_val_usd / INVESTITIE_TOTALA_USD, 2),
-            "profit_teoretic": f"{profit_teoretic_eur:,.0f}",
-            "coins": results,
-            "vix": 14.1, "urpd": 84.2, "dxy": 103.8, "m2": "21.2T", "usdtd": 5.1
-        }, f)
+        json.dump(data, f)
 
 if __name__ == "__main__": main()
