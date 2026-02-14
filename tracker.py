@@ -1,19 +1,17 @@
 import json, urllib.request
 
 INVESTITIE_TOTALA_USD = 120456.247
-# Am ajustat cursul pentru a reflecta exact cei 15.706 EUR de pe eToro
-USD_EUR = 0.8823 
 
 PORTFOLIO = {
-    "optimism": {"q": 6400, "entry": 0.773, "apr": 4.8, "mai": 5.6, "fib": 5.95},
-    "notcoin": {"q": 1297106.88, "entry": 0.001291, "apr": 0.028, "mai": 0.03, "fib": 0.034},
-    "arbitrum": {"q": 14326.44, "entry": 1.134, "apr": 3.0, "mai": 3.6, "fib": 3.82},
-    "celestia": {"q": 4504.47, "entry": 5.911, "apr": 12.0, "mai": 14.0, "fib": 17.50},
-    "jito-governance-token": {"q": 7366.42, "entry": 2.711, "apr": 8.0, "mai": 8.5, "fib": 9.20},
-    "lido-dao": {"q": 9296.65, "entry": 1.121, "apr": 5.6, "mai": 6.4, "fib": 6.90},
+    "optimism": {"q": 6400, "entry": 0.773, "apr": 4.8, "mai": 5.20, "fib": 5.95},
+    "notcoin": {"q": 1297106.88, "entry": 0.001291, "apr": 0.028, "mai": 0.028, "fib": 0.034},
+    "arbitrum": {"q": 14326.44, "entry": 1.134, "apr": 3.0, "mai": 3.40, "fib": 3.82},
+    "celestia": {"q": 4504.47, "entry": 5.911, "apr": 12.0, "mai": 15.00, "fib": 18.50},
+    "jito-governance-token": {"q": 7366.42, "entry": 2.711, "apr": 8.0, "mai": 8.20, "fib": 9.20},
+    "lido-dao": {"q": 9296.65, "entry": 1.121, "apr": 5.6, "mai": 6.20, "fib": 6.90},
     "cartesi": {"q": 49080, "entry": 0.19076, "apr": 0.2, "mai": 0.2, "fib": 0.24},
     "immutable-x": {"q": 1551.82, "entry": 3.4205, "apr": 3.5, "mai": 4.3, "fib": 4.85},
-    "sonic-3": {"q": 13449.38, "entry": 0.81633, "apr": 1.05, "mai": 1.2, "fib": 1.45},
+    "sonic-3": {"q": 13449.38, "entry": 0.81633, "apr": 1.05, "mai": 1.35, "fib": 1.55},
     "synthetix-network-token": {"q": 20073.76, "entry": 0.8773, "apr": 7.8, "mai": 9.3, "fib": 10.20}
 }
 
@@ -26,33 +24,26 @@ def fetch(url):
 def main():
     ids = list(PORTFOLIO.keys()) + ["bitcoin", "ethereum"]
     prices = fetch(f"https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids={','.join(ids)}")
+    btc_eur_data = fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=eur")
     global_api = fetch("https://api.coingecko.com/api/v3/global")
     
     price_map = {c["id"]: c for c in prices} if prices else {}
-    global_data = global_api["data"] if global_api else {}
-    
-    btc_p = price_map.get("bitcoin", {}).get("current_price", 1)
-    eth_p = price_map.get("ethereum", {}).get("current_price", 0)
-    eth_btc = eth_p / btc_p if eth_p > 0 else 0
-    btc_d = global_data.get("market_cap_percentage", {}).get("btc", 56.5)
-    vix = 13.8 
-
-    score = 50 
-    if btc_d > 55: score -= 15
-    if eth_btc > 0.04: score += 15
-    if vix > 20: score -= 20
-    score = max(0, min(100, score))
+    btc_usd = price_map.get("bitcoin", {}).get("current_price", 1)
+    btc_eur = btc_eur_data.get("bitcoin", {}).get("eur", 1)
+    usd_eur_live = btc_eur / btc_usd if btc_usd > 0 else 0.88
 
     results = []
     total_val_usd = 0
-    total_val_mai_usd = 0
+    total_val_apr_usd = 0
+    total_val_fib_usd = 0
 
     for cid, d in PORTFOLIO.items():
         p = price_map.get(cid, {}).get("current_price", 0)
         if p == 0 and "synthetix" in cid: p = 0.3026 
         
         total_val_usd += (p * d["q"])
-        total_val_mai_usd += (d["mai"] * d["q"])
+        total_val_apr_usd += (d["apr"] * d["q"])
+        total_val_fib_usd += (d["fib"] * d["q"])
         
         prog = ((p - d["entry"]) / (d["fib"] - d["entry"])) * 100 if d["fib"] > d["entry"] else 0
         prog = max(0, min(100, prog))
@@ -69,17 +60,22 @@ def main():
             "x_apr": round(d["apr"] / d["entry"], 2), "x_mai": round(d["mai"] / d["entry"], 2)
         })
 
-    portfolio_eur = total_val_usd * USD_EUR
-    profit_mai_eur = (total_val_mai_usd - INVESTITIE_TOTALA_USD) * USD_EUR
+    portfolio_eur = total_val_usd * usd_eur_live
+    # Calculăm profitul minim (Aprilie) și maxim (Fibonacci)
+    min_profit_eur = (total_val_apr_usd - INVESTITIE_TOTALA_USD) * usd_eur_live
+    max_profit_eur = (total_val_fib_usd - INVESTITIE_TOTALA_USD) * usd_eur_live
 
     with open("data.json", "w") as f:
         json.dump({
-            "btc_d": round(btc_d, 1), "eth_btc": round(eth_btc, 4), "eth_btc_trend": "up" if eth_btc > 0.029 else "down",
-            "rotation_score": score, "portfolio_eur": round(portfolio_eur, 0),
-            "profit_mai_eur": f"{profit_mai_eur:,.0f}", "investit_eur": round(INVESTITIE_TOTALA_USD * USD_EUR, 0), 
-            "multiplier": round(portfolio_eur / (INVESTITIE_TOTALA_USD * USD_EUR), 2),
-            "coins": results, "usdtd": round(global_data.get("market_cap_percentage", {}).get("usdt", 7.5), 1),
-            "vix": vix, "dxy": 101, "urpd": 84.2, "total3": "0.98T", "m2": "21.2T", "fng": "9 (Extreme Fear)"
+            "btc_d": round(global_api["data"]["market_cap_percentage"]["btc"], 1) if global_api else 56.5,
+            "eth_btc": round((price_map.get("ethereum", {}).get("current_price", 0) / btc_usd), 4) if btc_usd > 0 else 0,
+            "rotation_score": 35,
+            "portfolio_eur": round(portfolio_eur, 0),
+            "profit_range": f"€{min_profit_eur:,.0f} - €{max_profit_eur:,.0f}",
+            "investit_eur": round(INVESTITIE_TOTALA_USD * usd_eur_live, 0),
+            "multiplier": round(portfolio_eur / (INVESTITIE_TOTALA_USD * usd_eur_live), 2),
+            "coins": results,
+            "vix": 13.8, "dxy": 101, "total3": "0.98T", "fng": "9 (Extreme Fear)"
         }, f)
 
 if __name__ == "__main__": main()
