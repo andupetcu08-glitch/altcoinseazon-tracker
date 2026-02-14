@@ -1,0 +1,57 @@
+{
+  "timestamp": "10:33",
+  "btc_d": 56.7,
+  "total3": 0.81,
+  "exit_probability": 17.2,
+  "regime": "\ud83d\udfe2 HOLD",
+  "coins": [
+    {
+      "coin": "OP",
+      "price": 0.192127,
+      "target_apr": 4.8,
+      "target_mai": 5.7,
+      "progress": 4.0,
+      "potential": 29.7
+    },
+    {
+      "coin": "ARB",
+      "price": 0.117344,
+      "target_apr": 3.0,
+      "target_mai": 3.6,
+      "progress": 3.9,
+      "potential": 30.7
+    },
+    {
+      "coin": "TIA",
+      "price": 0.341601,
+      "target_apr": 12.0,
+      "target_mai": 16.0,
+      "progress": 2.8,
+      "potential": 46.8
+    },
+    {
+      "coin": "JTO",
+      "price": 0.271443,
+      "target_apr": 8.0,
+      "target_mai": 8.0,
+      "progress": 3.4,
+      "potential": 29.5
+    },
+    {
+      "coin": "LDO",
+      "price": 0.351479,
+      "target_apr": 5.6,
+      "target_mai": 6.8,
+      "progress": 6.3,
+      "potential": 19.3
+    },
+    {
+      "coin": "IMX",
+      "price": 0.168384,
+      "target_apr": 3.5,
+      "target_mai": 4.5,
+      "progress": 4.8,
+      "potential": 26.7
+    }
+  ]
+}
