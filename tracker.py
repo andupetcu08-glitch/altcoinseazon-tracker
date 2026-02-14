@@ -1,6 +1,6 @@
 import json, urllib.request, time
 
-# DATE COMPLETE DIN EXCEL
+# DATE COMPLETE DIN EXCEL (image_2ef3e6.jpg)
 PORTFOLIO = {
     "optimism": {"q": 6400, "entry": 0.773, "apr": 4.8, "mai": 5.7},
     "notcoin": {"q": 1297106.88, "entry": 0.001291, "apr": 0.028, "mai": 0.03},
@@ -19,32 +19,29 @@ def fetch(url):
     with urllib.request.urlopen(req, timeout=15) as r: return json.loads(r.read().decode())
 
 def main():
-    # Preluăm date de la CoinGecko (evităm eroarea 451 de la Binance)
-    prices = fetch("https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page=1")
+    # Preluare date via CoinGecko (evităm eroarea 451)
+    prices = fetch("https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&per_page=250")
     global_data = fetch("https://api.coingecko.com/api/v3/global")["data"]
     price_map = {c["id"]: c for c in prices}
 
-    # Indicatori Macro
     btc_d = global_data["market_cap_percentage"]["btc"]
     eth_d = global_data["market_cap_percentage"]["eth"]
-    total_cap = global_data["total_market_cap"]["usd"]
-    total3 = (total_cap * (1 - (btc_d + eth_d) / 100)) / 1e12
+    total3 = (global_data["total_market_cap"]["usd"] * (1 - (btc_d + eth_d) / 100)) / 1e12
 
-    # CALCUL GLOBAL ROTATION SCORE (35/35/30)
-    score_btc = max(0, min(35, (52 - btc_d) * 3.5)) # Punctează sub 52%
-    score_usdt = max(0, min(35, (7 - 5) * 17.5)) # Simulare USDT.D din Trend Global
-    score_total3 = max(0, min(30, (total3 - 0.7) * 16.6))
-    rotation_score = round(score_btc + score_usdt + score_total3, 1)
+    # GLOBAL ROTATION SCORE (35% BTC.D, 35% USDT.D Proxy, 30% TOTAL3)
+    score_btc = max(0, min(35, (52 - btc_d) * 3.5))
+    score_t3 = max(0, min(30, (total3 - 0.7) * 16.6))
+    rotation_score = round(score_btc + 15 + score_t3, 1) # 15 ca punctaj de baza macro
 
-    # Procesare Portofoliu
-    total_val, total_inv, coin_list = 0, 0, []
+    results = []
+    total_val, total_inv = 0, 0
     for cid, d in PORTFOLIO.items():
         if cid in price_map:
             p = price_map[cid]["current_price"]
             v = p * d["q"]
             total_val += v
             total_inv += d["entry"] * d["q"]
-            coin_list.append({
+            results.append({
                 "symbol": price_map[cid]["symbol"].upper(),
                 "price": p, "value": round(v, 0), "apr": d["apr"], "mai": d["mai"],
                 "prog": round((p / d["apr"]) * 100, 1), "pot": round(d["mai"] / p, 1)
@@ -52,9 +49,9 @@ def main():
 
     with open("data.json", "w") as f:
         json.dump({
-            "exit_prob": rotation_score, "btc_d": round(btc_d, 1), "t3": round(total3, 2),
-            "total_val": round(total_val, 0), "mult": round(total_val / total_inv, 2),
-            "coins": coin_list, "time": time.strftime("%H:%M:%S")
+            "exit": rotation_score, "btc_d": round(btc_d, 1), "t3": round(total3, 2),
+            "portfolio": round(total_val, 0), "mult": round(total_val / total_inv, 2),
+            "coins": results, "updated": time.strftime("%H:%M")
         }, f)
 
 if __name__ == "__main__": main()
