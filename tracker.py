@@ -1,8 +1,8 @@
 import json, urllib.request
 
 INVESTITIE_TOTALA_USD = 120456.247
-# Curs ajustat pentru a reflecta realitatea ta: 17.800 USD -> 15.600 EUR
-USD_EUR = 0.8764 
+# Curs ajustat pentru paritatea ta: 17.8k USD -> 16.3k EUR
+USD_EUR = 0.919 
 
 PORTFOLIO = {
     "optimism": {"q": 6400, "entry": 0.773, "apr": 4.8, "mai": 5.6, "fib": 5.95},
@@ -13,7 +13,7 @@ PORTFOLIO = {
     "lido-dao": {"q": 9296.65, "entry": 1.121, "apr": 5.6, "mai": 6.4, "fib": 6.90},
     "cartesi": {"q": 49080, "entry": 0.19076, "apr": 0.2, "mai": 0.2, "fib": 0.24},
     "immutable-x": {"q": 1551.82, "entry": 3.4205, "apr": 3.5, "mai": 4.3, "fib": 4.85},
-    "sonic-3": {"q": 13449.38, "entry": 0.61633, "apr": 1.05, "mai": 1.2, "fib": 1.45},
+    "sonic-3": {"q": 13449.38, "entry": 0.81633, "apr": 1.05, "mai": 1.2, "fib": 1.45},
     "synthetix-network-token": {"q": 20073.76, "entry": 0.8773, "apr": 7.8, "mai": 9.3, "fib": 10.20}
 }
 
@@ -37,7 +37,6 @@ def main():
     btc_d = global_data.get("market_cap_percentage", {}).get("btc", 56.5)
     vix = 13.8 
 
-    # Scor Multi-factor
     score = 50 
     if btc_d > 55: score -= 15
     if eth_btc > 0.04: score += 15
@@ -55,7 +54,6 @@ def main():
         total_val_usd += (p * d["q"])
         total_val_mai_usd += (d["mai"] * d["q"])
         
-        # Progres catre Fib Target
         prog = ((p - d["entry"]) / (d["fib"] - d["entry"])) * 100 if d["fib"] > d["entry"] else 0
         prog = max(0, min(100, prog))
 
@@ -71,7 +69,6 @@ def main():
             "x_apr": round(d["apr"] / d["entry"], 2), "x_mai": round(d["mai"] / d["entry"], 2)
         })
 
-    # Afisam EUR conform calculului tau (17.8k USD -> 15.6k EUR)
     portfolio_eur = total_val_usd * USD_EUR
     profit_mai_eur = (total_val_mai_usd - INVESTITIE_TOTALA_USD) * USD_EUR
 
