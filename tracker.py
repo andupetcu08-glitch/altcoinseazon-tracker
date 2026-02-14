@@ -1,7 +1,7 @@
 import json, urllib.request, time
 
 INVESTITIE_TOTALA_USD = 120456.247
-USD_EUR = 0.96 # Curs pentru calculul profitului teoretic in EUR
+USD_EUR = 0.96 
 
 PORTFOLIO = {
     "optimism": {"q": 6400, "entry": 0.773, "apr": 4.8, "mai": 5.6},
@@ -32,18 +32,9 @@ def main():
     global_data = global_api["data"] if global_api else {}
     
     btc_d = global_data.get("market_cap_percentage", {}).get("btc", 0)
-    eth_d = global_data.get("market_cap_percentage", {}).get("eth", 0)
-    total_mcap = global_data.get("total_market_cap", {}).get("usd", 0)
-    total3 = (total_mcap * (1 - (btc_d + eth_d) / 100)) / 1e12
-
-    # Calcul Rotation Score & Profit Teoretic
-    score = 0
-    if btc_d < 46: score += 25
-    fng_val = int(fng_data["data"][0]["value"]) if fng_data else 50
-    if fng_val < 80: score += 25
-    score += 25 # URPD Placeholder
-    score += 0  # USDT.D Placeholder
-
+    # Extragere USDT.D din API Global (daca este disponibil) sau fallback
+    usdtd = global_data.get("market_cap_percentage", {}).get("usdt", 5.1) 
+    
     results = []
     total_val = 0
     total_exit_mai = 0
@@ -65,17 +56,19 @@ def main():
             "pot_mai": round(d["mai"] / d["entry"], 2)
         })
 
-    profit_eur = (total_exit_mai - INVESTITIE_TOTALA_USD) * USD_EUR
+    profit_eur = (total_exit_mai - INVESTITIE_TOTAL_USD) * USD_EUR
 
     with open("data.json", "w") as f:
         json.dump({
-            "btc_d": round(btc_d, 1), "total3": round(total3, 2),
-            "fng": fng_val, "rotation_score": score,
+            "btc_d": round(btc_d, 1), 
+            "total3": round((global_data.get("total_market_cap", {}).get("usd", 0) * (1 - (btc_d + global_data.get("market_cap_percentage", {}).get("eth", 0)) / 100)) / 1e12, 2),
+            "fng": fng_data["data"][0]["value"] if fng_data else "50",
             "portfolio": round(total_val, 0),
             "profit_teoretic": f"{profit_eur:,.0f}",
-            "multiplier": round(total_val / INVESTITIE_TOTALA_USD, 2),
+            "multiplier": round(total_val / INVESTITIE_TOTAL_USD, 2),
             "coins": results,
-            "vix": 14.1, "dxy": 103.8, "urpd": 84.2, "m2": "21.2T", "usdtd": 5.1
+            "usdtd": round(usdtd, 1),
+            "vix": 14.1, "dxy": 103.8, "urpd": 84.2, "m2": "21.2T"
         }, f)
 
 if __name__ == "__main__": main()
