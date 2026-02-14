@@ -1,110 +1,21 @@
-<!DOCTYPE html>
-<html lang="ro">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        body { background: #0b0e14; color: #e1e1e1; font-family: sans-serif; padding: 10px; font-size: 12px; }
-        .target-panel { background: #052e16; border: 1px solid #22c55e; padding: 10px; border-radius: 8px; margin-bottom: 15px; text-align: center; }
-        .macro-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 10px; }
-        .m-card { background: #1a1c24; padding: 8px; border-radius: 6px; border: 1px solid #333; text-align: center; }
-        .m-label { font-size: 9px; color: #888; margin-bottom: 3px; }
-        .m-val { font-weight: bold; font-size: 13px; }
-        .stats-main { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-        .card-big { background: #1a1c24; padding: 15px; border-radius: 8px; border: 1px solid #444; }
-        .val-big { font-size: 26px; font-weight: bold; color: #00ff88; }
-        .sub-inv { color: #00ff88; font-weight: bold; background: rgba(0,255,136,0.1); padding: 2px 5px; border-radius: 4px; }
-        .table-container { background: #1a1c24; border-radius: 8px; overflow-x: auto; border: 1px solid #222; }
-        table { width: 100%; border-collapse: collapse; min-width: 700px; }
-        th { background: #111; padding: 10px; text-align: left; color: #888; font-size: 10px; }
-        td { padding: 12px 10px; border-bottom: 1px solid #222; }
-        .pot { color: #00ff88; font-weight: bold; }
-        .target-price { color: #fbbf24; }
-    </style>
-</head>
-<body>
-
-    <div class="target-panel">
-        🎯 <b>MACRO TARGETS:</b> BTC.D: 46% | VIX: 13.8 | URPD: 86% | USDT.D: 5%
+<div class="stats-main">
+    <div class="card-big" style="border-color: #fbbf24;">
+        <div class="m-label">PROFIT TEORETIC (MAI)</div>
+        <div class="val-big" style="color: #fbbf24;">€ <span id="profit-eur">--</span></div>
     </div>
-
-    <div class="macro-grid">
-        <div class="m-card"><div class="m-label">BTC.D LIVE</div><div id="btcd" class="m-val">--</div></div>
-        <div class="m-card"><div class="m-label">TOTAL 3</div><div id="t3" class="m-val">--</div></div>
-        <div class="m-card"><div class="m-label">SENTIMENT</div><div id="fng" class="m-val">--</div></div>
-        <div class="m-card"><div class="m-label">USDT.D</div><div id="usdtd" class="m-val">5.1%</div></div>
+    <div class="card-big">
+        <div class="m-label">PROFIT REALIZAT</div>
+        <div id="profit-realizat" class="val-big" style="color: #888;">€ 0</div>
     </div>
+</div>
 
-    <div class="stats-main">
-        <div class="card-big"><div class="m-label">VALOARE PORTOFOLIU</div><div id="v" class="val-big">--</div></div>
-        <div class="card-big">
-            <div class="m-label">MULTIPLIER ACTUAL ( <span class="sub-inv">$120,456</span> )</div>
-            <div id="m" class="val-big">--</div>
-        </div>
-    </div>
-
-    <div class="macro-grid" style="background: rgba(255,255,255,0.03); padding: 10px; border-radius: 8px;">
-        <div class="m-card"><div class="m-label">URPD PROFIT</div><div id="urpd" class="m-val">--</div></div>
-        <div class="m-card"><div class="m-label">VIX INDEX</div><div id="vix" class="m-val">--</div></div>
-        <div class="m-card"><div class="m-label">DXY</div><div id="dxy" class="m-val">--</div></div>
-        <div class="m-card"><div class="m-label">M2 SUPPLY</div><div id="m2" class="m-val">--</div></div>
-    </div>
-
-    <br>
-    <div class="table-container">
-        <table>
-            <thead>
-                <tr>
-                    <th>MONEDA</th>
-                    <th>CANTITATE</th>
-                    <th>ENTRY</th>
-                    <th>APR TARGET</th>
-                    <th>X APR</th>
-                    <th>MAI TARGET</th>
-                    <th>X MAI</th>
-                </tr>
-            </thead>
-            <tbody id="rows"></tbody>
-        </table>
-    </div>
-
-    <script>
-        async function load() {
-            const r = await fetch('data.json?v=' + Date.now());
-            const d = await r.json();
-            
-            document.getElementById('v').textContent = '$' + d.portfolio.toLocaleString();
-            document.getElementById('m').textContent = d.multiplier + 'x';
-            document.getElementById('btcd').textContent = d.btc_d + '%';
-            document.getElementById('t3').textContent = d.total3 + 'T';
-            document.getElementById('fng').textContent = d.fng;
-            
-            // Logica culori Macro
-            const vixEl = document.getElementById('vix'); vixEl.textContent = d.vix;
-            vixEl.style.color = d.vix <= 13.8 ? "#00ff88" : "#ff4d4d";
-            
-            const urpdEl = document.getElementById('urpd'); urpdEl.textContent = d.urpd + '%';
-            urpdEl.style.color = d.urpd >= 86 ? "#00ff88" : "#fbbf24";
-
-            document.getElementById('dxy').textContent = d.dxy;
-            document.getElementById('m2').textContent = d.m2;
-
-            let h = '';
-            d.coins.forEach(c => {
-                h += `<tr>
-                    <td><b>${c.symbol}</b><br><small style="color:#666">$${c.price}</small></td>
-                    <td>${c.q.toLocaleString()}</td>
-                    <td style="color:#aaa">$${c.entry}</td>
-                    <td class="target-price">$${c.apr}</td>
-                    <td class="pot">${c.pot_apr}x</td>
-                    <td class="target-price">$${c.mai}</td>
-                    <td class="pot">${c.pot_mai}x</td>
-                </tr>`;
-            });
-            document.getElementById('rows').innerHTML = h;
-        }
-        load();
-        setInterval(load, 60000);
-    </script>
-</body>
-</html>
+<script>
+    // In interiorul functiei load(), adauga:
+    document.getElementById('profit-eur').textContent = d.profit_teoretic;
+    
+    // Logica pentru Rotation Score (bazata pe imaginea ta cu formula)
+    let score = 0;
+    if(d.btc_d < 46) score += 25;
+    if(parseFloat(d.fng) < 80) score += 20;
+    // ... restul algoritmului tau
+</script>
