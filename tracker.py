@@ -1,8 +1,7 @@
 import json, urllib.request, time
 
 INVESTITIE_TOTALA_USD = 120456.247
-# Curs fix pentru conversia in EUR (poti sa il faci si pe acesta dinamic ulterior)
-USD_EUR = 0.94 
+USD_EUR = 0.94  # Curs valutar estimativ
 
 PORTFOLIO = {
     "optimism": {"q": 6400, "entry": 0.773, "apr": 4.8, "mai": 5.6},
@@ -36,10 +35,9 @@ def main():
     total_exit_mai_usd = 0
 
     for cid, d in PORTFOLIO.items():
-        # Daca API-ul nu returneaza pretul, punem 0.0001 ca sa nu crape calculele, dar sa vedem ca e eroare
         p = price_map.get(cid, {}).get("current_price", 0)
         total_val_usd += (p * d["q"])
-        total_exit_mai_usd += (d["mai"] * d["q"]) # Suma estimata in Mai
+        total_exit_mai_usd += (d["mai"] * d["q"])
         
         symbol = cid.split('-')[0].upper()
         if cid == "sonic-3": symbol = "SONIC"
@@ -53,19 +51,31 @@ def main():
             "pot_mai": round(d["mai"] / d["entry"], 2)
         })
 
-    # Calcul Profit Teoretic in EUR (Suma Exit Mai - Investitie Initiala)
-    profit_teoretic_eur = (total_exit_mai_usd - INVESTITIE_TOTAL_USD) * USD_EUR
+    # CALCUL ROTATION SCORE (Conform tabelului tau)
+    btcd = global_api["data"]["market_cap_percentage"]["btc"] if global_api else 50
+    fng = int(fng_data["data"][0]["value"]) if fng_data else 50
+    urpd = 84.2 # Live placeholder
+    usdtd = 5.1 # Live placeholder
+    
+    score = 0
+    if btcd < 46: score += 25
+    if usdtd < 5: score += 25
+    if urpd > 80: score += 25
+    if fng < 80: score += 25
+
+    profit_teoretic_eur = (total_exit_mai_usd - INVESTITIE_TOTALA_USD) * USD_EUR
 
     with open("data.json", "w") as f:
         json.dump({
-            "btc_d": round(global_api["data"]["market_cap_percentage"]["btc"], 1) if global_api else 0,
-            "total3": round(global_api["data"]["total_market_cap"]["usd"] / 1e12, 2) if global_api else 0,
-            "fng": fng_data["data"][0]["value"] if fng_data else "50",
+            "btc_d": round(btcd, 1),
+            "total3": round(global_api["data"]["total_market_cap"]["usd"] / 1e12, 2) if global_api else 0.8,
+            "fng": fng,
+            "rotation_score": score,
             "portfolio": round(total_val_usd, 0),
-            "multiplier": round(total_val_usd / INVESTITIE_TOTAL_USD, 2),
+            "multiplier": round(total_val_usd / INVESTITIE_TOTALA_USD, 2),
             "profit_teoretic": f"{profit_teoretic_eur:,.0f}",
             "coins": results,
-            "vix": 14.1, "urpd": 84.2, "dxy": 103.8, "m2": "21.2T"
+            "vix": 14.1, "urpd": urpd, "dxy": 103.8, "m2": "21.2T", "usdtd": usdtd
         }, f)
 
 if __name__ == "__main__": main()
