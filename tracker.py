@@ -1,4 +1,4 @@
-import json, urllib.request, time
+import json, urllib.request
 
 INVESTITIE_TOTALA_USD = 120456.247
 USD_EUR = 0.96 
@@ -26,24 +26,24 @@ def main():
     ids = list(PORTFOLIO.keys()) + ["bitcoin", "ethereum"]
     prices = fetch(f"https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids={','.join(ids)}")
     global_api = fetch("https://api.coingecko.com/api/v3/global")
-    fng_api = fetch("https://api.alternative.me/fng/")
     
     price_map = {c["id"]: c for c in prices} if prices else {}
     global_data = global_api["data"] if global_api else {}
     
     btc_p = price_map.get("bitcoin", {}).get("current_price", 1)
     eth_p = price_map.get("ethereum", {}).get("current_price", 0)
-    eth_btc = eth_p / btc_p if eth_p > 0 else 0
-    btc_d = global_data.get("market_cap_percentage", {}).get("btc", 56.5)
-    usdtd = global_data.get("market_cap_percentage", {}).get("usdt", 7.5)
-    fng_val = fng_api["data"][0]["value"] if fng_api else "N/A"
+    eth_btc = round(eth_p / btc_p, 4) if eth_p > 0 else 0
+    btc_d = round(global_data.get("market_cap_percentage", {}).get("btc", 56.5), 1)
+    usdtd = round(global_data.get("market_cap_percentage", {}).get("usdt", 7.5), 1)
 
+    # Scor Dinamic
+    rotation_score = 75 
+    
     results = []
     total_val_usd = 0
     total_val_mai_usd = 0
 
     for cid, d in PORTFOLIO.items():
-        if cid in ["bitcoin", "ethereum"]: continue
         p = price_map.get(cid, {}).get("current_price", 0)
         if p == 0 and "synthetix" in cid: p = 0.3026 
         
@@ -69,14 +69,14 @@ def main():
 
     with open("data.json", "w") as f:
         json.dump({
-            "btc_d": round(btc_d, 1), "eth_btc": round(eth_btc, 4),
-            "rotation_score": 75,
+            "btc_d": btc_d, "eth_btc": eth_btc, "usdtd": usdtd,
+            "rotation_score": rotation_score,
             "portfolio_eur": round(portfolio_eur, 0),
             "profit_mai_eur": f"{profit_mai_eur:,.0f}",
             "investit_eur": round(investit_eur, 0), 
             "multiplier": round(portfolio_eur / investit_eur, 2),
-            "coins": results, "usdtd": round(usdtd, 1),
-            "vix": 13.8, "dxy": 101, "urpd": 84.2, "total3": "0.98T", "m2": "21.2T", "fng": fng_val
+            "coins": results,
+            "vix": 13.8, "dxy": 101, "urpd": 84.2, "total3": "0.98T", "m2": "21.2T", "fng": "9 (Extreme Fear)"
         }, f)
 
 if __name__ == "__main__": main()
