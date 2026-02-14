@@ -4,70 +4,78 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        body { background: #0b0e14; color: #e1e1e1; font-family: sans-serif; padding: 10px; font-size: 13px; }
+        body { background: #0b0e14; color: #e1e1e1; font-family: 'Segoe UI', sans-serif; padding: 10px; font-size: 12px; }
         .target-panel { background: #052e16; border: 1px solid #22c55e; padding: 12px; border-radius: 10px; margin-bottom: 15px; text-align: center; }
-        .target-panel b { color: #00ff88; }
+        .target-panel b { color: #00ff88; font-size: 14px; }
         
-        .macro-live { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 15px; }
+        .macro-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 10px; }
         .m-card { background: #1a1c24; padding: 10px; border-radius: 8px; border: 1px solid #333; text-align: center; }
-        .m-label { font-size: 10px; color: #888; margin-bottom: 4px; }
-        .m-val { font-weight: bold; color: #fff; }
+        .m-label { font-size: 9px; color: #888; text-transform: uppercase; margin-bottom: 4px; }
+        .m-val { font-weight: bold; font-size: 13px; }
 
         .stats-main { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-        .card-big { background: #1a1c24; padding: 15px; border-radius: 10px; border: 1px solid #333; }
-        .val-big { font-size: 22px; font-weight: bold; color: #00ff88; }
+        .card-big { background: #1a1c24; padding: 15px; border-radius: 10px; border: 1px solid #333; position: relative; }
+        .val-big { font-size: 24px; font-weight: bold; color: #00ff88; }
+        .sub-inv { color: #00ff88; font-weight: bold; background: rgba(0,255,136,0.1); padding: 2px 6px; border-radius: 4px; }
 
-        table { width: 100%; border-collapse: collapse; background: #1a1c24; border-radius: 10px; }
-        th { background: #222; padding: 10px; text-align: left; color: #888; font-size: 10px; }
-        td { padding: 10px; border-bottom: 1px solid #222; }
-        .pot-box { color: #00ff88; font-weight: bold; }
+        .table-container { background: #1a1c24; border-radius: 10px; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 600px; }
+        th { background: #222; padding: 12px 8px; text-align: left; color: #888; font-size: 10px; }
+        td { padding: 12px 8px; border-bottom: 1px solid #222; }
+        .pot { color: #00ff88; font-weight: bold; }
+        .highlight { color: #fbbf24; }
     </style>
 </head>
 <body>
+
     <div class="target-panel">
-        🎯 <b>MACRO TARGETS:</b> BTC.D: 47-46% | USDT.D: 5% | VIX: <b>13.8</b> | URPD Profit: <b>86%</b> | Multiplier: <b>6.03x</b>
+        🎯 <b>TARGETS:</b> VIX: <b>13.8</b> | URPD Profit: <b>86%</b> | BTC.D: <b>46%</b> | Portofoliu: <b>6.03x</b>
     </div>
 
-    <div class="macro-live">
-        <div class="m-card"><div class="m-label">BTC.D LIVE</div><div id="btcd" class="m-val">--</div></div>
+    <div class="macro-grid">
+        <div class="m-card"><div class="m-label">BTC.D LIVE</div><div id="btcd" class="m-val" style="color:#fbbf24">--</div></div>
         <div class="m-card"><div class="m-label">TOTAL 3</div><div id="t3" class="m-val">--</div></div>
         <div class="m-card"><div class="m-label">SENTIMENT</div><div id="fng" class="m-val">--</div></div>
-        <div class="m-card"><div class="m-label">USDT.D proxy</div><div class="m-val">LIVE</div></div>
+        <div class="m-card"><div class="m-label">USDT.D</div><div class="m-val" style="color:#ff4d4d">4.2%</div></div>
     </div>
 
     <div class="stats-main">
-        <div class="card-big"><div class="m-label">PORTOFOLIU</div><div id="v" class="val-big">--</div></div>
+        <div class="card-big"><div class="m-label">VALOARE ACTUALĂ</div><div id="v" class="val-big">--</div></div>
         <div class="card-big">
-            <div class="m-label">MULTIPLIER ACTUAL (<b style="color:#00ff88;">$120,456</b>)</div>
+            <div class="m-label">MULTIPLIER ACTUAL ( <span class="sub-inv">$120,456</span> )</div>
             <div id="m" class="val-big">--</div>
         </div>
     </div>
 
-    <div class="macro-live" style="background: #111; padding: 10px; border-radius: 8px;">
-        <div class="m-card"><div class="m-label">URPD PROFIT</div><div class="m-val" style="color:#fbbf24">84.2%</div></div>
-        <div class="m-card"><div class="m-label">S&P 500 VIX</div><div class="m-val">14.1</div></div>
-        <div class="m-card"><div class="m-label">DXY</div><div class="m-val">104.2</div></div>
-        <div class="m-card"><div class="m-label">M2 SUPPLY</div><div class="m-val">21.1T</div></div>
+    <div class="macro-grid">
+        <div class="m-card"><div class="m-label">URPD PROFIT</div><div class="m-val">84.2%</div></div>
+        <div class="m-card"><div class="m-label">VIX INDEX</div><div class="m-val" style="color:#00ff88">14.1</div></div>
+        <div class="m-card"><div class="m-label">DXY (DOLAR)</div><div class="m-val">103.8</div></div>
+        <div class="m-card"><div class="m-label">M2 SUPPLY</div><div class="m-val">21.2T</div></div>
     </div>
 
-    <br>
-    <table>
-        <thead>
-            <tr>
-                <th>COIN</th>
-                <th>CANTITATE</th>
-                <th>ENTRY</th>
-                <th>TARGET APR</th>
-                <th>X APR</th>
-                <th>TARGET MAI</th>
-                <th>X MAI</th>
-            </tr>
-        </thead>
-        <tbody id="rows"></tbody>
-    </table>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>COIN</th>
+                    <th>CANTITATE</th>
+                    <th>ENTRY</th>
+                    <th>TARGET APR</th>
+                    <th>POT. APR</th>
+                    <th>TARGET MAI</th>
+                    <th>POT. MAI</th>
+                </tr>
+            </thead>
+            <tbody id="rows"></tbody>
+        </table>
+    </div>
 
     <script>
-        fetch('data.json?v=' + Date.now()).then(r => r.json()).then(d => {
+        async function load() {
+            const r = await fetch('data.json?v=' + Date.now());
+            const d = await r.json();
+            
             document.getElementById('v').textContent = '$' + d.portfolio.toLocaleString();
             document.getElementById('m').textContent = d.multiplier + 'x';
             document.getElementById('btcd').textContent = d.btc_d + '%';
@@ -80,14 +88,16 @@
                     <td><b>${c.symbol}</b><br><small style="color:#666">$${c.price}</small></td>
                     <td>${c.q.toLocaleString()}</td>
                     <td>$${c.entry}</td>
-                    <td>$${c.apr}</td>
-                    <td class="pot-box">${c.pot_apr}x</td>
-                    <td>$${c.mai}</td>
-                    <td class="pot-box">${c.pot_mai}x</td>
+                    <td class="highlight">$${c.apr}</td>
+                    <td class="pot">${c.pot_apr}x</td>
+                    <td class="highlight">$${c.mai}</td>
+                    <td class="pot">${c.pot_mai}x</td>
                 </tr>`;
             });
             document.getElementById('rows').innerHTML = h;
-        });
+        }
+        load();
+        setInterval(load, 60000);
     </script>
 </body>
 </html>
