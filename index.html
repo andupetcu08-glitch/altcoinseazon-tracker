@@ -1,26 +1,31 @@
 fetch('data.json?v=' + Date.now()).then(r => r.json()).then(d => {
-    // Afișăm valorile macro
-    document.getElementById('total-val').textContent = '$' + d.portfolio_val.toLocaleString();
-    document.getElementById('mult').textContent = d.multiplier + 'x';
-    document.getElementById('btc-d').textContent = d.btc_d + '%';
-    document.getElementById('t3').textContent = d.total3 + 'T';
-    document.getElementById('ex').textContent = d.exit + '%';
+    // Statisici Header
+    document.getElementById('total-val').textContent = '$' + d.total_val.toLocaleString();
+    document.getElementById('mult').textContent = d.mult + 'x';
+    document.getElementById('ex').textContent = d.exit_prob + '%';
 
-    // Iluminăm butoanele
-    if(d.exit >= 75) document.getElementById('s').className = 'btn active-sell';
-    else if(d.exit >= 50) document.getElementById('p').className = 'btn active-prepare';
-    else document.getElementById('h').className = 'btn active-hold';
+    // INTERPRETARE SEMAFOR
+    const h = document.getElementById('h'), p = document.getElementById('p'), s = document.getElementById('s');
+    h.className = p.className = s.className = 'btn'; // reset
 
-    // Generăm tabelul pentru TOATE monedele
-    let rows = '';
+    if (d.exit_prob >= 80) {
+        s.classList.add('active-hold'); // Folosim culoarea verde pentru executie
+        s.textContent = 'EXECUȚIE';
+    } else if (d.exit_prob >= 50) {
+        p.classList.add('active-prepare'); // Galben
+    } else {
+        h.classList.add('active-sell'); // Folosim clasa de rosu pentru Hold (nu iesim)
+    }
+
+    // Tabel Complet (10 monede)
+    let html = '';
     d.coins.forEach(c => {
-        rows += `<tr>
+        html += `<tr>
             <td><b>${c.symbol}</b><br><small>$${c.price.toLocaleString()}</small></td>
             <td>$${c.value.toLocaleString()}</td>
             <td style="color:#888">$${c.apr} / $${c.mai}</td>
-            <td>${c.progress}%</td>
             <td style="color:#00ff88"><b>${c.pot}x</b></td>
         </tr>`;
     });
-    document.getElementById('rows').innerHTML = rows;
+    document.getElementById('rows').innerHTML = html;
 });
