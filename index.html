@@ -2,26 +2,28 @@
 <html lang="ro">
 <head>
     <meta charset="UTF-8">
+    <title>Altcoin Season Tracker</title>
     <style>
-        body { background: #0b0e14; color: #e1e1e1; font-family: sans-serif; padding: 10px; font-size: 12px; }
-        .target-panel { background: #052e16; border: 1px solid #22c55e; padding: 10px; border-radius: 8px; margin-bottom: 15px; text-align: center; }
-        .status-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px; }
-        .btn { padding: 12px; text-align: center; border-radius: 6px; font-weight: bold; background: #1a1c24; border: 1px solid #333; color: #444; }
-        .active-hold { border-color: #ef4444; color: #ef4444; box-shadow: 0 0 10px rgba(239, 68, 68, 0.2); }
+        body { background: #0b0e14; color: #e1e1e1; font-family: 'Segoe UI', sans-serif; padding: 15px; font-size: 12px; }
+        .status-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+        .btn { padding: 15px; text-align: center; border-radius: 8px; font-weight: bold; background: #16181d; border: 1px solid #333; color: #444; transition: 0.3s; }
+        .active-hold { border-color: #ef4444 !important; color: #ef4444 !important; box-shadow: 0 0 15px rgba(239, 68, 68, 0.1); }
+        .active-prepare { border-color: #fbbf24 !important; color: #fbbf24 !important; }
+        .active-sell { border-color: #00ff88 !important; color: #00ff88 !important; }
         
-        .macro-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 10px; }
-        .m-card { background: #1a1c24; padding: 8px; border-radius: 6px; border: 1px solid #333; text-align: center; }
-        .m-label { font-size: 9px; color: #888; text-transform: uppercase; }
-        .m-val { font-weight: bold; font-size: 13px; margin-top: 4px; }
+        .macro-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 15px; }
+        .m-card { background: #1a1c24; padding: 12px; border-radius: 8px; border: 1px solid #333; text-align: center; }
+        .m-label { font-size: 10px; color: #666; text-transform: uppercase; margin-bottom: 5px; }
+        .m-val { font-weight: bold; font-size: 15px; }
 
-        .stats-main { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-        .card-big { background: #16181d; padding: 15px; border-radius: 10px; border: 1px solid #333; }
-        .val-big { font-size: 24px; font-weight: bold; color: #00ff88; }
-        .profit-gold { color: #fbbf24 !important; }
+        .stats-main { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 20px; }
+        .card-big { background: #16181d; padding: 20px; border-radius: 12px; border: 1px solid #333; position: relative; }
+        .val-big { font-size: 28px; font-weight: bold; color: #00ff88; }
+        .target-hint { font-size: 10px; color: #555; margin-top: 5px; text-align: center; }
 
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th { text-align: left; color: #666; font-size: 10px; padding: 10px; border-bottom: 2px solid #222; }
-        td { padding: 12px 10px; border-bottom: 1px solid #1a1c24; }
+        table { width: 100%; border-collapse: collapse; background: #111318; border-radius: 10px; overflow: hidden; }
+        th { text-align: left; color: #555; font-size: 11px; padding: 15px; background: #1a1c24; }
+        td { padding: 15px; border-bottom: 1px solid #1a1c24; }
         .pot { color: #00ff88; font-weight: bold; }
     </style>
 </head>
@@ -33,36 +35,41 @@
         <div id="s" class="btn">🟢 EXECUȚIE</div>
     </div>
 
+    <div class="target-hint">
+        🎯 TARGETS: BTC.D < 46% | VIX < 13.8 | URPD > 86% | USDT.D < 5%
+    </div>
+    <br>
+
     <div class="macro-row">
         <div class="m-card"><div class="m-label">Rotation Score</div><div id="score" class="m-val" style="color:#00ff88">--%</div></div>
-        <div class="m-card"><div class="m-label">BTC.D</div><div id="btcd" class="m-val">--</div></div>
-        <div class="m-card"><div class="m-label">TOTAL 3</div><div id="t3" class="m-val">--</div></div>
-        <div class="m-card"><div class="m-label">Sentiment</div><div id="fng" class="m-val">--</div></div>
+        <div class="m-card"><div class="m-label">BTC Dominance</div><div id="btcd" class="m-val">--</div></div>
+        <div class="m-card"><div class="m-label">Total 3 (Alt)</div><div id="t3" class="m-val">--</div></div>
+        <div class="m-card"><div class="m-label">Sentiment (F&G)</div><div id="fng" class="m-val">--</div></div>
     </div>
 
     <div class="stats-main">
-        <div class="card-big"><div class="m-label">Portofoliu Actual</div><div id="v" class="val-big">--</div></div>
-        <div class="card-big"><div class="m-label">Multiplier (Investit $120k)</div><div id="m" class="val-big">--</div></div>
-        <div class="card-big" style="border-color: #fbbf24;"><div class="m-label" style="color:#fbbf24">Profit Teoretic Mai</div><div id="profit" class="val-big profit-gold">--</div></div>
-        <div class="card-big"><div class="m-label">URPD Profit</div><div id="urpd" class="m-val" style="font-size: 20px;">--</div></div>
+        <div class="card-big"><div class="m-label">Portofoliu Actual (USD)</div><div id="v" class="val-big">--</div></div>
+        <div class="card-big"><div class="m-label">Multiplier (vs $120,456)</div><div id="m" class="val-big">--</div></div>
+        <div class="card-big" style="border-color: #fbbf24;"><div class="m-label" style="color:#fbbf24">Profit Teoretic Tinta (Mai)</div><div id="profit" class="val-big" style="color:#fbbf24">--</div></div>
+        <div class="card-big"><div class="m-label">URPD Realized Profit</div><div id="urpd" class="m-val" style="font-size: 24px; color: #fbbf24;">--</div></div>
     </div>
 
     <div class="macro-row">
         <div class="m-card"><div class="m-label">VIX Index</div><div id="vix" class="m-val" style="color:#ff4d4d">--</div></div>
-        <div class="m-card"><div class="m-label">DXY</div><div id="dxy" class="m-val">--</div></div>
-        <div class="m-card"><div class="m-label">M2 Supply</div><div id="m2" class="m-val">--</div></div>
+        <div class="m-card"><div class="m-label">DXY Index</div><div id="dxy" class="m-val">--</div></div>
+        <div class="m-card"><div class="m-label">M2 Money Supply</div><div id="m2" class="m-val">--</div></div>
         <div class="m-card"><div class="m-label">USDT.D</div><div id="usdtd" class="m-val">--</div></div>
     </div>
 
     <table>
         <thead>
             <tr>
-                <th>COIN</th>
+                <th>MONEDA / PRET</th>
                 <th>CANTITATE</th>
-                <th>VALOARE</th>
-                <th>ENTRY</th>
-                <th>TARGETS</th>
-                <th>POTENȚIAL</th>
+                <th>VALOARE ACTUALA</th>
+                <th>ENTRY MEDIU</th>
+                <th>TARGETS (APR/MAI)</th>
+                <th>POTENTIAL X</th>
             </tr>
         </thead>
         <tbody id="rows"></tbody>
@@ -87,13 +94,16 @@
             document.getElementById('m2').textContent = d.m2;
             document.getElementById('usdtd').textContent = d.usdtd + '%';
 
-            // Status Button
-            if(d.rotation_score < 50) document.getElementById('h').classList.add('active-hold');
+            // Logica Butoane Status
+            document.querySelectorAll('.btn').forEach(b => b.classList.remove('active-hold', 'active-prepare', 'active-sell'));
+            if(d.rotation_score >= 75) document.getElementById('s').classList.add('active-sell');
+            else if(d.rotation_score >= 50) document.getElementById('p').classList.add('active-prepare');
+            else document.getElementById('h').classList.add('active-hold');
 
             let h = '';
             d.coins.forEach(c => {
                 h += `<tr>
-                    <td><b>${c.symbol}</b><br><small style="color:#666">$${c.price}</small></td>
+                    <td><b>${c.symbol}</b><br><small style="color:#555">$${c.price}</small></td>
                     <td>${c.q.toLocaleString()}</td>
                     <td>$${c.value.toLocaleString()}</td>
                     <td style="color:#888">$${c.entry}</td>
