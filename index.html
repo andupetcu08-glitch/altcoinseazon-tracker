@@ -8,28 +8,32 @@
         .m-label { font-size: 8px; color: #888; text-transform: uppercase; margin-bottom: 4px; }
         .m-val { font-weight: bold; font-size: 16px; }
         
-        /* Dinamic Score Colors */
-        .score-hold { color: #ef4444 !important; }
-        .score-prepare { color: #fbbf24 !important; }
-        .score-sell { color: #00ff88 !important; }
+        /* Scor dinamic */
+        .score-hold { color: #ef4444; }
+        .score-prepare { color: #fbbf24; }
+        .score-sell { color: #00ff88; }
 
         .status-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
-        .st-btn { background: #111; border: 1px solid #222; border-radius: 8px; padding: 8px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; color: #333; }
+        .st-btn { background: #111; border: 1px solid #222; border-radius: 8px; padding: 8px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; color: #222; }
         .dot { width: 8px; height: 8px; border-radius: 50%; margin-right: 8px; }
         
-        .active-hold { border-color: #ef4444 !important; color: #ef4444 !important; box-shadow: 0 0 12px rgba(239, 68, 68, 0.2); }
-        .active-prepare { border-color: #fbbf24 !important; color: #fbbf24 !important; box-shadow: 0 0 12px rgba(251, 191, 36, 0.2); }
-        .active-sell { border-color: #00ff88 !important; color: #00ff88 !important; box-shadow: 0 0 12px rgba(0, 255, 136, 0.2); }
+        .active-hold { border-color: #ef4444 !important; color: #ef4444 !important; box-shadow: 0 0 15px rgba(239, 68, 68, 0.3); }
+        .active-prepare { border-color: #fbbf24 !important; color: #fbbf24 !important; box-shadow: 0 0 15px rgba(251, 191, 36, 0.3); }
+        .active-sell { border-color: #00ff88 !important; color: #00ff88 !important; box-shadow: 0 0 15px rgba(0, 255, 136, 0.3); }
 
         .stats-main { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
-        .card-big { background: #1a1c24; padding: 22px; border-radius: 12px; border: 1px solid #444; text-align: center; }
-        .val-big { font-size: 30px; font-weight: bold; color: #00ff88; }
-        .sub-sum { color: #888; font-size: 11px; display: block; margin-top: 6px; }
+        .card-big { background: #1a1c24; padding: 25px; border-radius: 12px; border: 1px solid #444; text-align: center; }
+        .val-big { font-size: 32px; font-weight: bold; color: #00ff88; }
+        .sub-sum { color: #888; font-size: 12px; display: block; margin-top: 8px; }
 
-        table { width: 100%; border-collapse: collapse; background: #111; border-radius: 10px; overflow: hidden; }
-        th { text-align: left; color: #555; font-size: 9px; padding: 15px; border-bottom: 2px solid #222; text-transform: uppercase; }
-        td { padding: 14px; border-bottom: 1px solid #1a1c24; }
-        .fib-col { background: rgba(168, 85, 247, 0.05); color: #a855f7; font-weight: bold; border-left: 1px solid #222; }
+        table { width: 100%; border-collapse: collapse; background: #111; border-radius: 12px; overflow: hidden; }
+        th { text-align: left; color: #444; font-size: 9px; padding: 15px; border-bottom: 2px solid #222; }
+        td { padding: 15px; border-bottom: 1px solid #1a1c24; }
+        
+        .fib-col { font-weight: bold; text-align: right; padding-right: 30px; border-left: 1px solid #222; color: #a855f7; }
+        /* Stil pentru alerta de vanzare */
+        .sell-alert { background: #ef4444 !important; color: #fff !important; animation: blink 1s infinite; border-radius: 4px; padding: 4px 8px; }
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
     </style></head><body>
 
     <div class="target-panel">
@@ -60,7 +64,7 @@
 
     <table>
         <thead>
-            <tr><th>MONEDA</th><th>CANTITATE</th><th>ENTRY</th><th>TARGET MAI</th><th>X MAI</th><th class="fib-col">FINAL TARGET PRICE (OPINION)</th></tr>
+            <tr><th>MONEDA</th><th>CANTITATE</th><th>ENTRY</th><th>TARGET MAI</th><th>X MAI</th><th style="text-align:right; padding-right:30px">FINAL TARGET PRICE (OPINION)</th></tr>
         </thead>
         <tbody id="rows"></tbody>
     </table>
@@ -71,10 +75,9 @@
             const d = await r.json();
             
             const sEl = document.getElementById('score');
-            sEl.textContent = d.rotation_score + '%';
-            
-            // Sincronizare Culori Scris Score
-            sEl.className = 'm-val ' + (d.rotation_score < 50 ? 'score-hold' : d.rotation_score < 75 ? 'score-prepare' : 'score-sell');
+            const score = d.rotation_score;
+            sEl.textContent = score + '%';
+            sEl.className = 'm-val ' + (score < 50 ? 'score-hold' : score < 75 ? 'score-prepare' : 'score-sell');
 
             document.getElementById('btcd').textContent = d.btc_d + '%';
             document.getElementById('ethbtc').textContent = d.eth_btc;
@@ -84,19 +87,23 @@
             document.getElementById('m').textContent = d.multiplier + 'x';
             document.getElementById('investit').textContent = 'Investit: €' + d.investit_eur.toLocaleString();
 
-            document.getElementById('btn-h').className = 'st-btn' + (d.rotation_score < 50 ? ' active-hold' : '');
-            document.getElementById('btn-p').className = 'st-btn' + (d.rotation_score >= 50 && d.rotation_score < 75 ? ' active-prepare' : '');
-            document.getElementById('btn-s').className = 'st-btn' + (d.rotation_score >= 75 ? ' active-sell' : '');
+            document.getElementById('btn-h').className = 'st-btn' + (score < 50 ? ' active-hold' : '');
+            document.getElementById('btn-p').className = 'st-btn' + (score >= 50 && score < 75 ? ' active-prepare' : '');
+            document.getElementById('btn-s').className = 'st-btn' + (score >= 75 ? ' active-sell' : '');
 
             let h = '';
             d.coins.forEach(c => {
+                // Verificam daca pretul live e la 5% de Target Opinion
+                const isClose = c.live_p >= (c.fib * 0.95);
+                const alertClass = isClose ? 'sell-alert' : '';
+
                 h += `<tr>
-                    <td><b>${c.symbol}</b><br><small style="color:#555">$${c.price}</small></td>
+                    <td><b>${c.symbol}</b><br><small style="color:#555">$${c.price_display}</small></td>
                     <td>${c.q.toLocaleString()}</td>
                     <td style="color:#888">$${c.entry}</td>
                     <td style="color:#fbbf24">$${c.mai}</td>
                     <td style="font-weight:bold">${c.pot_mai}x</td>
-                    <td class="fib-col">$${c.fib}</td>
+                    <td class="fib-col"><span class="${alertClass}">$${c.fib}</span></td>
                 </tr>`;
             });
             document.getElementById('rows').innerHTML = h;
