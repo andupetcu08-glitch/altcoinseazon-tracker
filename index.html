@@ -1,90 +1,74 @@
 <!DOCTYPE html>
-<html lang="ro">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Altcoin Engine v2</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
-        body { background: #0b0e14; color: #e1e1e1; font-family: 'Segoe UI', sans-serif; padding: 20px; }
-        .regime-box { display: flex; gap: 10px; margin-bottom: 25px; }
-        .btn { flex: 1; padding: 18px; border-radius: 12px; text-align: center; font-weight: bold; background: #1a1c24; color: #333; border: 1px solid #333; font-size: 16px; }
-        .active-hold { background: #450a0a !important; color: #ff4d4d !important; border-color: #ff4d4d; box-shadow: 0 0 15px rgba(255, 77, 77, 0.2); }
-        .active-prepare { background: #451a03 !important; color: #fbbf24 !important; border-color: #f59e0b; }
-        .active-exec { background: #052e16 !important; color: #4ade80 !important; border-color: #22c55e; }
-        .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
-        .card { background: #1a1c24; padding: 20px; border-radius: 15px; border: 1px solid #333; }
-        .label { color: #888; font-size: 14px; margin-bottom: 8px; }
-        .value { font-size: 28px; font-weight: bold; color: #00ff88; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th { text-align: left; color: #666; padding: 12px; border-bottom: 1px solid #333; font-size: 12px; text-transform: uppercase; }
-        td { padding: 15px 12px; border-bottom: 1px solid #16181d; font-size: 14px; }
-        .pot-val { color: #00ff88; font-weight: bold; }
+        body { background: #0b0e14; color: #e1e1e1; font-family: sans-serif; padding: 15px; }
+        .regime-box { display: flex; gap: 10px; margin-bottom: 20px; }
+        .btn { flex: 1; padding: 15px; border-radius: 10px; border: 1px solid #333; text-align: center; font-weight: bold; background: #1a1c24; display: flex; align-items: center; justify-content: center; gap: 8px; opacity: 0.4; }
+        
+        /* Bulinele */
+        .dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+        .dot-red { background: #ff4d4d; }
+        .dot-yellow { background: #ffcc00; }
+        .dot-green { background: #00ff88; }
+
+        /* Chenarul activ */
+        .active-h { border: 2px solid #ff4d4d; opacity: 1; box-shadow: 0 0 10px rgba(255,77,77,0.3); }
+        .active-p { border: 2px solid #ffcc00; opacity: 1; box-shadow: 0 0 10px rgba(255,204,0,0.3); }
+        .active-s { border: 2px solid #00ff88; opacity: 1; box-shadow: 0 0 10px rgba(0,255,136,0.3); }
+
+        .stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px; }
+        .card { background: #1a1c24; padding: 15px; border-radius: 12px; border: 1px solid #333; }
+        .val-big { font-size: 22px; font-weight: bold; color: #00ff88; }
+        
+        table { width: 100%; border-collapse: collapse; background: #1a1c24; border-radius: 10px; overflow: hidden; font-size: 12px; }
+        th { background: #222; padding: 10px; text-align: left; color: #888; }
+        td { padding: 12px 10px; border-bottom: 1px solid #222; }
     </style>
 </head>
 <body>
     <div class="regime-box">
-        <div id="h" class="btn">HOLD</div>
-        <div id="p" class="btn">PREPARE</div>
-        <div id="s" class="btn">EXECUȚIE</div>
+        <div id="h" class="btn"><span class="dot dot-red"></span> HOLD</div>
+        <div id="p" class="btn"><span class="dot dot-yellow"></span> PREPARE</div>
+        <div id="s" class="btn"><span class="dot dot-green"></span> EXECUȚIE</div>
     </div>
 
-    <div class="card-grid">
-        <div class="card">
-            <div class="label">Portofoliu Total:</div>
-            <div id="tv" class="value">--</div>
-        </div>
-        <div class="card">
-            <div class="label">Profit Multiplier:</div>
-            <div id="tm" class="value">--</div>
-        </div>
+    <div class="stats">
+        <div class="card">Portofoliu: <div id="v" class="val-big">--</div></div>
+        <div class="card">Multiplier: <div id="m" class="val-big">--</div></div>
+        <div class="card">Rotation Score: <div id="rs" class="val-big">--</div></div>
+        <div class="card">BTC.D / TOTAL3: <div id="macro" style="font-size:16px; font-weight:bold; margin-top:5px;">--</div></div>
     </div>
 
     <table>
-        <thead>
-            <tr><th>Moneda</th><th>Valoare USD</th><th>Target Apr/Mai</th><th>Potential</th></tr>
-        </thead>
+        <thead><tr><th>COIN</th><th>VALUE</th><th>APR/MAI</th><th>POT.</th></tr></thead>
         <tbody id="rows"></tbody>
     </table>
 
     <script>
-        async function updateDashboard() {
-            try {
-                const response = await fetch('data.json?v=' + Date.now());
-                const d = await response.json();
-                
-                document.getElementById('tv').textContent = '$' + d.total.toLocaleString();
-                document.getElementById('tm').textContent = d.mult + 'x';
-                
-                // Logica Semafor conform interpretării tale
-                document.getElementById('h').className = 'btn';
-                document.getElementById('p').className = 'btn';
-                document.getElementById('s').className = 'btn';
+        fetch('data.json?v=' + Date.now()).then(r => r.json()).then(d => {
+            document.getElementById('v').textContent = '$' + d.total.toLocaleString();
+            document.getElementById('m').textContent = d.mult + 'x';
+            document.getElementById('rs').textContent = d.exit + '%';
+            document.getElementById('macro').textContent = d.btc_d + '% / ' + d.t3 + 'T';
 
-                if (d.exit >= 80) {
-                    document.getElementById('s').classList.add('active-exec');
-                    document.getElementById('s').textContent = 'EXECUȚIE';
-                } else if (d.exit >= 50) {
-                    document.getElementById('p').classList.add('active-prepare');
-                } else {
-                    document.getElementById('h').classList.add('active-hold');
-                }
+            // Mutăm chenarul activ
+            if (d.exit >= 80) document.getElementById('s').classList.add('active-s');
+            else if (d.exit >= 50) document.getElementById('p').classList.add('active-p');
+            else document.getElementById('h').classList.add('active-h');
 
-                let html = '';
-                d.coins.forEach(c => {
-                    html += `<tr>
-                        <td><b>${c.symbol}</b><br><small style="color:#666">$${c.price.toFixed(4)}</small></td>
-                        <td>$${c.value.toLocaleString()}</td>
-                        <td style="color:#aaa">$${c.apr} / $${c.mai}</td>
-                        <td class="pot-val">${c.pot}x</td>
-                    </tr>`;
-                });
-                document.getElementById('rows').innerHTML = html;
-            } catch (e) {
-                console.error("Eroare la încărcarea datelor:", e);
-            }
-        }
-        updateDashboard();
-        setInterval(updateDashboard, 60000);
+            let h = '';
+            d.coins.forEach(c => {
+                h += `<tr>
+                    <td><b>${c.symbol}</b><br><small>$${c.price.toLocaleString()}</small></td>
+                    <td>$${c.value.toLocaleString()}</td>
+                    <td style="color:#888">$${c.apr}/$${c.mai}</td>
+                    <td style="color:#00ff88"><b>${c.pot}x</b></td>
+                </tr>`;
+            });
+            document.getElementById('rows').innerHTML = h;
+        });
     </script>
 </body>
 </html>
