@@ -1,3 +1,17 @@
+import time
+try:
+    html = f"""
+    <html><body style="background: #0e1117; color: white; text-align: center; font-family: sans-serif;">
+        <h1>Dashboard Activ ✅</h1>
+        <p>Update: {time.strftime('%H:%M:%S')}</p>
+        <p>Daca vezi asta, totul functioneaza perfect!</p>
+    </body></html>
+    """
+    with open("index.html", "w") as f:
+        f.write(html)
+    print("Succes!")
+except Exception as e:
+    print(f"Eroare: {e}")
 import json, urllib.request, time
 
 def fetch(url):
