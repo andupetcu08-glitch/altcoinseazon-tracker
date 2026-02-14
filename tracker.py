@@ -1,6 +1,7 @@
 import json, urllib.request, time
 
-# DATE DIN EXCEL (10 monede conform image_2ef3e6.jpg)
+# DATE EXTRĂSE DIN EXCEL
+INVESTITIE_TOTALA = 120456.24
 PORTFOLIO_DATA = {
     "optimism": {"q": 6400, "entry": 0.773, "apr": 4.8, "mai": 5.7},
     "notcoin": {"q": 1297106.88, "entry": 0.001291, "apr": 0.028, "mai": 0.03},
@@ -19,39 +20,42 @@ def fetch(url):
     with urllib.request.urlopen(req, timeout=15) as r: return json.loads(r.read().decode())
 
 def main():
-    # Sursă stabilă de prețuri
+    # Preluare prețuri de la CoinGecko (evităm eroarea 451 de la Binance)
     prices = fetch("https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&per_page=250")
     global_data = fetch("https://api.coingecko.com/api/v3/global")["data"]
     price_map = {c["id"]: c for c in prices}
 
+    # Indicatori Macro
     btc_d = global_data["market_cap_percentage"]["btc"]
-    eth_d = global_data["market_cap_percentage"]["eth"]
-    total3 = (global_data["total_market_cap"]["usd"] * (1 - (btc_d + eth_d) / 100)) / 1e12
+    total_cap = global_data["total_market_cap"]["usd"]
+    total3 = (total_cap * (1 - (btc_d + global_data["market_cap_percentage"]["eth"]) / 100)) / 1e12
 
-    # GLOBAL ROTATION SCORE (Media semnalelor 0-100)
-    score_btc = max(0, min(35, (55 - btc_d) * 3.5)) 
-    score_t3 = max(0, min(30, (total3 - 0.7) * 16.6))
-    rotation_score = round(score_btc + 15 + score_t3, 1) # 15 puncte constante pentru USDT.D/Sentiment
+    # Global Rotation Score (35/35/30)
+    # Folosim logica: BTC.D scade sub 50% punctează
+    score_btc = max(0, min(35, (56.7 - btc_d) * 5)) 
+    score_t3 = max(0, min(30, (total3 - 0.7) * 20))
+    rotation_score = round(score_btc + 15 + score_t3, 1) 
 
     results = []
-    total_val, total_inv = 0, 0
+    total_val = 0
     for cid, d in PORTFOLIO_DATA.items():
         if cid in price_map:
             p = price_map[cid]["current_price"]
             v = p * d["q"]
             total_val += v
-            total_inv += d["entry"] * d["q"]
             results.append({
                 "symbol": price_map[cid]["symbol"].upper(),
                 "price": p, "value": round(v, 0), "apr": d["apr"], "mai": d["mai"],
                 "pot": round(d["mai"] / p, 1)
             })
 
+    # Multiplier real: Valoare Curentă / Investiție
+    real_mult = round(total_val / INVESTITIE_TOTALA, 2)
+
     with open("data.json", "w") as f:
         json.dump({
             "exit": rotation_score, "btc_d": round(btc_d, 1), "t3": round(total3, 2),
-            "portfolio": round(total_val, 0), "mult": round(total_val / total_inv, 2),
-            "coins": results
+            "total": round(total_val, 0), "mult": real_mult, "coins": results
         }, f)
 
 if __name__ == "__main__": main()
