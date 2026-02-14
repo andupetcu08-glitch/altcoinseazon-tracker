@@ -23,7 +23,9 @@ def fetch(url):
     except: return None
 
 def main():
-    coin_ids = ",".join(PORTFOLIO.keys())
+    # Includem Bitcoin si Ethereum pentru raport
+    ids = list(PORTFOLIO.keys()) + ["bitcoin", "ethereum"]
+    coin_ids = ",".join(ids)
     prices = fetch(f"https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids={coin_ids}")
     global_api = fetch("https://api.coingecko.com/api/v3/global")
     fng_data = fetch("https://api.alternative.me/fng/")
@@ -31,30 +33,31 @@ def main():
     price_map = {c["id"]: c for c in prices} if prices else {}
     global_data = global_api["data"] if global_api else {}
     
+    # Datele Live
+    btc_p = price_map.get("bitcoin", {}).get("current_price", 1)
+    eth_p = price_map.get("ethereum", {}).get("current_price", 0)
+    eth_btc = eth_p / btc_p if eth_p > 0 else 0
+    
     btc_d = global_data.get("market_cap_percentage", {}).get("btc", 56.7)
     usdtd = global_data.get("market_cap_percentage", {}).get("usdt", 5.1)
     
-    # --- LOGICA NOUA ROTATION SCORE (CONSERVATOARE) ---
+    # Scorul de Rotatie
     score = 0
-    # Daca BTC.D e mare, ramanem pe HOLD (0 puncte)
-    if btc_d < 50: score += 25
-    if btc_d < 46: score += 15
-    
-    fng_val = int(fng_data["data"][0]["value"]) if fng_data else 50
-    fng_text = fng_data["data"][0]["value_classification"] if fng_data else "Neutral"
-    # Daca e prea multa euforie (Greed), scadem scorul (semnal de Hold/Vanzare)
-    if fng_val < 75: score += 20 
-    
+    if btc_d < 52: score += 20
+    if eth_btc > 0.05: score += 20
     if usdtd < 5.2: score += 20
-    score += 20 # URPD Placeholder
+    fng_val = int(fng_data["data"][0]["value"]) if fng_data else 50
+    if fng_val < 75: score += 20
+    score += 20 # URPD indicator
     
-    # Frana finala: Daca Dominance e urias, scorul nu poate depasi 45% (adica HOLD)
+    # Frana de HOLD: Daca BTC.D e peste 55%, blocam in HOLD
     if btc_d > 55: score = min(score, 45)
 
     results = []
     total_val = 0
     total_exit_mai = 0
     for cid, d in PORTFOLIO.items():
+        if cid in ["bitcoin", "ethereum"]: continue
         p = price_map.get(cid, {}).get("current_price", 0)
         if p == 0 and "synthetix" in cid: p = 0.3026 # Fallback SNX
         
@@ -79,8 +82,9 @@ def main():
     with open("data.json", "w") as f:
         json.dump({
             "btc_d": round(btc_d, 1),
+            "eth_btc": round(eth_btc, 4),
             "total3": round(0.98, 2),
-            "fng": f"{fng_val} ({fng_text})",
+            "fng": f"{fng_val} ({fng_data['data'][0]['value_classification'] if fng_data else 'N/A'})",
             "rotation_score": score,
             "portfolio": round(total_val, 0),
             "profit_teoretic": f"{profit_eur:,.0f}",
