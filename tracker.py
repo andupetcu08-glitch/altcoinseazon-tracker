@@ -13,7 +13,7 @@ PORTFOLIO = {
     "cartesi": {"q": 49080, "entry": 0.19076, "apr": 0.2, "mai": 0.2},
     "immutable-x": {"q": 1551.82, "entry": 3.4205, "apr": 3.5, "mai": 4.3},
     "sonic-3": {"q": 13449.38, "entry": 0.61633, "apr": 1.05, "mai": 1.2},
-    "havven": {"q": 20073.76, "entry": 0.8773, "apr": 7.8, "mai": 9.3} # Havven e ID-ul vechi SNX, mult mai stabil in API
+    "synthetix-network-token": {"q": 20073.76, "entry": 0.8773, "apr": 7.8, "mai": 9.3}
 }
 
 def fetch(url):
@@ -33,11 +33,12 @@ def main():
     
     btc_d = global_data.get("market_cap_percentage", {}).get("btc", 56.7)
     usdtd = global_data.get("market_cap_percentage", {}).get("usdt", 5.1)
-
+    
     # Calcul Rotation Score
     score = 0
     if btc_d < 46: score += 25
     fng_val = int(fng_data["data"][0]["value"]) if fng_data else 50
+    fng_text = fng_data["data"][0]["value_classification"] if fng_data else "Neutral"
     if fng_val < 80: score += 25
     score += 25 # URPD
     if usdtd < 5: score += 25
@@ -47,12 +48,15 @@ def main():
     total_exit_mai = 0
     for cid, d in PORTFOLIO.items():
         p = price_map.get(cid, {}).get("current_price", 0)
+        # Fallback manual pentru preturi daca API-ul rateaza (ex: SNX)
+        if p == 0 and cid == "synthetix-network-token": p = 0.3026 
+        
         total_val += (p * d["q"])
         total_exit_mai += (d["mai"] * d["q"])
         
         symbol = cid.upper().split('-')[0]
         if "governance" in cid: symbol = "JTO"
-        if "havven" in cid: symbol = "SNX" # Afisam ca SNX in tabel
+        if "network" in cid: symbol = "SNX"
         if "sonic" in cid: symbol = "SONIC"
 
         results.append({
@@ -68,8 +72,9 @@ def main():
     with open("data.json", "w") as f:
         json.dump({
             "btc_d": round(btc_d, 1),
-            "total3": round(global_data.get("total_market_cap", {}).get("usd", 0) / 1e12 * 0.4, 2),
-            "fng": fng_val, "rotation_score": score,
+            "total3": round(0.98, 2),
+            "fng": f"{fng_val} ({fng_text})",
+            "rotation_score": score,
             "portfolio": round(total_val, 0),
             "profit_teoretic": f"{profit_eur:,.0f}",
             "multiplier": round(total_val / INVESTITIE_TOTALA_USD, 2),
