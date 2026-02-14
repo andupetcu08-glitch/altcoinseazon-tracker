@@ -1,20 +1,61 @@
-
-    <html><head><meta name="viewport" content="width=device-width, initial-scale=1">
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
-        body { background: #0e1117; color: white; font-family: sans-serif; text-align: center; }
-        .stat { display: inline-block; margin: 10px; padding: 15px; background: #1a1c24; border-radius: 10px; border: 1px solid #333; }
-        table { width: 100%; margin-top: 20px; border-collapse: collapse; }
-        td, th { padding: 10px; border-bottom: 1px solid #222; }
-    </style></head><body>
-        <h2>Altcoin Engine v2</h2>
-        <div class="stat"><div>EXIT PROB</div><div style="font-size:30px; color:#00ff88;">12.8%</div></div>
-        <div class="stat"><div>REGIME</div><div style="font-size:20px;">🟢 HOLD</div></div>
-        <br>
-        <div class="stat">BTC Dom: 56.7%</div>
-        <div class="stat">TOTAL3: $0.81T</div>
+        body { background: #0b0e14; color: white; font-family: sans-serif; padding: 20px; }
+        .stat-card { background: #1a1c24; padding: 20px; border-radius: 15px; text-align: center; margin-bottom: 15px; border: 1px solid #333; }
+        .exit-val { font-size: 48px; font-weight: bold; color: #00ff88; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #16181d; border-radius: 10px; overflow: hidden; }
+        th { background: #222; color: #888; padding: 12px; font-size: 11px; text-align: left; }
+        td { padding: 12px; border-bottom: 1px solid #222; font-size: 13px; }
+        .up-bold { color: #00ff88; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="stat-card">
+            <div style="color: #888; font-size: 12px;">EXIT PROBABILITY</div>
+            <div class="exit-val" id="exit-prob">--%</div>
+            <div id="regime" style="font-size: 18px; margin-top: 5px;">--</div>
+        </div>
+        
+        <div style="display: flex; gap: 10px;">
+            <div class="stat-card" style="flex: 1;">BTC.D: <b id="btc-d">--</b></div>
+            <div class="stat-card" style="flex: 1;">TOTAL3: <b id="total3">--</b></div>
+        </div>
+
         <table>
-            <tr><th>COIN</th><th>PRICE</th><th>GOAL</th><th>24H</th></tr>
-            <tr><td>OP</td><td>$0.192358</td><td>4.0%</td><td>5.5%</td></tr><tr><td>ARB</td><td>$0.117449</td><td>3.4%</td><td>6.1%</td></tr><tr><td>TIA</td><td>$0.342852</td><td>2.9%</td><td>6.6%</td></tr><tr><td>JTO</td><td>$0.271994</td><td>3.4%</td><td>4.8%</td></tr><tr><td>LDO</td><td>$0.352048</td><td>5.9%</td><td>4.3%</td></tr><tr><td>IMX</td><td>$0.168452</td><td>4.2%</td><td>2.9%</td></tr>
+            <thead>
+                <tr><th>COIN</th><th>PRICE</th><th>PROGRESS</th><th>EXIT TARGET</th><th>POTENTIAL</th></tr>
+            </thead>
+            <tbody id="coin-table"></tbody>
         </table>
-    </body></html>
-    
+        <p style="text-align:center; color:#444; font-size:10px;">Updated: <span id="time">--</span></p>
+    </div>
+
+    <script>
+        fetch('data.json?t=' + Date.now()) // ?t= previne cache-ul browserului
+        .then(r => r.json())
+        .then(d => {
+            document.getElementById('exit-prob').textContent = d.exit_probability + '%';
+            document.getElementById('regime').textContent = 'Regime: ' + d.regime;
+            document.getElementById('btc-d').textContent = d.btc_d + '%';
+            document.getElementById('total3').textContent = '$' + d.total3 + 'T';
+            document.getElementById('time').textContent = d.timestamp;
+
+            let html = '';
+            d.coins.forEach(c => {
+                html += `<tr>
+                    <td><b>${c.coin}</b></td>
+                    <td>$${c.price.toLocaleString()}</td>
+                    <td>${c.progress}%</td>
+                    <td style="color:#aaa">$${c.target_apr} / $${c.target_mai}</td>
+                    <td class="up-bold">${c.potential}x</td>
+                </tr>`;
+            });
+            document.getElementById('coin-table').innerHTML = html;
+        });
+    </script>
+</body>
+</html>
