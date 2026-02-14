@@ -1,7 +1,7 @@
 import json, urllib.request
 
-# DATE REVIZUITE DIN EXCEL
 INVESTITIE_TOTALA = 120456.247
+# Datele exacte din tabelul tău
 PORTFOLIO = {
     "optimism": {"q": 6400, "entry": 0.773, "apr": 4.8, "mai": 5.7},
     "notcoin": {"q": 1297106.88, "entry": 0.001291, "apr": 0.028, "mai": 0.03},
@@ -20,12 +20,14 @@ def fetch(url):
     with urllib.request.urlopen(req, timeout=15) as r: return json.loads(r.read().decode())
 
 def main():
-    # Fetch prețuri pentru toate cele 10 monede
     coin_ids = ",".join(PORTFOLIO.keys())
     prices = fetch(f"https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids={coin_ids}")
     global_data = fetch("https://api.coingecko.com/api/v3/global")["data"]
+    
+    # Sentiment (Fear & Greed Index)
+    fng = fetch("https://api.alternative.me/fng/")["data"][0]["value"]
+    
     price_map = {c["id"]: c for c in prices}
-
     btc_d = global_data["market_cap_percentage"]["btc"]
     total3 = (global_data["total_market_cap"]["usd"] * (1 - (btc_d + global_data["market_cap_percentage"]["eth"]) / 100)) / 1e12
 
@@ -40,19 +42,20 @@ def main():
                 "symbol": "S" if cid == "sonic-coin" else price_map[cid]["symbol"].upper(),
                 "q": d["q"],
                 "entry": d["entry"],
-                "price": p,
+                "price": f"{p:.7f}" if d["entry"] < 0.01 else f"{p:.3f}",
                 "apr": d["apr"],
                 "mai": d["mai"],
-                "pot": round(d["mai"] / p, 2)
+                "pot_apr": round(d["apr"] / d["entry"], 2), # Calcul corect Potential vs Entry
+                "pot_mai": round(d["mai"] / d["entry"], 2)
             })
-
-    # Rotation Score (Logică bazată pe apropierea de targets)
-    score = round(max(0, min(100, (56.7 - btc_d) * 10 + 15)), 1)
 
     with open("data.json", "w") as f:
         json.dump({
-            "exit_score": score, "btc_d": round(btc_d, 1), "t3": round(total3, 2),
-            "portfolio": round(total_val, 0), "multiplier": round(total_val / INVESTITIE_TOTALA, 2),
+            "btc_d": round(btc_d, 1), 
+            "total3": round(total3, 2),
+            "fng": fng,
+            "portfolio": round(total_val, 0), 
+            "multiplier": round(total_val / INVESTITIE_TOTALA, 2),
             "coins": results
         }, f)
 
