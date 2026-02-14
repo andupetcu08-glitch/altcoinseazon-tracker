@@ -34,22 +34,29 @@ def main():
     btc_d = global_data.get("market_cap_percentage", {}).get("btc", 56.7)
     usdtd = global_data.get("market_cap_percentage", {}).get("usdt", 5.1)
     
-    # Calcul Rotation Score
+    # --- LOGICA NOUA ROTATION SCORE (CONSERVATOARE) ---
     score = 0
-    if btc_d < 46: score += 25
+    # Daca BTC.D e mare, ramanem pe HOLD (0 puncte)
+    if btc_d < 50: score += 25
+    if btc_d < 46: score += 15
+    
     fng_val = int(fng_data["data"][0]["value"]) if fng_data else 50
     fng_text = fng_data["data"][0]["value_classification"] if fng_data else "Neutral"
-    if fng_val < 80: score += 25
-    score += 25 # URPD
-    if usdtd < 5: score += 25
+    # Daca e prea multa euforie (Greed), scadem scorul (semnal de Hold/Vanzare)
+    if fng_val < 75: score += 20 
+    
+    if usdtd < 5.2: score += 20
+    score += 20 # URPD Placeholder
+    
+    # Frana finala: Daca Dominance e urias, scorul nu poate depasi 45% (adica HOLD)
+    if btc_d > 55: score = min(score, 45)
 
     results = []
     total_val = 0
     total_exit_mai = 0
     for cid, d in PORTFOLIO.items():
         p = price_map.get(cid, {}).get("current_price", 0)
-        # Fallback manual pentru preturi daca API-ul rateaza (ex: SNX)
-        if p == 0 and cid == "synthetix-network-token": p = 0.3026 
+        if p == 0 and "synthetix" in cid: p = 0.3026 # Fallback SNX
         
         total_val += (p * d["q"])
         total_exit_mai += (d["mai"] * d["q"])
