@@ -16,6 +16,6 @@ jobs:
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
-          git add index.html history.json
-          git commit -m "Update Dashboard and History" || exit 0
+          git add index.html data.json history.json
+          git commit -m "Update crypto data" || exit 0
           git push
