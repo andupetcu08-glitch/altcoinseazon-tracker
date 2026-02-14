@@ -1,31 +1,55 @@
-fetch('data.json?v=' + Date.now()).then(r => r.json()).then(d => {
-    // Statisici Header
-    document.getElementById('total-val').textContent = '$' + d.total_val.toLocaleString();
-    document.getElementById('mult').textContent = d.mult + 'x';
-    document.getElementById('ex').textContent = d.exit_prob + '%';
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body { background: #0b0e14; color: #e1e1e1; font-family: sans-serif; padding: 15px; }
+        .regime-box { display: flex; gap: 10px; margin-bottom: 20px; }
+        .btn { flex: 1; padding: 15px; border-radius: 10px; border: 1px solid #333; text-align: center; font-weight: bold; background: #1a1c24; color: #444; }
+        .active-hold { background: #450a0a !important; color: #f87171 !important; border-color: #ef4444; } /* ROSU */
+        .active-prepare { background: #451a03 !important; color: #fbbf24 !important; border-color: #f59e0b; } /* GALBEN */
+        .active-exec { background: #052e16 !important; color: #4ade80 !important; border-color: #22c55e; } /* VERDE */
+        .card { background: #1a1c24; padding: 15px; border-radius: 12px; border: 1px solid #333; margin-bottom: 10px; }
+        table { width: 100%; border-collapse: collapse; background: #1a1c24; border-radius: 10px; overflow: hidden; font-size: 12px; }
+        th { background: #222; padding: 10px; text-align: left; color: #888; }
+        td { padding: 12px 10px; border-bottom: 1px solid #222; }
+    </style>
+</head>
+<body>
+    <div class="regime-box">
+        <div id="h" class="btn">HOLD</div>
+        <div id="p" class="btn">PREPARE</div>
+        <div id="s" class="btn">EXECUȚIE</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <div class="card">Portofoliu: <b id="val" style="color:#00ff88; display:block; font-size:20px;">--</b></div>
+        <div class="card">Multiplier: <b id="mult" style="color:#00ff88; display:block; font-size:20px;">--</b></div>
+    </div>
+    <table>
+        <thead><tr><th>COIN</th><th>VALUE</th><th>APR/MAI</th><th>POT.</th></tr></thead>
+        <tbody id="rows"></tbody>
+    </table>
 
-    // INTERPRETARE SEMAFOR
-    const h = document.getElementById('h'), p = document.getElementById('p'), s = document.getElementById('s');
-    h.className = p.className = s.className = 'btn'; // reset
+    <script>
+        fetch('data.json?v=' + Date.now()).then(r => r.json()).then(d => {
+            document.getElementById('val').textContent = '$' + d.portfolio.toLocaleString();
+            document.getElementById('mult').textContent = d.mult + 'x';
+            
+            if (d.exit >= 80) document.getElementById('s').classList.add('active-exec');
+            else if (d.exit >= 50) document.getElementById('p').classList.add('active-prepare');
+            else document.getElementById('h').classList.add('active-hold');
 
-    if (d.exit_prob >= 80) {
-        s.classList.add('active-hold'); // Folosim culoarea verde pentru executie
-        s.textContent = 'EXECUȚIE';
-    } else if (d.exit_prob >= 50) {
-        p.classList.add('active-prepare'); // Galben
-    } else {
-        h.classList.add('active-sell'); // Folosim clasa de rosu pentru Hold (nu iesim)
-    }
-
-    // Tabel Complet (10 monede)
-    let html = '';
-    d.coins.forEach(c => {
-        html += `<tr>
-            <td><b>${c.symbol}</b><br><small>$${c.price.toLocaleString()}</small></td>
-            <td>$${c.value.toLocaleString()}</td>
-            <td style="color:#888">$${c.apr} / $${c.mai}</td>
-            <td style="color:#00ff88"><b>${c.pot}x</b></td>
-        </tr>`;
-    });
-    document.getElementById('rows').innerHTML = html;
-});
+            let h = '';
+            d.coins.forEach(c => {
+                h += `<tr>
+                    <td><b>${c.symbol}</b><br><small>$${c.price.toLocaleString()}</small></td>
+                    <td>$${c.value.toLocaleString()}</td>
+                    <td style="color:#888">$${c.apr}/$${c.mai}</td>
+                    <td style="color:#00ff88"><b>${c.pot}x</b></td>
+                </tr>`;
+            });
+            document.getElementById('rows').innerHTML = h;
+        });
+    </script>
+</body>
+</html>
