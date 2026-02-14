@@ -1,53 +1,47 @@
 <!DOCTYPE html>
-<html>
+<html lang="ro">
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body { background: #0b0e14; color: #e1e1e1; font-family: sans-serif; padding: 15px; }
+        .target-panel { background: #1a1c24; border: 1px solid #22c55e; padding: 12px; border-radius: 10px; margin-bottom: 20px; font-size: 13px; text-align: center; }
         .regime-box { display: flex; gap: 10px; margin-bottom: 20px; }
-        .btn { flex: 1; padding: 15px; border-radius: 10px; border: 1px solid #333; text-align: center; font-weight: bold; background: #1a1c24; display: flex; align-items: center; justify-content: center; gap: 8px; opacity: 0.3; }
-        .dot { width: 10px; height: 10px; border-radius: 50%; }
-        .active-hold { border: 2px solid #ff4d4d; opacity: 1; color: #ff4d4d; }
+        .btn { flex: 1; padding: 15px; border-radius: 10px; border: 1px solid #333; text-align: center; font-weight: bold; background: #1a1c24; opacity: 0.3; }
+        .active-hold { border: 2px solid #ff4d4d; opacity: 1; color: #ff4d4d; box-shadow: 0 0 10px rgba(255,77,77,0.2); }
         .active-prepare { border: 2px solid #ffcc00; opacity: 1; color: #ffcc00; }
         .active-sell { border: 2px solid #00ff88; opacity: 1; color: #00ff88; }
-        
-        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 10px; }
-        .card { background: #1a1c24; padding: 12px; border-radius: 10px; border: 1px solid #333; }
-        .label { color: #888; font-size: 11px; text-transform: uppercase; }
-        .val { font-size: 20px; font-weight: bold; color: #00ff88; margin-top: 4px; }
-        .target-box { background: #052e16; padding: 10px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #22c55e; font-size: 13px; text-align: center; }
-        
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .card { background: #1a1c24; padding: 15px; border-radius: 10px; border: 1px solid #333; }
+        .label { color: #888; font-size: 11px; text-transform: uppercase; margin-bottom: 5px; }
+        .val { font-size: 22px; font-weight: bold; color: #00ff88; }
         table { width: 100%; border-collapse: collapse; background: #1a1c24; border-radius: 10px; overflow: hidden; }
-        th { background: #222; padding: 10px; text-align: left; color: #888; font-size: 11px; }
-        td { padding: 12px; border-bottom: 1px solid #222; font-size: 13px; }
+        th { background: #222; padding: 12px; text-align: left; color: #888; font-size: 11px; }
+        td { padding: 15px 12px; border-bottom: 1px solid #222; font-size: 13px; }
     </style>
 </head>
 <body>
-    <div class="target-box">
-        🎯 <b>TARGETS:</b> BTC.D: 47-46% | USDT.D: 5% | Multiplier Target: 6.03x
+    <div class="target-panel">
+        🎯 <b>GLOBAL TARGETS:</b> BTC.D: 47-46% | USDT.D: 5% | Portfolio Multiplier: 6.03x
     </div>
 
     <div class="regime-box">
-        <div id="btn-h" class="btn"><div class="dot" style="background:#ff4d4d"></div> HOLD</div>
-        <div id="btn-p" class="btn"><div class="dot" style="background:#ffcc00"></div> PREPARE</div>
-        <div id="btn-s" class="btn"><div class="dot" style="background:#00ff88"></div> SELL</div>
+        <div id="h" class="btn">● HOLD</div>
+        <div id="p" class="btn">● PREPARE</div>
+        <div id="s" class="btn">● SELL</div>
     </div>
 
     <div class="grid">
         <div class="card"><div class="label">Portofoliu Curent</div><div id="v" class="val">--</div></div>
-        <div class="card"><div class="label">Multiplier (vs $120k)</div><div id="m" class="val">--</div></div>
+        <div class="card"><div class="label">Multiplier (Investit $120k)</div><div id="m" class="val">--</div></div>
     </div>
     <div class="grid">
-        <div class="card"><div class="label">Exit Aprilie (Suma)</div><div id="ea" class="val" style="color:#fbbf24">--</div></div>
-        <div class="card"><div class="label">Exit Mai (Suma)</div><div id="em" class="val" style="color:#fbbf24">--</div></div>
-    </div>
-    <div class="grid" style="grid-template-columns: 1fr 2fr;">
-        <div class="card"><div class="label">Rotation</div><div id="rs" class="val">--</div></div>
-        <div class="card"><div class="label">BTC.D / TOTAL3</div><div id="macro" class="val" style="color:white; font-size:16px;">--</div></div>
+        <div class="card"><div class="label">Exit Total Aprilie</div><div id="ea" class="val" style="color:#fbbf24">--</div></div>
+        <div class="card"><div class="label">Exit Total Mai</div><div id="em" class="val" style="color:#fbbf24">--</div></div>
     </div>
 
     <table>
-        <thead><tr><th>COIN</th><th>VALOARE</th><th>TARGETS</th><th>POT.</th></tr></thead>
+        <thead><tr><th>COIN</th><th>VALOARE</th><th>TARGETS</th><th>POTENTIAL</th></tr></thead>
         <tbody id="rows"></tbody>
     </table>
 
@@ -57,21 +51,21 @@
             document.getElementById('m').textContent = d.multiplier + 'x';
             document.getElementById('ea').textContent = '$' + d.exit_apr.toLocaleString();
             document.getElementById('em').textContent = '$' + d.exit_mai.toLocaleString();
-            document.getElementById('rs').textContent = d.exit_score + '%';
-            document.getElementById('macro').textContent = d.btc_d + '% / ' + d.t3 + 'T';
 
-            if (d.exit_score >= 80) document.getElementById('btn-s').classList.add('active-sell');
-            else if (d.exit_score >= 50) document.getElementById('btn-p').classList.add('active-prepare');
-            else document.getElementById('btn-h').classList.add('active-hold');
+            if (d.exit_score >= 80) document.getElementById('s').classList.add('active-sell');
+            else if (d.exit_score >= 50) document.getElementById('p').classList.add('active-prepare');
+            else document.getElementById('h').classList.add('active-hold');
 
-            let h = '';
+            let html = '';
             d.coins.forEach(c => {
-                h += `<tr><td><b>${c.symbol}</b><br><small style="color:#666">$${c.price}</small></td>
+                html += `<tr>
+                    <td><b>${c.symbol}</b><br><small style="color:#666">$${c.price.toLocaleString()}</small></td>
                     <td>$${c.value.toLocaleString()}</td>
                     <td style="color:#aaa">$${c.apr} / $${c.mai}</td>
-                    <td style="color:#00ff88; font-weight:bold;">${c.pot}x</td></tr>`;
+                    <td style="color:#00ff88; font-weight:bold;">${c.pot}x</td>
+                </tr>`;
             });
-            document.getElementById('rows').innerHTML = h;
+            document.getElementById('rows').innerHTML = html;
         });
     </script>
 </body>
