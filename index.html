@@ -1,18 +1,17 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        body { background: #0b0e14; color: #e1e1e1; font-family: sans-serif; padding: 15px; }
+        body { background: #0b0e14; color: white; font-family: sans-serif; padding: 20px; }
         .regime-box { display: flex; gap: 10px; margin-bottom: 20px; }
-        .btn { flex: 1; padding: 15px; border-radius: 10px; border: 1px solid #333; text-align: center; font-weight: bold; background: #1a1c24; color: #444; }
-        .active-hold { background: #450a0a !important; color: #f87171 !important; border-color: #ef4444; } /* ROSU */
-        .active-prepare { background: #451a03 !important; color: #fbbf24 !important; border-color: #f59e0b; } /* GALBEN */
-        .active-exec { background: #052e16 !important; color: #4ade80 !important; border-color: #22c55e; } /* VERDE */
-        .card { background: #1a1c24; padding: 15px; border-radius: 12px; border: 1px solid #333; margin-bottom: 10px; }
-        table { width: 100%; border-collapse: collapse; background: #1a1c24; border-radius: 10px; overflow: hidden; font-size: 12px; }
-        th { background: #222; padding: 10px; text-align: left; color: #888; }
-        td { padding: 12px 10px; border-bottom: 1px solid #222; }
+        .btn { flex: 1; padding: 15px; border-radius: 10px; text-align: center; font-weight: bold; background: #1a1c24; color: #444; border: 1px solid #333; }
+        .active-hold { background: #450a0a; color: #f87171; border-color: #ef4444; }
+        .active-exec { background: #052e16; color: #4ade80; border-color: #22c55e; }
+        .card { background: #1a1c24; padding: 20px; border-radius: 15px; border: 1px solid #333; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        th { text-align: left; color: #888; padding: 10px; border-bottom: 1px solid #333; }
+        td { padding: 15px 10px; border-bottom: 1px solid #1a1c24; }
     </style>
 </head>
 <body>
@@ -21,32 +20,32 @@
         <div id="p" class="btn">PREPARE</div>
         <div id="s" class="btn">EXECUȚIE</div>
     </div>
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-        <div class="card">Portofoliu: <b id="val" style="color:#00ff88; display:block; font-size:20px;">--</b></div>
-        <div class="card">Multiplier: <b id="mult" style="color:#00ff88; display:block; font-size:20px;">--</b></div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+        <div class="card">Portofoliu: <h2 id="tv" style="margin:5px 0; color:#00ff88;">$0</h2></div>
+        <div class="card">Multiplier: <h2 id="tm" style="margin:5px 0; color:#00ff88;">0x</h2></div>
     </div>
+
     <table>
-        <thead><tr><th>COIN</th><th>VALUE</th><th>APR/MAI</th><th>POT.</th></tr></thead>
+        <thead><tr><th>COIN</th><th>VALOARE</th><th>TARGETS</th><th>POT.</th></tr></thead>
         <tbody id="rows"></tbody>
     </table>
 
     <script>
         fetch('data.json?v=' + Date.now()).then(r => r.json()).then(d => {
-            document.getElementById('val').textContent = '$' + d.portfolio.toLocaleString();
-            document.getElementById('mult').textContent = d.mult + 'x';
+            document.getElementById('tv').textContent = '$' + d.total.toLocaleString();
+            document.getElementById('tm').textContent = d.mult + 'x';
             
-            if (d.exit >= 80) document.getElementById('s').classList.add('active-exec');
-            else if (d.exit >= 50) document.getElementById('p').classList.add('active-prepare');
-            else document.getElementById('h').classList.add('active-hold');
+            if (d.exit >= 80) document.getElementById('s').className = 'btn active-exec';
+            else if (d.exit < 50) document.getElementById('h').className = 'btn active-hold';
+            else document.getElementById('p').style.background = '#451a03';
 
             let h = '';
             d.coins.forEach(c => {
-                h += `<tr>
-                    <td><b>${c.symbol}</b><br><small>$${c.price.toLocaleString()}</small></td>
+                h += `<tr><td><b>${c.symbol}</b><br><small>$${c.price}</small></td>
                     <td>$${c.value.toLocaleString()}</td>
-                    <td style="color:#888">$${c.apr}/$${c.mai}</td>
-                    <td style="color:#00ff88"><b>${c.pot}x</b></td>
-                </tr>`;
+                    <td style="color:#888">$${c.apr} / $${c.mai}</td>
+                    <td style="color:#00ff88"><b>${c.pot}x</b></td></tr>`;
             });
             document.getElementById('rows').innerHTML = h;
         });
