@@ -1,7 +1,8 @@
 import json, urllib.request
 
 INVESTITIE_TOTALA_USD = 120456.247
-USD_EUR = 0.96 
+# Curs ajustat pentru a reflecta realitatea ta: 17.800 USD -> 15.600 EUR
+USD_EUR = 0.8764 
 
 PORTFOLIO = {
     "optimism": {"q": 6400, "entry": 0.773, "apr": 4.8, "mai": 5.6, "fib": 5.95},
@@ -36,7 +37,7 @@ def main():
     btc_d = global_data.get("market_cap_percentage", {}).get("btc", 56.5)
     vix = 13.8 
 
-    # Scorul pleaca de la 50
+    # Scor Multi-factor
     score = 50 
     if btc_d > 55: score -= 15
     if eth_btc > 0.04: score += 15
@@ -54,6 +55,7 @@ def main():
         total_val_usd += (p * d["q"])
         total_val_mai_usd += (d["mai"] * d["q"])
         
+        # Progres catre Fib Target
         prog = ((p - d["entry"]) / (d["fib"] - d["entry"])) * 100 if d["fib"] > d["entry"] else 0
         prog = max(0, min(100, prog))
 
@@ -69,6 +71,7 @@ def main():
             "x_apr": round(d["apr"] / d["entry"], 2), "x_mai": round(d["mai"] / d["entry"], 2)
         })
 
+    # Afisam EUR conform calculului tau (17.8k USD -> 15.6k EUR)
     portfolio_eur = total_val_usd * USD_EUR
     profit_mai_eur = (total_val_mai_usd - INVESTITIE_TOTALA_USD) * USD_EUR
 
