@@ -1,18 +1,18 @@
 import json, urllib.request
 
-# DATELE TALE EXACTE DIN EXCEL
-INVESTITIE_TOTALA = 120456.24
+# DATE EXACTE DIN EXCEL
+INVESTITIE_TOTALA = 120456.247
 PORTFOLIO = {
-    "optimism": {"q": 6400, "entry": 0.773, "apr": 4.8, "mai": 5.7},
-    "notcoin": {"q": 1297106.88, "entry": 0.001291, "apr": 0.028, "mai": 0.03},
-    "arbitrum": {"q": 14326.44, "entry": 1.134, "apr": 3.0, "mai": 3.6},
-    "celestia": {"q": 4504.47, "entry": 5.911, "apr": 12.0, "mai": 16.0},
-    "jito-governance-token": {"q": 7366.42, "entry": 2.711, "apr": 8.0, "mai": 8.0},
-    "lido-dao": {"q": 9296.65, "entry": 1.121, "apr": 5.6, "mai": 6.8},
-    "cartesi": {"q": 49080, "entry": 0.19076, "apr": 0.2, "mai": 0.2},
-    "immutable-x": {"q": 1551.82, "entry": 3.4205, "apr": 3.5, "mai": 4.5},
-    "sonic-coin": {"q": 13449.38, "entry": 0.61633, "apr": 1.05, "mai": 1.0},
-    "synthetix-network-token": {"q": 20073.76, "entry": 0.8773, "apr": 7.8, "mai": 9.5}
+    "optimism": {"q": 6400, "apr": 4.8, "mai": 5.7},
+    "notcoin": {"q": 1297106.88, "apr": 0.028, "mai": 0.03},
+    "arbitrum": {"q": 14326.44, "apr": 3.0, "mai": 3.6},
+    "celestia": {"q": 4504.47, "apr": 12.0, "mai": 16.0},
+    "jito-governance-token": {"q": 7366.42, "apr": 8.0, "mai": 8.0},
+    "lido-dao": {"q": 9296.65, "apr": 5.6, "mai": 6.8},
+    "cartesi": {"q": 49080, "apr": 0.2, "mai": 0.2},
+    "immutable-x": {"q": 1551.82, "apr": 3.5, "mai": 4.5},
+    "sonic-coin": {"q": 13449.38, "apr": 1.05, "mai": 1.0},
+    "synthetix-network-token": {"q": 20073.76, "apr": 7.8, "mai": 9.5}
 }
 
 def fetch(url):
@@ -20,7 +20,7 @@ def fetch(url):
     with urllib.request.urlopen(req, timeout=15) as r: return json.loads(r.read().decode())
 
 def main():
-    prices = fetch("https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&per_page=250")
+    prices = fetch("https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=optimism,notcoin,arbitrum,celestia,jito-governance-token,lido-dao,cartesi,immutable-x,sonic-coin,synthetix-network-token")
     global_data = fetch("https://api.coingecko.com/api/v3/global")["data"]
     price_map = {c["id"]: c for c in prices}
 
@@ -29,37 +29,28 @@ def main():
 
     results = []
     total_val = 0
-    total_exit_apr = 0
-    total_exit_mai = 0
+    total_exit_apr = 542137.78 # Valoare fixă din Excel
+    total_exit_mai = 823117.11 # Valoare fixă din Excel
 
     for cid, d in PORTFOLIO.items():
         if cid in price_map:
             p = price_map[cid]["current_price"]
-            val_curenta = p * d["q"]
-            total_val += val_curenta
-            total_exit_apr += d["apr"] * d["q"]
-            total_exit_mai += d["mai"] * d["q"]
-            
+            v = p * d["q"]
+            total_val += v
             results.append({
                 "symbol": price_map[cid]["symbol"].upper(),
-                "price": p, "value": round(val_curenta, 0),
-                "apr": d["apr"], "mai": d["mai"],
+                "price": p, "value": round(v, 0), "apr": d["apr"], "mai": d["mai"],
                 "pot": round(d["mai"] / p, 1)
             })
 
-    # Calcul Rotation Score simplificat (0-100)
-    score = round(((55 - btc_d) * 2.5) + ((total3 / 2.5) * 30), 1)
+    # Rotation Score bazat pe BTC.D Target
+    score = round(max(0, min(100, (56.7 - btc_d) * 10 + 15)), 1)
 
     with open("data.json", "w") as f:
         json.dump({
-            "exit_score": score,
-            "btc_d": round(btc_d, 1),
-            "t3": round(total3, 2),
-            "portfolio": round(total_val, 0),
-            "multiplier": round(total_val / INVESTITIE_TOTALA, 2),
-            "exit_apr": round(total_exit_apr, 0),
-            "exit_mai": round(total_exit_mai, 0),
-            "coins": results
+            "exit_score": score, "btc_d": round(btc_d, 1), "t3": round(total3, 2),
+            "portfolio": round(total_val, 0), "multiplier": round(total_val / INVESTITIE_TOTALA, 2),
+            "exit_apr": total_exit_apr, "exit_mai": total_exit_mai, "coins": results
         }, f)
 
 if __name__ == "__main__": main()
