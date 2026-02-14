@@ -4,29 +4,28 @@
     <meta charset="UTF-8">
     <style>
         body { background: #0b0e14; color: #e1e1e1; font-family: sans-serif; padding: 15px; font-size: 11px; }
-        
-        /* Banner superior - Acum afișează targetul de 70% dar scorul real e cel din card */
         .target-panel { 
             background: #052e16; border: 2px solid #22c55e; padding: 25px; border-radius: 12px; 
-            margin-bottom: 25px; text-align: center; font-size: 18px; font-weight: bold; 
-            color: #fff; box-shadow: 0 4px 20px rgba(34, 197, 94, 0.3); 
+            margin-bottom: 25px; text-align: center; font-size: 18px; font-weight: bold; color: #fff; 
         }
-        
         .top-nav { display: grid; grid-template-columns: repeat(4, 1fr) 1.5fr; gap: 10px; margin-bottom: 20px; }
         .m-card { background: #1a1c24; padding: 12px; border-radius: 8px; border: 1px solid #333; text-align: center; }
         .m-label { font-size: 8px; color: #888; text-transform: uppercase; margin-bottom: 6px; }
         .m-val { font-weight: bold; font-size: 16px; }
-        
         .status-box { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
         .st-btn { background: #111; border: 1px solid #222; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: #333; }
         
-        /* Starea de HOLD - Activă când scorul e mic */
+        /* Butoane active */
         .active-h { border-color: #ef4444 !important; color: #ef4444 !important; box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); }
         .active-p { border-color: #fbbf24 !important; color: #fbbf24 !important; box-shadow: 0 0 15px rgba(251, 191, 36, 0.4); }
+        .active-s { border-color: #00ff88 !important; color: #00ff88 !important; box-shadow: 0 0 15px rgba(0, 255, 136, 0.4); }
+
+        table { width: 100%; border-collapse: collapse; background: #0d0f14; border-radius: 10px; overflow: hidden; }
         
-        table { width: 100%; border-collapse: collapse; background: #0d0f14; border-radius: 10px; overflow: hidden; margin-top: 20px; }
+        /* HEADER: Alb, Bold, 11px conform cerinței */
         th { text-align: left; color: #ffffff !important; font-size: 11px; font-weight: bold; padding: 15px; border-bottom: 2px solid #222; }
         .fib-header { color: #a855f7 !important; }
+
         td { padding: 15px; border-bottom: 1px solid #1a1c24; }
         .prog-bg { width: 100%; background: #222; height: 5px; border-radius: 3px; margin-top: 6px; overflow: hidden; }
         .prog-fill { height: 100%; border-radius: 3px; }
@@ -36,7 +35,7 @@
 </head>
 <body>
 
-    <div id="target-banner" class="target-panel">🎯 TARGETS: BTC.D: 46% | VIX: 13.8 | DXY: 101 | ETH/BTC: -- | ROTATION SCORE: 70%</div>
+    <div id="target-banner" class="target-panel">🎯 LOADING TARGETS...</div>
 
     <div class="top-nav">
         <div class="m-card"><div class="m-label">Rotation Score</div><div id="score" class="m-val">--</div></div>
@@ -53,14 +52,7 @@
     <table>
         <thead>
             <tr>
-                <th>MONEDA</th>
-                <th>CANTITATE</th>
-                <th>ENTRY</th>
-                <th>TARGET APR</th>
-                <th>X APR</th>
-                <th>TARGET MAI</th>
-                <th>X MAI</th>
-                <th class="fib-header">FINAL TARGET PRICE</th>
+                <th>MONEDA</th><th>CANTITATE</th><th>ENTRY</th><th>TARGET APR</th><th>X APR</th><th>TARGET MAI</th><th>X MAI</th><th class="fib-header">FINAL TARGET PRICE</th>
             </tr>
         </thead>
         <tbody id="rows"></tbody>
@@ -72,47 +64,37 @@
                 const r = await fetch('data.json?v=' + Date.now());
                 const d = await r.json();
 
-                // 1. REPARATIE SCOR: Folosim scorul real (35% sau cat vine din JSON)
-                const score = d.rotation_score; 
+                // 1. Banner Automatizat
+                document.getElementById('target-banner').textContent = `🎯 TARGETS: BTC.D: 46% | VIX: ${d.vix} | DXY: ${d.dxy} | ETH/BTC: ${d.eth_btc} | ROTATION SCORE: 70%`;
+
+                // 2. Rotation Score (Verde la 70%)
+                const score = d.rotation_score;
                 document.getElementById('score').textContent = score + '%';
-                // Devine verde DOAR daca atinge targetul de 70%
                 document.getElementById('score').style.color = score >= 70 ? '#00ff88' : '#ef4444';
 
-                // 2. REPARATIE BUTOANE: Daca scorul e mic (ex: 35), ramane pe HOLD (Rosu)
+                // 3. Logica Butoanelor (HOLD / PREPARE / SELL)
                 document.getElementById('btn-h').className = 'st-btn' + (score < 45 ? ' active-h' : '');
                 document.getElementById('btn-p').className = 'st-btn' + (score >= 45 && score < 70 ? ' active-p' : '');
+                document.getElementById('btn-s').className = 'st-btn' + (score >= 70 ? ' active-s' : '');
 
-                // 3. REPARATIE ETH/BTC: Punem valoarea reala in banner si in card
-                const ethBtcVal = d.eth_btc || 0.03;
-                document.getElementById('ethbtc').innerHTML = `<span style="color:#a855f7">${ethBtcVal}</span> <span class="trend-down">▼</span>`;
-                document.getElementById('target-banner').textContent = `🎯 TARGETS: BTC.D: 46% | VIX: 13.8 | DXY: 101 | ETH/BTC: ${ethBtcVal} | ROTATION SCORE: 70%`;
+                // 4. Indicatori Macro
+                document.getElementById('btcd').innerHTML = `${d.btc_d}% <span class="trend-up">▲</span>`;
+                document.getElementById('ethbtc').innerHTML = `<span style="color:#a855f7">${d.eth_btc}</span> <span class="trend-down">▼</span>`;
+                document.getElementById('usdtd').innerHTML = `${d.usdt_d}% <span class="trend-up">▲</span>`;
 
-                // BTC.D Live
-                document.getElementById('btcd').innerHTML = (d.btc_d || 56.5) + '% <span class="trend-up">▲</span>';
-                document.getElementById('usdtd').innerHTML = '7.5% <span class="trend-up">▲</span>';
-
-                // Tabelul
+                // 5. Tabelul (Monede aliniate la 11px)
                 let h = '';
                 d.coins.forEach(c => {
                     let color = c.progres >= 80 ? '#00ff88' : '#fbbf24';
                     h += `<tr>
-                        <td><b>${c.symbol}</b><br><small style="color:#555">$${c.price}</small>
-                            <div class="prog-bg"><div class="prog-fill" style="width:${c.progres}%; background-color:${color};"></div></div>
-                        </td>
-                        <td>${c.q.toLocaleString()}</td>
-                        <td>$${c.entry}</td>
-                        <td style="color:#fbbf24">$${c.apr}</td>
-                        <td style="color:#00ff88">${c.x_apr}x</td>
-                        <td style="color:#fbbf24">$${c.mai}</td>
-                        <td style="color:#00ff88">${c.x_mai}x</td>
-                        <td class="fib-col">$${c.fib}</td>
+                        <td><b>${c.symbol}</b><br><small style="color:#555">$${c.price}</small><div class="prog-bg"><div class="prog-fill" style="width:${c.progres}%; background-color:${color};"></div></div></td>
+                        <td>${c.q.toLocaleString()}</td><td>$${c.entry}</td><td style="color:#fbbf24">$${c.apr}</td><td style="color:#00ff88">${c.x_apr}x</td><td style="color:#fbbf24">$${c.mai}</td><td style="color:#00ff88">${c.x_mai}x</td><td class="fib-col">$${c.fib}</td>
                     </tr>`;
                 });
                 document.getElementById('rows').innerHTML = h;
-            } catch (e) { console.log(e); }
+            } catch (e) { console.log("Sync..."); }
         }
-        load();
-        setInterval(load, 60000);
+        load(); setInterval(load, 60000);
     </script>
 </body>
 </html>
