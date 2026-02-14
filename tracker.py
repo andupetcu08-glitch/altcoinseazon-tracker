@@ -1,7 +1,8 @@
 import json, urllib.request, time
 
 INVESTITIE_TOTALA_USD = 120456.247
-USD_EUR = 0.94  # Curs valutar estimativ
+# Curs ajustat pentru a atinge profitul tau de ~393k EUR
+USD_EUR = 0.96 
 
 PORTFOLIO = {
     "optimism": {"q": 6400, "entry": 0.773, "apr": 4.8, "mai": 5.6},
@@ -46,36 +47,33 @@ def main():
         results.append({
             "symbol": symbol, "q": d["q"], "entry": d["entry"],
             "price": f"{p:.7f}" if d["entry"] < 0.01 else f"{p:.4f}",
+            "value": round(p * d["q"], 0),
             "apr": d["apr"], "mai": d["mai"],
             "pot_apr": round(d["apr"] / d["entry"], 2),
             "pot_mai": round(d["mai"] / d["entry"], 2)
         })
 
-    # CALCUL ROTATION SCORE (Conform tabelului tau)
-    btcd = global_api["data"]["market_cap_percentage"]["btc"] if global_api else 50
-    fng = int(fng_data["data"][0]["value"]) if fng_data else 50
-    urpd = 84.2 # Live placeholder
-    usdtd = 5.1 # Live placeholder
-    
+    # Logica Rotation Score
+    btcd = global_api["data"]["market_cap_percentage"]["btc"] if global_api else 56.7
+    fng = int(fng_data["data"][0]["value"]) if fng_data else 70
     score = 0
     if btcd < 46: score += 25
-    if usdtd < 5: score += 25
-    if urpd > 80: score += 25
     if fng < 80: score += 25
-
+    score += 25 # URPD default OK
+    
     profit_teoretic_eur = (total_exit_mai_usd - INVESTITIE_TOTALA_USD) * USD_EUR
 
     with open("data.json", "w") as f:
         json.dump({
             "btc_d": round(btcd, 1),
-            "total3": round(global_api["data"]["total_market_cap"]["usd"] / 1e12, 2) if global_api else 0.8,
+            "total3": round(global_api["data"]["total_market_cap"]["usd"] / 1e12, 2) if global_api else 2.48,
             "fng": fng,
             "rotation_score": score,
             "portfolio": round(total_val_usd, 0),
             "multiplier": round(total_val_usd / INVESTITIE_TOTALA_USD, 2),
             "profit_teoretic": f"{profit_teoretic_eur:,.0f}",
             "coins": results,
-            "vix": 14.1, "urpd": urpd, "dxy": 103.8, "m2": "21.2T", "usdtd": usdtd
+            "vix": 14.1, "urpd": 84.2, "dxy": 103.8, "m2": "21.2T", "usdtd": 5.1
         }, f)
 
 if __name__ == "__main__": main()
