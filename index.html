@@ -2,8 +2,9 @@
 <html lang="ro">
 <head>
     <meta charset="UTF-8">
+    <title>Altcoin Tracker Pro</title>
     <style>
-        body { background: #0b0e14; color: #e1e1e1; font-family: sans-serif; padding: 15px; font-size: 11px; }
+        body { background: #0b0e14; color: #e1e1e1; font-family: sans-serif; padding: 15px; font-size: 11px; margin: 0; }
         .target-panel { 
             background: #052e16; border: 2px solid #22c55e; padding: 18px; border-radius: 12px; 
             margin-bottom: 25px; text-align: center; font-size: 16px; font-weight: bold; color: #fff; 
@@ -13,8 +14,9 @@
         .m-label { font-size: 8px; color: #888; text-transform: uppercase; margin-bottom: 6px; }
         .m-val { font-weight: bold; font-size: 16px; }
         .status-box { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
-        .st-btn { background: #111; border: 1px solid #222; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: #222; }
+        .st-btn { background: #111; border: 1px solid #222; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: #333; }
         
+        /* Butoane Active */
         .active-h { border-color: #ef4444 !important; color: #ef4444 !important; box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); }
         .active-p { border-color: #fbbf24 !important; color: #fbbf24 !important; box-shadow: 0 0 15px rgba(251, 191, 36, 0.4); }
         .active-s { border-color: #00ff88 !important; color: #00ff88 !important; box-shadow: 0 0 15px rgba(0, 255, 136, 0.4); }
@@ -31,7 +33,8 @@
         .prog-bg { width: 100%; background: #222; height: 5px; border-radius: 3px; margin-top: 6px; overflow: hidden; }
         .prog-fill { height: 100%; border-radius: 3px; }
         .fib-col { font-weight: bold; color: #a855f7; border-left: 1px solid #222; }
-        .trend-up { color: #00ff88; } .trend-down { color: #ef4444; }
+        .trend-up { color: #00ff88; margin-left: 4px; }
+        .trend-down { color: #ef4444; margin-left: 4px; }
     </style>
 </head>
 <body>
@@ -41,7 +44,7 @@
     <div class="top-nav">
         <div class="m-card"><div class="m-label">Rotation Score</div><div id="score" class="m-val">--</div></div>
         <div class="m-card"><div class="m-label">BTC.D LIVE</div><div id="btcd" class="m-val">--</div></div>
-        <div class="m-card"><div class="m-label">ETH / BTC</div><div id="ethbtc" class="m-val">--</div></div>
+        <div class="m-card"><div class="m-label">ETH / BTC</div><div id="ethbtc" class="m-val" style="color:#a855f7">--</div></div>
         <div class="m-card"><div class="m-label">USDT.D LIVE</div><div id="usdtd" class="m-val">--</div></div>
         <div class="status-box">
             <div id="btn-h" class="st-btn">HOLD</div>
@@ -80,31 +83,36 @@
                 const r = await fetch('data.json?v=' + Date.now());
                 const d = await r.json();
 
-                // Rotation & Butoane conform regulilor noi
+                // 1. Rotation Score & Butoane
                 const s = d.rotation_score;
-                document.getElementById('score').textContent = s + '%';
-                document.getElementById('score').style.color = s >= 70 ? '#00ff88' : '#ef4444';
+                const scoreEl = document.getElementById('score');
+                scoreEl.textContent = s + '%';
+                scoreEl.style.color = s >= 70 ? '#00ff88' : '#ef4444';
 
                 document.getElementById('btn-h').className = 'st-btn' + (s < 50 ? ' active-h' : '');
                 document.getElementById('btn-p').className = 'st-btn' + (s >= 50 && s < 70 ? ' active-p' : '');
                 document.getElementById('btn-s').className = 'st-btn' + (s >= 70 ? ' active-s' : '');
 
-                // Indicatori cu săgeți de trend
+                // 2. Indicatori de bază cu săgeți
                 document.getElementById('btcd').innerHTML = `${d.btc_d}% <span class="trend-up">▲</span>`;
-                document.getElementById('ethbtc').innerHTML = `<span style="color:#a855f7">${d.eth_btc}</span>`;
+                document.getElementById('ethbtc').innerHTML = `${d.eth_btc} <span class="trend-down">▼</span>`;
                 document.getElementById('usdtd').innerHTML = `${d.usdt_d}% <span class="trend-up">▲</span>`;
-                document.getElementById('t3').innerHTML = `${d.total3} <span class="trend-up">▲</span>`;
-                document.getElementById('m2').innerHTML = `${d.m2} <span class="trend-up">▲</span>`;
 
+                // 3. Carduri Big Stats
                 document.getElementById('v').textContent = '€' + d.portfolio_eur.toLocaleString();
                 document.getElementById('profit').textContent = d.profit_range;
                 document.getElementById('m').textContent = d.multiplier + 'x';
                 document.getElementById('investit').textContent = 'Investit: €' + d.investit_eur.toLocaleString();
+
+                // 4. Macro Row cu săgeți Total 3 și M2
+                document.getElementById('t3').innerHTML = `${d.total3} <span class="trend-up">▲</span>`;
                 document.getElementById('fng').textContent = d.fng;
                 document.getElementById('vix').textContent = d.vix;
                 document.getElementById('urpd').textContent = d.urpd;
                 document.getElementById('dxy').textContent = d.dxy;
+                document.getElementById('m2').innerHTML = `${d.m2} <span class="trend-up">▲</span>`;
 
+                // 5. Tabelul
                 let h = '';
                 d.coins.forEach(c => {
                     let color = c.progres >= 80 ? '#00ff88' : '#fbbf24';
@@ -114,7 +122,7 @@
                     </tr>`;
                 });
                 document.getElementById('rows').innerHTML = h;
-            } catch (e) { console.log("Sync..."); }
+            } catch (e) { console.log("Updating..."); }
         }
         load(); setInterval(load, 60000);
     </script>
