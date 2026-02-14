@@ -2,32 +2,29 @@
     <meta charset="UTF-8">
     <style>
         body { background: #0b0e14; color: #e1e1e1; font-family: sans-serif; padding: 10px; font-size: 12px; }
-        /* Panel Verde Mai Mare */
+        /* Panel Verde - Dimensiune Marita */
         .target-panel { 
-            background: #052e16; border: 2px solid #22c55e; padding: 18px; 
-            border-radius: 10px; margin-bottom: 20px; text-align: center;
-            font-size: 16px; font-weight: bold; letter-spacing: 1px;
-            box-shadow: 0 0 15px rgba(34, 197, 94, 0.2);
+            background: #052e16; border: 2px solid #22c55e; padding: 15px; 
+            border-radius: 8px; margin-bottom: 20px; text-align: center;
+            font-size: 15px; font-weight: bold; color: #fff;
         }
         .macro-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 10px; }
-        .m-card { background: #1a1c24; padding: 10px; border-radius: 8px; border: 1px solid #333; text-align: center; }
-        .m-label { font-size: 9px; color: #888; margin-bottom: 4px; text-transform: uppercase; }
+        .m-card { background: #1a1c24; padding: 10px; border-radius: 6px; border: 1px solid #333; text-align: center; }
+        .m-label { font-size: 9px; color: #888; text-transform: uppercase; margin-bottom: 4px; }
         .m-val { font-weight: bold; font-size: 14px; }
-        .stats-main { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px; }
-        .card-big { background: #1a1c24; padding: 18px; border-radius: 10px; border: 1px solid #444; }
-        .val-big { font-size: 30px; font-weight: bold; color: #00ff88; }
-        /* Stil pentru suma in paranteza */
-        .sub-sum { font-size: 14px; color: #ff4d4d; font-weight: normal; margin-left: 5px; }
-        .table-container { background: #1a1c24; border-radius: 8px; overflow-x: auto; border: 1px solid #222; }
-        table { width: 100%; border-collapse: collapse; min-width: 800px; }
-        th { background: #111; padding: 12px; text-align: left; color: #888; font-size: 10px; text-transform: uppercase; }
-        td { padding: 14px 12px; border-bottom: 1px solid #222; }
+        .stats-main { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .card-big { background: #1a1c24; padding: 20px; border-radius: 10px; border: 1px solid #444; }
+        .val-big { font-size: 32px; font-weight: bold; color: #00ff88; }
+        /* Suma in paranteza */
+        .invested-label { font-size: 14px; color: #ff4d4d; font-weight: normal; margin-left: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { text-align: left; color: #666; font-size: 10px; padding: 12px; border-bottom: 2px solid #222; }
+        td { padding: 15px 12px; border-bottom: 1px solid #222; }
         .pot { color: #00ff88; font-weight: bold; }
-        .target-price { color: #fbbf24; }
     </style></head><body>
 
     <div class="target-panel">
-        🎯 MACRO TARGETS: BTC.D: 46% | VIX: 13.8 | URPD: 86% | USDT.D: 5%
+        🎯 TARGETS: BTC.D: 46% | VIX: 13.8 | URPD: 86% | USDT.D: 5%
     </div>
 
     <div class="macro-grid">
@@ -39,38 +36,35 @@
 
     <div class="stats-main">
         <div class="card-big"><div class="m-label">VALOARE PORTOFOLIU</div><div id="v" class="val-big">--</div></div>
-        <div class="card-big"><div class="m-label">PROFIT TEORETIC MAI</div><div id="profit" class="val-big" style="color:#fbbf24">--</div></div>
+        <div class="card-big"><div class="m-label">PROFIT TEORETIC (MAI)</div><div id="profit" class="val-big" style="color:#fbbf24">--</div></div>
         <div class="card-big">
             <div class="m-label">MULTIPLIER ACTUAL</div>
-            <div class="val-big"><span id="m">--</span> <span class="sub-sum">($120,456)</span></div>
+            <div class="val-big"><span id="m">--</span><span class="invested-label">($120,456)</span></div>
         </div>
-        <div class="card-big"><div class="m-label">USDT.D LIVE</div><div id="usdtd" class="val-big" style="font-size: 24px;">--</div></div>
+        <div class="card-big"><div class="m-label">USDT.D LIVE</div><div id="usdtd" class="val-big" style="font-size: 26px;">--</div></div>
     </div>
 
     <div class="macro-grid" style="background: rgba(255,255,255,0.03); padding: 10px; border-radius: 8px;">
         <div class="m-card"><div class="m-label">URPD PROFIT</div><div id="urpd" class="m-val">--</div></div>
-        <div class="m-card"><div class="m-label">VIX INDEX</div><div id="vix" class="m-val">--</div></div>
+        <div class="m-card"><div class="m-label">VIX INDEX</div><div id="vix" class="m-val" style="color:#ff4d4d">--</div></div>
         <div class="m-card"><div class="m-label">DXY</div><div id="dxy" class="m-val">--</div></div>
         <div class="m-card"><div class="m-label">M2 SUPPLY</div><div id="m2" class="m-val">--</div></div>
     </div>
 
-    <br>
-    <div class="table-container">
-        <table>
-            <thead>
-                <tr>
-                    <th>MONEDA</th>
-                    <th>CANTITATE</th>
-                    <th>ENTRY</th>
-                    <th>APR TARGET</th>
-                    <th>X APR</th>
-                    <th>MAI TARGET</th>
-                    <th>X MAI</th>
-                </tr>
-            </thead>
-            <tbody id="rows"></tbody>
-        </table>
-    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>MONEDA</th>
+                <th>CANTITATE</th>
+                <th>ENTRY</th>
+                <th>APR TARGET</th>
+                <th>X APR</th>
+                <th>MAI TARGET</th>
+                <th>X MAI</th>
+            </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+    </table>
 
     <script>
         async function load() {
@@ -93,10 +87,10 @@
                 h += `<tr>
                     <td><b>${c.symbol}</b><br><small style="color:#666">$${c.price}</small></td>
                     <td>${c.q.toLocaleString()}</td>
-                    <td style="color:#aaa">$${c.entry}</td>
-                    <td class="target-price">$${c.apr}</td>
+                    <td>$${c.entry}</td>
+                    <td style="color:#fbbf24">$${c.apr}</td>
                     <td class="pot">${c.pot_apr}x</td>
-                    <td class="target-price">$${c.mai}</td>
+                    <td style="color:#fbbf24">$${c.mai}</td>
                     <td class="pot">${c.pot_mai}x</td>
                 </tr>`;
             });
