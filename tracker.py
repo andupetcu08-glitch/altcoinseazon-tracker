@@ -1,6 +1,8 @@
 import json, urllib.request
 
+# Configurare Investiție
 INVESTITIE_TOTALA_USD = 120456.247
+
 PORTFOLIO = {
     "optimism": {"q": 6400, "entry": 0.773, "apr": 4.8, "mai": 5.20, "fib": 5.95},
     "notcoin": {"q": 1297106.88, "entry": 0.001291, "apr": 0.028, "mai": 0.028, "fib": 0.034},
@@ -21,7 +23,7 @@ def fetch(url):
     except: return None
 
 def calculate_rotation_score(btc_d, eth_btc, fng, usdt_d):
-    score = 10
+    score = 10 
     if btc_d < 50: score += 25
     elif btc_d <= 55: score += 15
     else: score += 5
@@ -51,14 +53,15 @@ def main():
     btc_eur = btc_eur_data.get("bitcoin", {}).get("eur", 1)
     usd_eur_live = btc_eur / btc_usd if btc_usd > 0 else 0.92
 
-    btc_d = round(global_api["data"]["market_cap_percentage"]["btc"], 1) if global_api else 56.5
-    eth_btc = round((price_map.get("ethereum", {}).get("current_price", 0) / btc_usd), 4) if btc_usd > 0 else 0.0299
+    btc_d = round(global_api["data"]["market_cap_percentage"]["btc"], 1) if global_api else 56.4
+    eth_p = price_map.get("ethereum", {}).get("current_price", 0)
+    eth_btc = round(eth_p / btc_usd, 4) if btc_usd > 0 else 0.0299
     fng_val = int(fng_api["data"][0]["value"]) if fng_api else 9
     
-    # Simulare date live (în mod normal vin din API-uri macro)
-    usdt_d = 7.5 
-    total3 = 0.98 # Trilioane
-    m2_supply = 21.2 # Trilioane
+    # Parametrii macro solicitați
+    usdt_d = 7.5
+    total3 = "0.98T"
+    m2_supply = "21.2T"
     
     rotation_score = calculate_rotation_score(btc_d, eth_btc, fng_val, usdt_d)
 
@@ -75,15 +78,12 @@ def main():
         total_val_fib_usd += (d["fib"] * d["q"])
         
         prog = ((p - d["entry"]) / (d["fib"] - d["entry"])) * 100 if d["fib"] > d["entry"] else 0
-        symbol = cid.upper().split('-')[0]
-        if "governance" in cid: symbol = "JTO"
-        if "network" in cid: symbol = "SNX"
-        if "sonic" in cid: symbol = "SONIC"
+        symbol = cid.upper().replace("-NETWORK-TOKEN","").replace("-GOVERNANCE-TOKEN","").replace("-3","")
+        if "JITO" in symbol: symbol = "JTO"
 
         results.append({
             "symbol": symbol, "q": d["q"], "entry": d["entry"], "progres": round(max(0, min(100, prog)), 1),
-            "price": f"{p:.7f}" if d["entry"] < 0.01 else f"{p:.4f}", 
-            "apr": d["apr"], "mai": d["mai"], "fib": d["fib"],
+            "price": f"{p:.4f}", "apr": d["apr"], "mai": d["mai"], "fib": d["fib"],
             "x_apr": round(d["apr"] / d["entry"], 2), "x_mai": round(d["mai"] / d["entry"], 2)
         })
 
@@ -94,9 +94,8 @@ def main():
             "profit_range": f"€{((total_val_apr_usd - INVESTITIE_TOTALA_USD) * usd_eur_live):,.0f} - €{((total_val_fib_usd - INVESTITIE_TOTALA_USD) * usd_eur_live):,.0f}",
             "investit_eur": round(INVESTITIE_TOTALA_USD * usd_eur_live, 0),
             "multiplier": round((total_val_usd * usd_eur_live) / (INVESTITIE_TOTALA_USD * usd_eur_live), 2),
-            "coins": results, "vix": 13.8, "dxy": 101, "total3": f"{total3}T", 
-            "fng": f"{fng_val} ({fng_api['data'][0]['value_classification']})", 
-            "usdt_d": usdt_d, "urpd": "84.2%", "m2": f"{m2_supply}T"
+            "coins": results, "vix": 13.8, "dxy": 101, "total3": total3, 
+            "fng": f"{fng_val} (Extreme Fear)", "usdt_d": usdt_d, "urpd": "84.2%", "m2": m2_supply
         }, f)
 
 if __name__ == "__main__": main()
