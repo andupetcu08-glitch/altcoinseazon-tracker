@@ -1,6 +1,6 @@
 import json, urllib.request, time, os
 
-# Datele extrase exact din tabelul tău Excel
+# DATE COMPLETE DIN EXCEL (image_2ef3e6.jpg)
 PORTFOLIO_DATA = {
     "optimism": {"q": 6400, "entry": 0.773, "apr": 4.8, "mai": 5.7},
     "notcoin": {"q": 1297106.88, "entry": 0.001291, "apr": 0.028, "mai": 0.03},
@@ -14,14 +14,12 @@ PORTFOLIO_DATA = {
     "synthetix-network-token": {"q": 20073.76, "entry": 0.8773, "apr": 7.8, "mai": 9.5}
 }
 
-HISTORY_FILE = "history.json"
-
 def fetch(url):
     req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
     with urllib.request.urlopen(req, timeout=15) as r: return json.loads(r.read().decode())
 
 def main():
-    # 1. Date de piață
+    # 1. Preluare prețuri și date globale
     prices = fetch("https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&per_page=250")
     global_data = fetch("https://api.coingecko.com/api/v3/global")["data"]
     price_map = {c["id"]: c for c in prices}
@@ -31,45 +29,48 @@ def main():
     eth_d = global_data["market_cap_percentage"]["eth"]
     total3 = (global_data["total_market_cap"]["usd"] * (1 - (btc_d + eth_d) / 100)) / 1e12
 
-    # 3. Calcul Scenariu Exit
-    # Probabilitatea crește dacă BTC.D scade sub 47% (conform tabelului tău) și TOTAL3 crește
-    exit_score = (max(0, 58 - btc_d) / 16) * 50 + (min(total3, 2.5) / 2.5) * 50
-    exit_prob = round(max(0, min(100, exit_score)), 1)
+    # 3. Probabilitate Exit (Logic: BTC.D sub 47% aprinde SELL)
+    exit_score = 0
+    if btc_d < 50: exit_score += 30
+    if btc_d < 47: exit_score += 20
+    if total3 > 1.2: exit_score += 25
+    if total3 > 2.0: exit_score += 25
+    exit_prob = round(exit_score, 1)
 
-    # 4. Calcul Portofoliu
-    total_value = 0
-    total_invested = 0
-    coin_results = []
+    # 4. Procesare monede
+    total_val = 0
+    total_inv = 0
+    results = []
 
-    for cid, data in PORTFOLIO_DATA.items():
+    for cid, d in PORTFOLIO_DATA.items():
         if cid in price_map:
             p = price_map[cid]["current_price"]
-            val = p * data["q"]
-            total_value += val
-            total_invested += data["entry"] * data["q"]
+            v = p * d["q"]
+            total_val += v
+            total_inv += d["entry"] * d["q"]
             
-            coin_results.append({
+            results.append({
+                "id": d["q"], # Folosit pentru sortare dacă e cazul
                 "symbol": price_map[cid]["symbol"].upper(),
                 "price": p,
-                "val": round(val, 0),
-                "target_apr": data["apr"],
-                "target_mai": data["mai"],
-                "progress": round((p / data["apr"]) * 100, 1),
-                "potential": round(data["mai"] / p, 1) if p > 0 else 0
+                "value": round(v, 0),
+                "apr": d["apr"],
+                "mai": d["mai"],
+                "progress": round((p / d["apr"]) * 100, 1),
+                "pot": round(d["mai"] / p, 1) if p > 0 else 0
             })
 
-    # 5. Salvare JSON
-    output = {
-        "exit_probability": exit_prob,
-        "btc_d": round(btc_d, 1),
-        "total3": round(total3, 2),
-        "total_value": round(total_value, 0),
-        "profit_mult": round(total_value / total_invested, 2) if total_invested > 0 else 0,
-        "coins": coin_results,
-        "time": time.strftime("%H:%M")
-    }
-    
-    with open("data.json", "w") as f: json.dump(output, f, indent=2)
+    # 5. Export JSON
+    with open("data.json", "w") as f:
+        json.dump({
+            "exit": exit_prob,
+            "btc_d": round(btc_d, 1),
+            "total3": round(total3, 2),
+            "portfolio_val": round(total_val, 0),
+            "multiplier": round(total_val / total_inv, 2) if total_inv > 0 else 0,
+            "coins": results,
+            "updated": time.strftime("%H:%M:%S")
+        }, f)
 
 if __name__ == "__main__":
     main()
