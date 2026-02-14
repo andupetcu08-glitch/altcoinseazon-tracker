@@ -30,53 +30,59 @@ def main():
     price_map = {c["id"]: c for c in prices} if prices else {}
     global_data = global_api["data"] if global_api else {}
     
+    # Date Macro
     btc_p = price_map.get("bitcoin", {}).get("current_price", 1)
     eth_p = price_map.get("ethereum", {}).get("current_price", 0)
-    eth_btc = round(eth_p / btc_p, 4) if eth_p > 0 else 0
-    btc_d = round(global_data.get("market_cap_percentage", {}).get("btc", 56.5), 1)
-    usdtd = round(global_data.get("market_cap_percentage", {}).get("usdt", 7.5), 1)
+    eth_btc = eth_p / btc_p if eth_p > 0 else 0
+    btc_d = global_data.get("market_cap_percentage", {}).get("btc", 56.5)
+    vix = 13.8 # Parametru macro
 
-    # Scor Dinamic
-    rotation_score = 40 
-    
+    # --- LOGICA SCOR DINAMIC (MULTI-FACTOR) ---
+    score = 50 
+    if btc_d > 55: score -= 15
+    if eth_btc > 0.04: score += 15
+    if vix > 20: score -= 20
+    score = max(0, min(100, score))
+
     results = []
     total_val_usd = 0
     total_val_mai_usd = 0
 
     for cid, d in PORTFOLIO.items():
+        if cid in ["bitcoin", "ethereum"]: continue
         p = price_map.get(cid, {}).get("current_price", 0)
         if p == 0 and "synthetix" in cid: p = 0.3026 
         
         total_val_usd += (p * d["q"])
         total_val_mai_usd += (d["mai"] * d["q"])
         
+        # Calcul Progres catre Target Final (Fibonacci)
+        prog = ((p - d["entry"]) / (d["fib"] - d["entry"])) * 100 if d["fib"] > d["entry"] else 0
+        prog = max(0, min(100, prog))
+
         symbol = cid.upper().split('-')[0]
         if "governance" in cid: symbol = "JTO"
         if "network" in cid: symbol = "SNX"
         if "sonic" in cid: symbol = "SONIC"
 
         results.append({
-            "symbol": symbol, "q": d["q"], "entry": d["entry"], 
-            "live_p": p, "price": f"{p:.7f}" if d["entry"] < 0.01 else f"{p:.4f}", 
+            "symbol": symbol, "q": d["q"], "entry": d["entry"], "progres": round(prog, 1),
+            "price": f"{p:.7f}" if d["entry"] < 0.01 else f"{p:.4f}", 
             "apr": d["apr"], "mai": d["mai"], "fib": d["fib"],
-            "x_apr": round(d["apr"] / d["entry"], 2),
-            "x_mai": round(d["mai"] / d["entry"], 2)
+            "x_apr": round(d["apr"] / d["entry"], 2), "x_mai": round(d["mai"] / d["entry"], 2)
         })
 
     portfolio_eur = total_val_usd * USD_EUR
-    investit_eur = INVESTITIE_TOTALA_USD * USD_EUR
     profit_mai_eur = (total_val_mai_usd - INVESTITIE_TOTALA_USD) * USD_EUR
 
     with open("data.json", "w") as f:
         json.dump({
-            "btc_d": btc_d, "eth_btc": eth_btc, "usdtd": usdtd,
-            "rotation_score": rotation_score,
-            "portfolio_eur": round(portfolio_eur, 0),
-            "profit_mai_eur": f"{profit_mai_eur:,.0f}",
-            "investit_eur": round(investit_eur, 0), 
-            "multiplier": round(portfolio_eur / investit_eur, 2),
-            "coins": results,
-            "vix": 13.8, "dxy": 101, "urpd": 84.2, "total3": "0.98T", "m2": "21.2T", "fng": "9 (Extreme Fear)"
+            "btc_d": round(btc_d, 1), "eth_btc": round(eth_btc, 4), "eth_btc_trend": "up" if eth_btc > 0.029 else "down",
+            "rotation_score": score, "portfolio_eur": round(portfolio_eur, 0),
+            "profit_mai_eur": f"{profit_mai_eur:,.0f}", "investit_eur": round(INVESTITIE_TOTALA_USD * USD_EUR, 0), 
+            "multiplier": round(portfolio_eur / (INVESTITIE_TOTALA_USD * USD_EUR), 2),
+            "coins": results, "usdtd": round(global_data.get("market_cap_percentage", {}).get("usdt", 7.5), 1),
+            "vix": vix, "dxy": 101, "urpd": 84.2, "total3": "0.98T", "m2": "21.2T", "fng": "9 (Extreme Fear)"
         }, f)
 
 if __name__ == "__main__": main()
