@@ -30,14 +30,13 @@ def main():
     price_map = {c["id"]: c for c in prices} if prices else {}
     global_data = global_api["data"] if global_api else {}
     
-    # Date Macro
     btc_p = price_map.get("bitcoin", {}).get("current_price", 1)
     eth_p = price_map.get("ethereum", {}).get("current_price", 0)
     eth_btc = eth_p / btc_p if eth_p > 0 else 0
     btc_d = global_data.get("market_cap_percentage", {}).get("btc", 56.5)
-    vix = 13.8 # Parametru macro
+    vix = 13.8 
 
-    # --- LOGICA SCOR DINAMIC (MULTI-FACTOR) ---
+    # Scorul pleaca de la 50
     score = 50 
     if btc_d > 55: score -= 15
     if eth_btc > 0.04: score += 15
@@ -49,14 +48,12 @@ def main():
     total_val_mai_usd = 0
 
     for cid, d in PORTFOLIO.items():
-        if cid in ["bitcoin", "ethereum"]: continue
         p = price_map.get(cid, {}).get("current_price", 0)
         if p == 0 and "synthetix" in cid: p = 0.3026 
         
         total_val_usd += (p * d["q"])
         total_val_mai_usd += (d["mai"] * d["q"])
         
-        # Calcul Progres catre Target Final (Fibonacci)
         prog = ((p - d["entry"]) / (d["fib"] - d["entry"])) * 100 if d["fib"] > d["entry"] else 0
         prog = max(0, min(100, prog))
 
