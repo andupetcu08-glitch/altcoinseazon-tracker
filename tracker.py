@@ -23,34 +23,36 @@ def fetch(url):
     except: return None
 
 def main():
-    # Includem Bitcoin si Ethereum pentru raport
     ids = list(PORTFOLIO.keys()) + ["bitcoin", "ethereum"]
     coin_ids = ",".join(ids)
-    prices = fetch(f"https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids={coin_ids}")
+    # Luam si preturile de acum 24h pentru trend
+    prices = fetch(f"https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids={coin_ids}&price_change_percentage=24h")
     global_api = fetch("https://api.coingecko.com/api/v3/global")
     fng_data = fetch("https://api.alternative.me/fng/")
     
     price_map = {c["id"]: c for c in prices} if prices else {}
     global_data = global_api["data"] if global_api else {}
     
-    # Datele Live
     btc_p = price_map.get("bitcoin", {}).get("current_price", 1)
     eth_p = price_map.get("ethereum", {}).get("current_price", 0)
     eth_btc = eth_p / btc_p if eth_p > 0 else 0
     
+    # Calcul trend ETH/BTC (bazat pe schimbarile de pret 24h)
+    eth_change = price_map.get("ethereum", {}).get("price_change_percentage_24h", 0)
+    btc_change = price_map.get("bitcoin", {}).get("price_change_percentage_24h", 0)
+    eth_btc_trend = "up" if eth_change > btc_change else "down"
+
     btc_d = global_data.get("market_cap_percentage", {}).get("btc", 56.7)
     usdtd = global_data.get("market_cap_percentage", {}).get("usdt", 5.1)
     
-    # Scorul de Rotatie
     score = 0
     if btc_d < 52: score += 20
     if eth_btc > 0.05: score += 20
     if usdtd < 5.2: score += 20
     fng_val = int(fng_data["data"][0]["value"]) if fng_data else 50
     if fng_val < 75: score += 20
-    score += 20 # URPD indicator
+    score += 20 
     
-    # Frana de HOLD: Daca BTC.D e peste 55%, blocam in HOLD
     if btc_d > 55: score = min(score, 45)
 
     results = []
@@ -59,23 +61,14 @@ def main():
     for cid, d in PORTFOLIO.items():
         if cid in ["bitcoin", "ethereum"]: continue
         p = price_map.get(cid, {}).get("current_price", 0)
-        if p == 0 and "synthetix" in cid: p = 0.3026 # Fallback SNX
-        
+        if p == 0 and "synthetix" in cid: p = 0.3026 
         total_val += (p * d["q"])
         total_exit_mai += (d["mai"] * d["q"])
-        
         symbol = cid.upper().split('-')[0]
         if "governance" in cid: symbol = "JTO"
         if "network" in cid: symbol = "SNX"
         if "sonic" in cid: symbol = "SONIC"
-
-        results.append({
-            "symbol": symbol, "q": d["q"], "entry": d["entry"],
-            "price": f"{p:.7f}" if d["entry"] < 0.01 else f"{p:.4f}",
-            "apr": d["apr"], "mai": d["mai"],
-            "pot_apr": round(d["apr"] / d["entry"], 2),
-            "pot_mai": round(d["mai"] / d["entry"], 2)
-        })
+        results.append({"symbol": symbol, "q": d["q"], "entry": d["entry"], "price": f"{p:.7f}" if d["entry"] < 0.01 else f"{p:.4f}", "apr": d["apr"], "mai": d["mai"], "pot_apr": round(d["apr"] / d["entry"], 2), "pot_mai": round(d["mai"] / d["entry"], 2)})
 
     profit_eur = (total_exit_mai - INVESTITIE_TOTALA_USD) * USD_EUR
 
@@ -83,6 +76,7 @@ def main():
         json.dump({
             "btc_d": round(btc_d, 1),
             "eth_btc": round(eth_btc, 4),
+            "eth_btc_trend": eth_btc_trend,
             "total3": round(0.98, 2),
             "fng": f"{fng_val} ({fng_data['data'][0]['value_classification'] if fng_data else 'N/A'})",
             "rotation_score": score,
