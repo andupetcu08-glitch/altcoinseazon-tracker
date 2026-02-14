@@ -1,72 +1,26 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <style>
-        body { background: #0b0e14; color: #e1e1e1; font-family: sans-serif; padding: 15px; }
-        .regime-box { display: flex; gap: 10px; margin-bottom: 20px; }
-        .btn { flex: 1; padding: 15px; border-radius: 10px; border: 1px solid #333; text-align: center; font-weight: bold; color: #333; transition: 0.3s; }
-        
-        /* Becurile semaforului */
-        .active-hold { background: #00ff88; color: #000; box-shadow: 0 0 20px rgba(0,255,136,0.3); }
-        .active-prepare { background: #ffcc00; color: #000; box-shadow: 0 0 20px rgba(255,204,0,0.3); }
-        .active-sell { background: #ff4d4d; color: #000; box-shadow: 0 0 20px rgba(255,77,77,0.3); }
+fetch('data.json?v=' + Date.now()).then(r => r.json()).then(d => {
+    // Afișăm valorile macro
+    document.getElementById('total-val').textContent = '$' + d.portfolio_val.toLocaleString();
+    document.getElementById('mult').textContent = d.multiplier + 'x';
+    document.getElementById('btc-d').textContent = d.btc_d + '%';
+    document.getElementById('t3').textContent = d.total3 + 'T';
+    document.getElementById('ex').textContent = d.exit + '%';
 
-        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-        .card { background: #1a1c24; padding: 15px; border-radius: 12px; border: 1px solid #333; }
-        .val-big { font-size: 24px; font-weight: bold; color: #00ff88; }
-        
-        table { width: 100%; border-collapse: collapse; background: #1a1c24; border-radius: 10px; overflow: hidden; font-size: 12px; }
-        th { background: #252833; padding: 10px; text-align: left; color: #888; }
-        td { padding: 12px 10px; border-bottom: 1px solid #222; }
-    </style>
-</head>
-<body>
-    <div class="regime-box">
-        <div id="h" class="btn">HOLD</div>
-        <div id="p" class="btn">PREPARE</div>
-        <div id="s" class="btn">SELL</div>
-    </div>
+    // Iluminăm butoanele
+    if(d.exit >= 75) document.getElementById('s').className = 'btn active-sell';
+    else if(d.exit >= 50) document.getElementById('p').className = 'btn active-prepare';
+    else document.getElementById('h').className = 'btn active-hold';
 
-    <div class="stat-grid">
-        <div class="card">Portofoliu: <div id="total-val" class="val-big">--</div></div>
-        <div class="card">Multiplier: <div id="mult" class="val-big">--</div></div>
-    </div>
-
-    <div class="stat-grid" style="grid-template-columns: 1fr 1fr 1fr;">
-        <div class="card" style="font-size: 11px;">BTC.D: <b id="btc-d">--</b></div>
-        <div class="card" style="font-size: 11px;">TOTAL3: <b id="t3">--</b></div>
-        <div class="card" style="font-size: 11px;">EXIT: <b id="ex">--</b></div>
-    </div>
-
-    <table>
-        <thead><tr><th>COIN</th><th>VALUE</th><th>APR/MAI</th><th>POT.</th></tr></thead>
-        <tbody id="rows"></tbody>
-    </table>
-
-    <script>
-        fetch('data.json?v='+Date.now()).then(r=>r.json()).then(d=>{
-            document.getElementById('total-val').textContent = '$' + d.total_value.toLocaleString();
-            document.getElementById('mult').textContent = d.profit_mult + 'x';
-            document.getElementById('btc-d').textContent = d.btc_d + '%';
-            document.getElementById('t3').textContent = d.total3 + 'T';
-            document.getElementById('ex').textContent = d.exit_probability + '%';
-
-            if(d.exit_probability > 75) document.getElementById('s').classList.add('active-sell');
-            else if(d.exit_probability > 45) document.getElementById('p').classList.add('active-prepare');
-            else document.getElementById('h').classList.add('active-hold');
-
-            let h = '';
-            d.coins.forEach(c => {
-                h += `<tr>
-                    <td><b>${c.symbol}</b><br><small>$${c.price.toLocaleString()}</small></td>
-                    <td>$${c.val.toLocaleString()}</td>
-                    <td style="color:#888">$${c.target_apr}/$${c.target_mai}</td>
-                    <td style="color:#00ff88"><b>${c.potential}x</b></td>
-                </tr>`;
-            });
-            document.getElementById('rows').innerHTML = h;
-        });
-    </script>
-</body>
-</html>
+    // Generăm tabelul pentru TOATE monedele
+    let rows = '';
+    d.coins.forEach(c => {
+        rows += `<tr>
+            <td><b>${c.symbol}</b><br><small>$${c.price.toLocaleString()}</small></td>
+            <td>$${c.value.toLocaleString()}</td>
+            <td style="color:#888">$${c.apr} / $${c.mai}</td>
+            <td>${c.progress}%</td>
+            <td style="color:#00ff88"><b>${c.pot}x</b></td>
+        </tr>`;
+    });
+    document.getElementById('rows').innerHTML = rows;
+});
