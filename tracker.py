@@ -1,6 +1,5 @@
 import json, urllib.request, time
 
-# Constantele tale
 INVESTITIE_TOTALA_USD = 120456.247
 USD_EUR = 0.96 
 
@@ -14,7 +13,7 @@ PORTFOLIO = {
     "cartesi": {"q": 49080, "entry": 0.19076, "apr": 0.2, "mai": 0.2},
     "immutable-x": {"q": 1551.82, "entry": 3.4205, "apr": 3.5, "mai": 4.3},
     "sonic-3": {"q": 13449.38, "entry": 0.61633, "apr": 1.05, "mai": 1.2},
-    "synthetix-network-token": {"q": 20073.76, "entry": 0.8773, "apr": 7.8, "mai": 9.3}
+    "havven": {"q": 20073.76, "entry": 0.8773, "apr": 7.8, "mai": 9.3} # Havven e ID-ul vechi SNX, mult mai stabil in API
 }
 
 def fetch(url):
@@ -33,8 +32,15 @@ def main():
     global_data = global_api["data"] if global_api else {}
     
     btc_d = global_data.get("market_cap_percentage", {}).get("btc", 56.7)
-    # USDT.D estimat din API Global
     usdtd = global_data.get("market_cap_percentage", {}).get("usdt", 5.1)
+
+    # Calcul Rotation Score
+    score = 0
+    if btc_d < 46: score += 25
+    fng_val = int(fng_data["data"][0]["value"]) if fng_data else 50
+    if fng_val < 80: score += 25
+    score += 25 # URPD
+    if usdtd < 5: score += 25
 
     results = []
     total_val = 0
@@ -46,7 +52,7 @@ def main():
         
         symbol = cid.upper().split('-')[0]
         if "governance" in cid: symbol = "JTO"
-        if "synthetix" in cid: symbol = "SNX"
+        if "havven" in cid: symbol = "SNX" # Afisam ca SNX in tabel
         if "sonic" in cid: symbol = "SONIC"
 
         results.append({
@@ -57,14 +63,13 @@ def main():
             "pot_mai": round(d["mai"] / d["entry"], 2)
         })
 
-    # Corectat eroarea de variabila de aici
     profit_eur = (total_exit_mai - INVESTITIE_TOTALA_USD) * USD_EUR
 
     with open("data.json", "w") as f:
         json.dump({
             "btc_d": round(btc_d, 1),
-            "total3": round(0.82, 2), # Exemplu static sau calculat
-            "fng": fng_data["data"][0]["value"] if fng_data else "9",
+            "total3": round(global_data.get("total_market_cap", {}).get("usd", 0) / 1e12 * 0.4, 2),
+            "fng": fng_val, "rotation_score": score,
             "portfolio": round(total_val, 0),
             "profit_teoretic": f"{profit_eur:,.0f}",
             "multiplier": round(total_val / INVESTITIE_TOTALA_USD, 2),
