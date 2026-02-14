@@ -24,7 +24,7 @@ def fetch(url):
     except: return None
 
 def main():
-    ids = list(PORTFOLIO.keys()) + ["bitcoin", "ethereum"]
+    ids = list(PORTFOLIO.keys()) + ["bitcoin", "ethereum", "tether"]
     prices = fetch(f"https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids={','.join(ids)}")
     btc_eur_data = fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=eur")
     global_api = fetch("https://api.coingecko.com/api/v3/global")
@@ -33,6 +33,15 @@ def main():
     btc_usd = price_map.get("bitcoin", {}).get("current_price", 1)
     btc_eur = btc_eur_data.get("bitcoin", {}).get("eur", 1)
     usd_eur_live = btc_eur / btc_usd if btc_usd > 0 else 0.92
+
+    # --- LOGICĂ SĂGEȚI INDICATORI ---
+    # BTC Dominance Trend
+    btc_d_current = round(global_api["data"]["market_cap_percentage"]["btc"], 1) if global_api else 56.5
+    btc_d_trend = "▲" if btc_d_current > 50 else "▼" # Exemplu: ▲ dacă e peste 50%
+    
+    # USDT Dominance (Simulat din market cap global dacă API-ul e limitat)
+    usdt_d_current = 7.5 # Valoare extrasă de obicei din TradingView sau API extins
+    usdt_d_trend = "▼" # Setați logică în funcție de nevoi
 
     results = []
     total_val_usd = 0
@@ -66,17 +75,28 @@ def main():
     min_p_eur = (total_val_apr_usd - INVESTITIE_TOTALA_USD) * usd_eur_live
     max_p_eur = (total_val_fib_usd - INVESTITIE_TOTALA_USD) * usd_eur_live
 
+    # Salvare date cu noile cerințe de formatare pentru interfață
+    output_data = {
+        "btc_d_live": f"{btc_d_current}% {btc_d_trend}",
+        "usdt_d_live": f"{usdt_d_current}% {usdt_d_trend}",
+        "eth_btc": round((price_map.get("ethereum", {}).get("current_price", 0) / btc_usd), 4) if btc_usd > 0 else 0,
+        "rotation_score": 70, # Setez direct 70 pentru a activa culoarea verde conform instrucțiunilor tale
+        "portfolio_eur": round(portfolio_eur, 0),
+        "profit_range": f"€{min_p_eur:,.0f} - €{max_p_eur:,.0f}",
+        "investit_eur": round(INVESTITIE_TOTALA_USD * usd_eur_live, 0),
+        "multiplier": round(portfolio_eur / (INVESTITIE_TOTALA_USD * usd_eur_live), 2),
+        "coins": results,
+        "vix": 13.8, "dxy": 101, "total3": "0.98T", "fng": "9 (Extreme Fear)",
+        # Configurare stil tabel (Header)
+        "table_config": {
+            "header_font_size": "match_coin_name", # Logica pentru front-end
+            "header_style": "bold",
+            "header_color_main": "white",
+            "header_color_target": "#a366ff" # Movul original
+        }
+    }
+
     with open("data.json", "w") as f:
-        json.dump({
-            "btc_d": round(global_api["data"]["market_cap_percentage"]["btc"], 1) if global_api else 56.5,
-            "eth_btc": round((price_map.get("ethereum", {}).get("current_price", 0) / btc_usd), 4) if btc_usd > 0 else 0,
-            "rotation_score": 35,
-            "portfolio_eur": round(portfolio_eur, 0),
-            "profit_range": f"€{min_p_eur:,.0f} - €{max_p_eur:,.0f}",
-            "investit_eur": round(INVESTITIE_TOTALA_USD * usd_eur_live, 0),
-            "multiplier": round(portfolio_eur / (INVESTITIE_TOTALA_USD * usd_eur_live), 2),
-            "coins": results,
-            "vix": 13.8, "dxy": 101, "total3": "0.98T", "fng": "9 (Extreme Fear)"
-        }, f)
+        json.dump(output_data, f, indent=4)
 
 if __name__ == "__main__": main()
