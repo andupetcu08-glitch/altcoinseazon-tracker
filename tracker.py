@@ -35,30 +35,22 @@ def main():
     eth_p = price_map.get("ethereum", {}).get("current_price", 0)
     eth_btc = eth_p / btc_p if eth_p > 0 else 0
     
-    eth_change = price_map.get("ethereum", {}).get("price_change_percentage_24h", 0)
-    btc_change = price_map.get("bitcoin", {}).get("price_change_percentage_24h", 0)
-    eth_btc_trend = "up" if eth_change > btc_change else "down"
-
-    btc_d = global_data.get("market_cap_percentage", {}).get("btc", 56.7)
-    usdtd = global_data.get("market_cap_percentage", {}).get("usdt", 5.1)
-    
-    # Scorul de rotatie
-    score = 0
-    if btc_d < 52: score += 20
-    if eth_btc > 0.05: score += 20
-    if usdtd < 5.2: score += 20
-    fng_val = int(fng_data["data"][0]["value"]) if fng_data else 50
-    if fng_val < 75: score += 20
-    score += 20 
-    if btc_d > 55: score = min(score, 45)
+    # Calcul scor si trend
+    btc_d = global_data.get("market_cap_percentage", {}).get("btc", 56.5)
+    usdtd = global_data.get("market_cap_percentage", {}).get("usdt", 7.5)
+    score = 40 # Dinamic in dashboard
 
     results = []
     total_val_usd = 0
+    total_exit_mai_usd = 0 # Initializare corecta
+
     for cid, d in PORTFOLIO.items():
         if cid in ["bitcoin", "ethereum"]: continue
         p = price_map.get(cid, {}).get("current_price", 0)
         if p == 0 and "synthetix" in cid: p = 0.3026 
+        
         total_val_usd += (p * d["q"])
+        total_exit_mai_usd += (d["mai"] * d["q"]) # Calculam suma totala la target Mai
         
         symbol = cid.upper().split('-')[0]
         if "governance" in cid: symbol = "JTO"
@@ -74,15 +66,17 @@ def main():
         })
 
     portfolio_eur = total_val_usd * USD_EUR
+    profit_eur = (total_exit_mai_usd - INVESTITIE_TOTALA_USD) * USD_EUR
     investit_eur = INVESTITIE_TOTALA_USD * USD_EUR
 
     with open("data.json", "w") as f:
         json.dump({
-            "btc_d": round(btc_d, 1), "eth_btc": round(eth_btc, 4), "eth_btc_trend": eth_btc_trend,
+            "btc_d": round(btc_d, 1), "eth_btc": round(eth_btc, 4),
             "rotation_score": score, "portfolio_eur": round(portfolio_eur, 0),
+            "profit_teoretic_eur": f"{profit_eur:,.0f}",
             "investit_eur": round(investit_eur, 0), "multiplier": round(portfolio_eur / investit_eur, 2),
-            "coins": results, "usdtd": round(usdtd, 1), "vix": 14.1, "dxy": 103.8, "urpd": 84.2, 
-            "total3": "0.98T", "fng": f"{fng_val} ({fng_data['data'][0]['value_classification'] if fng_data else 'N/A'})"
+            "coins": results, "usdtd": round(usdtd, 1), "vix": 14.1, "dxy": 101, "urpd": 84.2, 
+            "total3": "0.98T", "fng": "9 (Extreme Fear)", "m2": "21.2T"
         }, f)
 
 if __name__ == "__main__": main()
