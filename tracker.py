@@ -1,9 +1,10 @@
 import json, urllib.request, time
 
-INVESTITIE_TOTALA_EUR = 115638.00 # Calculat la cursul actual din USD
+# Parametri Financiari
+INVESTITIE_TOTALA_EUR = 115638.00 
 USD_EUR = 0.96 
 
-# Am adaugat opinia de pret (sub Fib 1.618, aprox 1.45 Fib)
+# Portofoliu cu Targete Mai si Opinia Fib (aprox 1.45-1.5 Fib)
 PORTFOLIO = {
     "optimism": {"q": 6400, "entry": 0.773, "apr": 4.8, "mai": 5.6, "fib": 5.95},
     "notcoin": {"q": 1297106.88, "entry": 0.001291, "apr": 0.028, "mai": 0.03, "fib": 0.034},
@@ -25,9 +26,8 @@ def fetch(url):
 
 def main():
     ids = list(PORTFOLIO.keys()) + ["bitcoin", "ethereum"]
-    prices = fetch(f"https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids={','.join(ids)}&price_change_percentage=24h")
+    prices = fetch(f"https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids={','.join(ids)}")
     global_api = fetch("https://api.coingecko.com/api/v3/global")
-    fng_data = fetch("https://api.alternative.me/fng/")
     
     price_map = {c["id"]: c for c in prices} if prices else {}
     global_data = global_api["data"] if global_api else {}
@@ -39,14 +39,15 @@ def main():
     btc_d = global_data.get("market_cap_percentage", {}).get("btc", 56.7)
     usdtd = global_data.get("market_cap_percentage", {}).get("usdt", 5.1)
     
-    # Rotation Score Logic
+    # Rotation Score Logic (Sincronizat cu semafoarele)
     score = 0
     if btc_d < 52: score += 20
     if eth_btc > 0.05: score += 20
     if usdtd < 5.2: score += 20
-    fng_val = int(fng_data["data"][0]["value"]) if fng_data else 50
-    if fng_val < 75: score += 20
-    score += 20 
+    # Placeholder pentru sentiment/urpd
+    score += 40 
+    
+    # HOLD block
     if btc_d > 55: score = min(score, 45)
 
     results = []
@@ -56,6 +57,7 @@ def main():
         if cid in ["bitcoin", "ethereum"]: continue
         p = price_map.get(cid, {}).get("current_price", 0)
         if p == 0 and "synthetix" in cid: p = 0.3026 
+        
         total_val_usd += (p * d["q"])
         total_exit_mai_usd += (d["mai"] * d["q"])
         
@@ -66,7 +68,8 @@ def main():
 
         results.append({
             "symbol": symbol, "q": d["q"], "entry": d["entry"],
-            "price": f"{p:.7f}" if d["entry"] < 0.01 else f"{p:.4f}",
+            "live_p": p,
+            "price_display": f"{p:.7f}" if d["entry"] < 0.01 else f"{p:.4f}",
             "mai": d["mai"], "fib": d["fib"],
             "pot_mai": round(d["mai"] / d["entry"], 2)
         })
@@ -84,7 +87,7 @@ def main():
             "investit_eur": round(INVESTITIE_TOTALA_EUR, 0),
             "multiplier": round(portfolio_eur / INVESTITIE_TOTALA_EUR, 2),
             "coins": results,
-            "usdtd": round(usdtd, 1), "vix": 14.1, "dxy": 103.8, "fng": fng_val
+            "usdtd": round(usdtd, 1)
         }, f)
 
 if __name__ == "__main__": main()
