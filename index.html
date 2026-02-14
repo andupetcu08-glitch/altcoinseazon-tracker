@@ -5,69 +5,68 @@
     <style>
         body { background: #0b0e14; color: #e1e1e1; font-family: sans-serif; padding: 15px; }
         .regime-box { display: flex; gap: 10px; margin-bottom: 20px; }
-        .btn { flex: 1; padding: 15px; border-radius: 10px; border: 1px solid #333; text-align: center; font-weight: bold; background: #1a1c24; display: flex; align-items: center; justify-content: center; gap: 8px; opacity: 0.4; }
+        .btn { flex: 1; padding: 15px; border-radius: 10px; border: 1px solid #333; text-align: center; font-weight: bold; background: #1a1c24; display: flex; align-items: center; justify-content: center; gap: 8px; opacity: 0.3; transition: 0.3s; }
         
-        /* Bulinele */
-        .dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; }
         .dot-red { background: #ff4d4d; }
         .dot-yellow { background: #ffcc00; }
         .dot-green { background: #00ff88; }
 
-        /* Chenarul activ */
-        .active-h { border: 2px solid #ff4d4d; opacity: 1; box-shadow: 0 0 10px rgba(255,77,77,0.3); }
-        .active-p { border: 2px solid #ffcc00; opacity: 1; box-shadow: 0 0 10px rgba(255,204,0,0.3); }
-        .active-s { border: 2px solid #00ff88; opacity: 1; box-shadow: 0 0 10px rgba(0,255,136,0.3); }
+        /* Chenarul activ solicitat */
+        .active-hold { border: 2px solid #ff4d4d; opacity: 1; box-shadow: 0 0 15px rgba(255,77,77,0.2); color: #ff4d4d; }
+        .active-prepare { border: 2px solid #ffcc00; opacity: 1; box-shadow: 0 0 15px rgba(255,204,0,0.2); color: #ffcc00; }
+        .active-sell { border: 2px solid #00ff88; opacity: 1; box-shadow: 0 0 15px rgba(0,255,136,0.2); color: #00ff88; }
 
-        .stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px; }
         .card { background: #1a1c24; padding: 15px; border-radius: 12px; border: 1px solid #333; }
-        .val-big { font-size: 22px; font-weight: bold; color: #00ff88; }
+        .val { font-size: 24px; font-weight: bold; color: #00ff88; margin-top: 5px; }
         
-        table { width: 100%; border-collapse: collapse; background: #1a1c24; border-radius: 10px; overflow: hidden; font-size: 12px; }
-        th { background: #222; padding: 10px; text-align: left; color: #888; }
-        td { padding: 12px 10px; border-bottom: 1px solid #222; }
+        table { width: 100%; border-collapse: collapse; background: #1a1c24; border-radius: 10px; overflow: hidden; }
+        th { background: #222; padding: 12px; text-align: left; color: #888; font-size: 11px; }
+        td { padding: 15px 12px; border-bottom: 1px solid #222; font-size: 13px; }
     </style>
 </head>
 <body>
     <div class="regime-box">
-        <div id="h" class="btn"><span class="dot dot-red"></span> HOLD</div>
-        <div id="p" class="btn"><span class="dot dot-yellow"></span> PREPARE</div>
-        <div id="s" class="btn"><span class="dot dot-green"></span> EXECUȚIE</div>
+        <div id="btn-h" class="btn"><div class="dot dot-red"></div> HOLD</div>
+        <div id="btn-p" class="btn"><div class="dot dot-yellow"></div> PREPARE</div>
+        <div id="btn-s" class="btn"><div class="dot dot-green"></div> EXECUȚIE</div>
     </div>
 
-    <div class="stats">
-        <div class="card">Portofoliu: <div id="v" class="val-big">--</div></div>
-        <div class="card">Multiplier: <div id="m" class="val-big">--</div></div>
-        <div class="card">Rotation Score: <div id="rs" class="val-big">--</div></div>
-        <div class="card">BTC.D / TOTAL3: <div id="macro" style="font-size:16px; font-weight:bold; margin-top:5px;">--</div></div>
+    <div class="stats-grid">
+        <div class="card">Portofoliu:<div id="total-val" class="val">--</div></div>
+        <div class="card">Multiplier:<div id="multiplier" class="val">--</div></div>
+        <div class="card">Rotation Score:<div id="rotation" class="val">--</div></div>
+        <div class="card">BTC.D / TOTAL3:<div id="macro" style="font-size:18px; font-weight:bold; margin-top:8px;">--</div></div>
     </div>
 
     <table>
-        <thead><tr><th>COIN</th><th>VALUE</th><th>APR/MAI</th><th>POT.</th></tr></thead>
+        <thead><tr><th>COIN</th><th>VALUE</th><th>APR/MAI</th><th>POTENTIAL</th></tr></thead>
         <tbody id="rows"></tbody>
     </table>
 
     <script>
         fetch('data.json?v=' + Date.now()).then(r => r.json()).then(d => {
-            document.getElementById('v').textContent = '$' + d.total.toLocaleString();
-            document.getElementById('m').textContent = d.mult + 'x';
-            document.getElementById('rs').textContent = d.exit + '%';
+            document.getElementById('total-val').textContent = '$' + d.portfolio.toLocaleString();
+            document.getElementById('multiplier').textContent = d.mult + 'x';
+            document.getElementById('rotation').textContent = d.exit + '%';
             document.getElementById('macro').textContent = d.btc_d + '% / ' + d.t3 + 'T';
 
-            // Mutăm chenarul activ
-            if (d.exit >= 80) document.getElementById('s').classList.add('active-s');
-            else if (d.exit >= 50) document.getElementById('p').classList.add('active-p');
-            else document.getElementById('h').classList.add('active-h');
+            // Logica chenarului activ
+            if (d.exit >= 80) document.getElementById('btn-s').classList.add('active-sell');
+            else if (d.exit >= 50) document.getElementById('btn-p').classList.add('active-prepare');
+            else document.getElementById('btn-h').classList.add('active-hold');
 
-            let h = '';
+            let html = '';
             d.coins.forEach(c => {
-                h += `<tr>
-                    <td><b>${c.symbol}</b><br><small>$${c.price.toLocaleString()}</small></td>
+                html += `<tr>
+                    <td><b>${c.symbol}</b><br><small style="color:#666">$${c.price}</small></td>
                     <td>$${c.value.toLocaleString()}</td>
-                    <td style="color:#888">$${c.apr}/$${c.mai}</td>
-                    <td style="color:#00ff88"><b>${c.pot}x</b></td>
+                    <td style="color:#888">$${c.apr} / $${c.mai}</td>
+                    <td style="color:#00ff88; font-weight:bold;">${c.pot}x</td>
                 </tr>`;
             });
-            document.getElementById('rows').innerHTML = h;
+            document.getElementById('rows').innerHTML = html;
         });
     </script>
 </body>
