@@ -2,35 +2,26 @@
     <meta charset="UTF-8">
     <style>
         body { background: #0b0e14; color: #e1e1e1; font-family: sans-serif; padding: 10px; font-size: 12px; }
-        .target-panel { 
-            background: #052e16; border: 2px solid #22c55e; padding: 18px; 
-            border-radius: 12px; margin-bottom: 20px; text-align: center; 
-            font-size: 17px; font-weight: bold; color: #fff;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-        }
+        .target-panel { background: #052e16; border: 2px solid #22c55e; padding: 18px; border-radius: 12px; margin-bottom: 20px; text-align: center; font-size: 17px; font-weight: bold; color: #fff; box-shadow: 0 4px 15px rgba(0,0,0,0.4); }
         .top-nav { display: grid; grid-template-columns: 1fr 1fr 1.2fr 1fr 2fr; gap: 8px; margin-bottom: 15px; }
-        .m-card { background: #1a1c24; padding: 12px; border-radius: 8px; border: 1px solid #333; text-align: center; }
+        .m-card { background: #1a1c24; padding: 12px; border-radius: 8px; border: 1px solid #333; text-align: center; position: relative; }
         .m-label { font-size: 8px; color: #888; text-transform: uppercase; margin-bottom: 4px; }
         .m-val { font-weight: bold; font-size: 15px; }
-        
-        /* Bulina Violet pentru ETH/BTC */
+        .trend-arrow { font-size: 10px; margin-left: 5px; }
+        .up { color: #00ff88; } .down { color: #ef4444; }
         .eth-val { color: #a855f7; display: flex; align-items: center; justify-content: center; }
         .dot-v { width: 8px; height: 8px; border-radius: 50%; background: #a855f7; margin-right: 6px; box-shadow: 0 0 8px #a855f7; }
-
         .status-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
         .st-btn { background: #111; border: 1px solid #222; border-radius: 8px; padding: 8px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; color: #444; }
         .dot { width: 8px; height: 8px; border-radius: 50%; margin-right: 8px; }
         .active-h { border-color: #ef4444 !important; color: #ef4444 !important; box-shadow: 0 0 12px rgba(239, 68, 68, 0.2); }
         .active-p { border-color: #fbbf24 !important; color: #fbbf24 !important; box-shadow: 0 0 12px rgba(251, 191, 36, 0.2); }
         .active-s { border-color: #00ff88 !important; color: #00ff88 !important; box-shadow: 0 0 12px rgba(0, 255, 136, 0.2); }
-
         .stats-main { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px; }
         .card-big { background: #1a1c24; padding: 20px; border-radius: 12px; border: 1px solid #444; text-align: center; }
         .val-big { font-size: 28px; font-weight: bold; color: #00ff88; }
         .sub-sum { color: #ff4d4d; font-size: 12px; display: block; margin-top: 6px; }
-
         .macro-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-bottom: 20px; }
-
         table { width: 100%; border-collapse: collapse; background: #111; border-radius: 10px; overflow: hidden; }
         th { text-align: left; color: #555; font-size: 9px; padding: 15px; border-bottom: 2px solid #222; text-transform: uppercase; }
         td { padding: 14px; border-bottom: 1px solid #1a1c24; }
@@ -38,15 +29,18 @@
     </style></head><body>
 
     <div class="target-panel">
-        🎯 TARGETS: BTC.D: 46% | VIX: 13.8 | URPD: 86% | USDT.D: 5% | DXY: 101
+        🎯 TARGETS: BTC.D: 46% | VIX: 13.8 | URPD: 86% | USDT.D: 5% | DXY: 101 | ROTATION SCORE: 70%
     </div>
 
     <div class="top-nav">
         <div class="m-card"><div class="m-label">Rotation Score</div><div id="score" class="m-val" style="color:#00ff88">--</div></div>
-        <div class="m-card"><div class="m-label">BTC.D LIVE</div><div id="btcd" class="m-val">--</div></div>
+        <div class="m-card">
+            <div class="m-label">BTC.D LIVE</div>
+            <div class="m-val"><span id="btcd">--</span><span id="btc-arrow" class="trend-arrow"></span></div>
+        </div>
         <div class="m-card">
             <div class="m-label">ETH / BTC</div>
-            <div class="eth-val m-val"><span class="dot-v"></span><span id="ethbtc">--</span></div>
+            <div class="eth-val m-val"><span class="dot-v"></span><span id="ethbtc">--</span><span id="eth-arrow" class="trend-arrow"></span></div>
         </div>
         <div class="m-card"><div class="m-label">USDT.D LIVE</div><div id="usdtd" class="m-val">--</div></div>
         <div class="status-container">
@@ -76,9 +70,7 @@
     </div>
 
     <table>
-        <thead>
-            <tr><th>MONEDA</th><th>CANTITATE</th><th>ENTRY</th><th>TARGET APR</th><th>X APR</th><th>TARGET MAI</th><th>X MAI</th></tr>
-        </thead>
+        <thead><tr><th>MONEDA</th><th>CANTITATE</th><th>ENTRY</th><th>TARGET APR</th><th>X APR</th><th>TARGET MAI</th><th>X MAI</th></tr></thead>
         <tbody id="rows"></tbody>
     </table>
 
@@ -86,7 +78,6 @@
         async function load() {
             const r = await fetch('data.json?v=' + Date.now());
             const d = await r.json();
-            
             document.getElementById('score').textContent = d.rotation_score + '%';
             document.getElementById('btcd').textContent = d.btc_d + '%';
             document.getElementById('ethbtc').textContent = d.eth_btc;
@@ -101,25 +92,18 @@
             document.getElementById('dxy').textContent = d.dxy;
             document.getElementById('m2').textContent = d.m2;
 
+            // Trend Arrows
+            document.getElementById('eth-arrow').textContent = d.eth_btc_trend === 'up' ? '▲' : '▼';
+            document.getElementById('eth-arrow').className = 'trend-arrow ' + (d.eth_btc_trend === 'up' ? 'up' : 'down');
+
             const sc = d.rotation_score;
             document.getElementById('btn-h').className = 'st-btn' + (sc < 50 ? ' active-h' : '');
             document.getElementById('btn-p').className = 'st-btn' + (sc >= 50 && sc < 75 ? ' active-p' : '');
             document.getElementById('btn-s').className = 'st-btn' + (sc >= 75 ? ' active-s' : '');
 
             let h = '';
-            d.coins.forEach(c => {
-                h += `<tr>
-                    <td><b>${c.symbol}</b><br><small style="color:#555">$${c.price}</small></td>
-                    <td>${c.q.toLocaleString()}</td>
-                    <td style="color:#888">$${c.entry}</td>
-                    <td style="color:#fbbf24">$${c.apr}</td>
-                    <td class="pot">${c.pot_apr}x</td>
-                    <td style="color:#fbbf24">$${c.mai}</td>
-                    <td class="pot">${c.pot_mai}x</td>
-                </tr>`;
-            });
+            d.coins.forEach(c => { h += `<tr><td><b>${c.symbol}</b><br><small style="color:#555">$${c.price}</small></td><td>${c.q.toLocaleString()}</td><td style="color:#888">$${c.entry}</td><td style="color:#fbbf24">$${c.apr}</td><td class="pot">${c.pot_apr}x</td><td style="color:#fbbf24">$${c.mai}</td><td class="pot">${c.pot_mai}x</td></tr>`; });
             document.getElementById('rows').innerHTML = h;
         }
-        load();
-        setInterval(load, 60000);
+        load(); setInterval(load, 60000);
     </script></body></html>
