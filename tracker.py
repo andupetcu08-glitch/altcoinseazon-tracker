@@ -1,8 +1,8 @@
 import json, urllib.request
 
 INVESTITIE_TOTALA_USD = 120456.247
-# Curs ajustat pentru paritatea ta: 17.8k USD -> 16.3k EUR
-USD_EUR = 0.919 
+# Am ajustat cursul pentru a reflecta exact cei 15.706 EUR de pe eToro
+USD_EUR = 0.8823 
 
 PORTFOLIO = {
     "optimism": {"q": 6400, "entry": 0.773, "apr": 4.8, "mai": 5.6, "fib": 5.95},
