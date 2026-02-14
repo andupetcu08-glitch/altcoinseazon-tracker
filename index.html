@@ -2,24 +2,32 @@
     <meta charset="UTF-8">
     <style>
         body { background: #0b0e14; color: #e1e1e1; font-family: sans-serif; padding: 10px; font-size: 12px; }
-        /* Panel Verde - Dimensiune Marita */
-        .target-panel { 
-            background: #052e16; border: 2px solid #22c55e; padding: 15px; 
-            border-radius: 8px; margin-bottom: 20px; text-align: center;
-            font-size: 15px; font-weight: bold; color: #fff;
-        }
-        .macro-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 10px; }
-        .m-card { background: #1a1c24; padding: 10px; border-radius: 6px; border: 1px solid #333; text-align: center; }
-        .m-label { font-size: 9px; color: #888; text-transform: uppercase; margin-bottom: 4px; }
-        .m-val { font-weight: bold; font-size: 14px; }
-        .stats-main { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-        .card-big { background: #1a1c24; padding: 20px; border-radius: 10px; border: 1px solid #444; }
-        .val-big { font-size: 32px; font-weight: bold; color: #00ff88; }
-        /* Suma in paranteza */
-        .invested-label { font-size: 14px; color: #ff4d4d; font-weight: normal; margin-left: 10px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th { text-align: left; color: #666; font-size: 10px; padding: 12px; border-bottom: 2px solid #222; }
-        td { padding: 15px 12px; border-bottom: 1px solid #222; }
+        .target-panel { background: #052e16; border: 2px solid #22c55e; padding: 12px; border-radius: 8px; margin-bottom: 15px; text-align: center; font-size: 14px; font-weight: bold; }
+        
+        /* Grila Superioara - 4 Coloane: Score, BTC.D, USDT.D, Status */
+        .top-nav { display: grid; grid-template-columns: 1fr 1fr 1fr 2fr; gap: 10px; margin-bottom: 15px; }
+        .m-card { background: #1a1c24; padding: 12px; border-radius: 8px; border: 1px solid #333; text-align: center; }
+        .m-label { font-size: 9px; color: #888; text-transform: uppercase; margin-bottom: 5px; }
+        .m-val { font-weight: bold; font-size: 16px; }
+
+        /* Status Buttons Grid */
+        .status-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
+        .st-btn { background: #111; border: 1px solid #333; border-radius: 6px; padding: 8px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: #444; opacity: 0.4; }
+        .dot { width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+        
+        /* Culori Active */
+        .active-h { border-color: #ef4444 !important; color: #ef4444 !important; opacity: 1; box-shadow: 0 0 10px rgba(239, 68, 68, 0.2); }
+        .active-p { border-color: #fbbf24 !important; color: #fbbf24 !important; opacity: 1; }
+        .active-s { border-color: #00ff88 !important; color: #00ff88 !important; opacity: 1; box-shadow: 0 0 10px rgba(0, 255, 136, 0.2); }
+
+        .stats-main { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px; }
+        .card-big { background: #1a1c24; padding: 15px; border-radius: 10px; border: 1px solid #444; text-align: center; }
+        .val-big { font-size: 28px; font-weight: bold; color: #00ff88; }
+        .sub-sum { color: #ff4d4d; font-size: 12px; display: block; margin-top: 4px; }
+
+        table { width: 100%; border-collapse: collapse; background: #111; border-radius: 8px; overflow: hidden; }
+        th { text-align: left; color: #555; font-size: 9px; padding: 12px; text-transform: uppercase; border-bottom: 2px solid #222; }
+        td { padding: 12px; border-bottom: 1px solid #1a1c24; }
         .pot { color: #00ff88; font-weight: bold; }
     </style></head><body>
 
@@ -27,40 +35,38 @@
         🎯 TARGETS: BTC.D: 46% | VIX: 13.8 | URPD: 86% | USDT.D: 5%
     </div>
 
-    <div class="macro-grid">
-        <div class="m-card"><div class="m-label">Rotation Score</div><div id="score" class="m-val" style="color:#00ff88">50%</div></div>
+    <div class="top-nav">
+        <div class="m-card"><div class="m-label">Rotation Score</div><div id="score" class="m-val" style="color:#00ff88">--%</div></div>
         <div class="m-card"><div class="m-label">BTC.D LIVE</div><div id="btcd" class="m-val">--</div></div>
-        <div class="m-card"><div class="m-label">TOTAL 3</div><div id="t3" class="m-val">--</div></div>
-        <div class="m-card"><div class="m-label">SENTIMENT</div><div id="fng" class="m-val">--</div></div>
+        <div class="m-card"><div class="m-label">USDT.D LIVE</div><div id="usdtd" class="m-val">--</div></div>
+        <div class="status-container">
+            <div id="btn-h" class="st-btn"><span class="dot" style="background:#ef4444"></span> HOLD</div>
+            <div id="btn-p" class="st-btn"><span class="dot" style="background:#fbbf24"></span> PREPARE</div>
+            <div id="btn-s" class="st-btn"><span class="dot" style="background:#00ff88"></span> EXECUȚIE</div>
+        </div>
     </div>
 
     <div class="stats-main">
-        <div class="card-big"><div class="m-label">VALOARE PORTOFOLIU</div><div id="v" class="val-big">--</div></div>
+        <div class="card-big"><div class="m-label">PORTOFOLIU ACTUAL</div><div id="v" class="val-big">--</div></div>
         <div class="card-big"><div class="m-label">PROFIT TEORETIC (MAI)</div><div id="profit" class="val-big" style="color:#fbbf24">--</div></div>
         <div class="card-big">
             <div class="m-label">MULTIPLIER ACTUAL</div>
-            <div class="val-big"><span id="m">--</span><span class="invested-label">($120,456)</span></div>
+            <div id="m" class="val-big" style="display:inline-block">--</div>
+            <span class="sub-sum">Investit: $120,456</span>
         </div>
-        <div class="card-big"><div class="m-label">USDT.D LIVE</div><div id="usdtd" class="val-big" style="font-size: 26px;">--</div></div>
     </div>
 
-    <div class="macro-grid" style="background: rgba(255,255,255,0.03); padding: 10px; border-radius: 8px;">
-        <div class="m-card"><div class="m-label">URPD PROFIT</div><div id="urpd" class="m-val">--</div></div>
+    <div class="top-nav" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 20px;">
+        <div class="m-card"><div class="m-label">TOTAL 3</div><div id="t3" class="m-val">--</div></div>
+        <div class="m-card"><div class="m-label">SENTIMENT</div><div id="fng" class="m-val">--</div></div>
         <div class="m-card"><div class="m-label">VIX INDEX</div><div id="vix" class="m-val" style="color:#ff4d4d">--</div></div>
-        <div class="m-card"><div class="m-label">DXY</div><div id="dxy" class="m-val">--</div></div>
-        <div class="m-card"><div class="m-label">M2 SUPPLY</div><div id="m2" class="m-val">--</div></div>
+        <div class="m-card"><div class="m-label">URPD PROFIT</div><div id="urpd" class="m-val">--</div></div>
     </div>
 
     <table>
         <thead>
             <tr>
-                <th>MONEDA</th>
-                <th>CANTITATE</th>
-                <th>ENTRY</th>
-                <th>APR TARGET</th>
-                <th>X APR</th>
-                <th>MAI TARGET</th>
-                <th>X MAI</th>
+                <th>MONEDA</th><th>CANTITATE</th><th>ENTRY</th><th>TARGET APR</th><th>X APR</th><th>TARGET MAI</th><th>X MAI</th>
             </tr>
         </thead>
         <tbody id="rows"></tbody>
@@ -70,24 +76,30 @@
         async function load() {
             const r = await fetch('data.json?v=' + Date.now());
             const d = await r.json();
-            document.getElementById('v').textContent = '$' + d.portfolio.toLocaleString();
-            document.getElementById('m').textContent = d.multiplier + 'x';
+            
+            document.getElementById('score').textContent = d.rotation_score + '%';
             document.getElementById('btcd').textContent = d.btc_d + '%';
+            document.getElementById('usdtd').textContent = d.usdtd + '%';
+            document.getElementById('v').textContent = '$' + d.portfolio.toLocaleString();
+            document.getElementById('profit').textContent = '€' + d.profit_teoretic;
+            document.getElementById('m').textContent = d.multiplier + 'x';
             document.getElementById('t3').textContent = d.total3 + 'T';
             document.getElementById('fng').textContent = d.fng;
-            document.getElementById('profit').textContent = '€' + d.profit_teoretic;
-            document.getElementById('usdtd').textContent = d.usdtd + '%';
-            document.getElementById('urpd').textContent = d.urpd + '%';
             document.getElementById('vix').textContent = d.vix;
-            document.getElementById('dxy').textContent = d.dxy;
-            document.getElementById('m2').textContent = d.m2;
+            document.getElementById('urpd').textContent = d.urpd + '%';
+
+            // Logica Butoane
+            const sc = d.rotation_score;
+            document.getElementById('btn-h').classList.toggle('active-h', sc < 50);
+            document.getElementById('btn-p').classList.toggle('active-p', sc >= 50 && sc < 75);
+            document.getElementById('btn-s').classList.toggle('active-s', sc >= 75);
 
             let h = '';
             d.coins.forEach(c => {
                 h += `<tr>
-                    <td><b>${c.symbol}</b><br><small style="color:#666">$${c.price}</small></td>
+                    <td><b>${c.symbol}</b><br><small style="color:#555">$${c.price}</small></td>
                     <td>${c.q.toLocaleString()}</td>
-                    <td>$${c.entry}</td>
+                    <td style="color:#888">$${c.entry}</td>
                     <td style="color:#fbbf24">$${c.apr}</td>
                     <td class="pot">${c.pot_apr}x</td>
                     <td style="color:#fbbf24">$${c.mai}</td>
