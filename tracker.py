@@ -24,8 +24,7 @@ def fetch(url):
 
 def main():
     ids = list(PORTFOLIO.keys()) + ["bitcoin", "ethereum"]
-    coin_ids = ",".join(ids)
-    prices = fetch(f"https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids={coin_ids}&price_change_percentage=24h")
+    prices = fetch(f"https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids={','.join(ids)}&price_change_percentage=24h")
     global_api = fetch("https://api.coingecko.com/api/v3/global")
     fng_data = fetch("https://api.alternative.me/fng/")
     
@@ -43,6 +42,7 @@ def main():
     btc_d = global_data.get("market_cap_percentage", {}).get("btc", 56.7)
     usdtd = global_data.get("market_cap_percentage", {}).get("usdt", 5.1)
     
+    # Scorul de rotatie
     score = 0
     if btc_d < 52: score += 20
     if eth_btc > 0.05: score += 20
@@ -50,48 +50,39 @@ def main():
     fng_val = int(fng_data["data"][0]["value"]) if fng_data else 50
     if fng_val < 75: score += 20
     score += 20 
-    
     if btc_d > 55: score = min(score, 45)
 
     results = []
     total_val_usd = 0
-    total_exit_mai_usd = 0
     for cid, d in PORTFOLIO.items():
         if cid in ["bitcoin", "ethereum"]: continue
         p = price_map.get(cid, {}).get("current_price", 0)
         if p == 0 and "synthetix" in cid: p = 0.3026 
         total_val_usd += (p * d["q"])
-        total_exit_mai_usd += (d["mai"] * d["q"])
+        
         symbol = cid.upper().split('-')[0]
         if "governance" in cid: symbol = "JTO"
         if "network" in cid: symbol = "SNX"
         if "sonic" in cid: symbol = "SONIC"
+
         results.append({
             "symbol": symbol, "q": d["q"], "entry": d["entry"], 
-            "live_p": p,
-            "price": f"{p:.7f}" if d["entry"] < 0.01 else f"{p:.4f}", 
-            "mai": d["mai"], "fib": d["fib"],
-            "pot_mai": round(d["mai"] / d["entry"], 2)
+            "live_p": p, "price": f"{p:.7f}" if d["entry"] < 0.01 else f"{p:.4f}", 
+            "apr": d["apr"], "mai": d["mai"], "fib": d["fib"],
+            "x_apr": round(d["apr"] / d["entry"], 2),
+            "x_mai": round(d["mai"] / d["entry"], 2)
         })
 
     portfolio_eur = total_val_usd * USD_EUR
-    profit_eur = (total_exit_mai_usd - INVESTITIE_TOTALA_USD) * USD_EUR
     investit_eur = INVESTITIE_TOTALA_USD * USD_EUR
 
     with open("data.json", "w") as f:
         json.dump({
-            "btc_d": round(btc_d, 1),
-            "eth_btc": round(eth_btc, 4),
-            "eth_btc_trend": eth_btc_trend,
-            "rotation_score": score,
-            "portfolio_eur": round(portfolio_eur, 0),
-            "profit_teoretic_eur": f"{profit_eur:,.0f}",
-            "investit_eur": round(investit_eur, 0),
-            "multiplier": round(portfolio_eur / investit_eur, 2),
-            "coins": results,
-            "usdtd": round(usdtd, 1),
-            "vix": 14.1, "dxy": 103.8, "urpd": 84.2, "m2": "21.2T", "total3": "0.98T",
-            "fng": f"{fng_val} ({fng_data['data'][0]['value_classification'] if fng_data else 'N/A'})"
+            "btc_d": round(btc_d, 1), "eth_btc": round(eth_btc, 4), "eth_btc_trend": eth_btc_trend,
+            "rotation_score": score, "portfolio_eur": round(portfolio_eur, 0),
+            "investit_eur": round(investit_eur, 0), "multiplier": round(portfolio_eur / investit_eur, 2),
+            "coins": results, "usdtd": round(usdtd, 1), "vix": 14.1, "dxy": 103.8, "urpd": 84.2, 
+            "total3": "0.98T", "fng": f"{fng_val} ({fng_data['data'][0]['value_classification'] if fng_data else 'N/A'})"
         }, f)
 
 if __name__ == "__main__": main()
