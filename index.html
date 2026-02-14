@@ -1,17 +1,24 @@
 <!DOCTYPE html>
-<html>
+<html lang="ro">
 <head>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Altcoin Engine v2</title>
     <style>
-        body { background: #0b0e14; color: white; font-family: sans-serif; padding: 20px; }
-        .regime-box { display: flex; gap: 10px; margin-bottom: 20px; }
-        .btn { flex: 1; padding: 15px; border-radius: 10px; text-align: center; font-weight: bold; background: #1a1c24; color: #444; border: 1px solid #333; }
-        .active-hold { background: #450a0a; color: #f87171; border-color: #ef4444; }
-        .active-exec { background: #052e16; color: #4ade80; border-color: #22c55e; }
-        .card { background: #1a1c24; padding: 20px; border-radius: 15px; border: 1px solid #333; margin-bottom: 20px; }
-        table { width: 100%; border-collapse: collapse; font-size: 14px; }
-        th { text-align: left; color: #888; padding: 10px; border-bottom: 1px solid #333; }
-        td { padding: 15px 10px; border-bottom: 1px solid #1a1c24; }
+        body { background: #0b0e14; color: #e1e1e1; font-family: 'Segoe UI', sans-serif; padding: 20px; }
+        .regime-box { display: flex; gap: 10px; margin-bottom: 25px; }
+        .btn { flex: 1; padding: 18px; border-radius: 12px; text-align: center; font-weight: bold; background: #1a1c24; color: #333; border: 1px solid #333; font-size: 16px; }
+        .active-hold { background: #450a0a !important; color: #ff4d4d !important; border-color: #ff4d4d; box-shadow: 0 0 15px rgba(255, 77, 77, 0.2); }
+        .active-prepare { background: #451a03 !important; color: #fbbf24 !important; border-color: #f59e0b; }
+        .active-exec { background: #052e16 !important; color: #4ade80 !important; border-color: #22c55e; }
+        .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
+        .card { background: #1a1c24; padding: 20px; border-radius: 15px; border: 1px solid #333; }
+        .label { color: #888; font-size: 14px; margin-bottom: 8px; }
+        .value { font-size: 28px; font-weight: bold; color: #00ff88; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { text-align: left; color: #666; padding: 12px; border-bottom: 1px solid #333; font-size: 12px; text-transform: uppercase; }
+        td { padding: 15px 12px; border-bottom: 1px solid #16181d; font-size: 14px; }
+        .pot-val { color: #00ff88; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -21,34 +28,63 @@
         <div id="s" class="btn">EXECUȚIE</div>
     </div>
 
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-        <div class="card">Portofoliu: <h2 id="tv" style="margin:5px 0; color:#00ff88;">$0</h2></div>
-        <div class="card">Multiplier: <h2 id="tm" style="margin:5px 0; color:#00ff88;">0x</h2></div>
+    <div class="card-grid">
+        <div class="card">
+            <div class="label">Portofoliu Total:</div>
+            <div id="tv" class="value">--</div>
+        </div>
+        <div class="card">
+            <div class="label">Profit Multiplier:</div>
+            <div id="tm" class="value">--</div>
+        </div>
     </div>
 
     <table>
-        <thead><tr><th>COIN</th><th>VALOARE</th><th>TARGETS</th><th>POT.</th></tr></thead>
+        <thead>
+            <tr><th>Moneda</th><th>Valoare USD</th><th>Target Apr/Mai</th><th>Potential</th></tr>
+        </thead>
         <tbody id="rows"></tbody>
     </table>
 
     <script>
-        fetch('data.json?v=' + Date.now()).then(r => r.json()).then(d => {
-            document.getElementById('tv').textContent = '$' + d.total.toLocaleString();
-            document.getElementById('tm').textContent = d.mult + 'x';
-            
-            if (d.exit >= 80) document.getElementById('s').className = 'btn active-exec';
-            else if (d.exit < 50) document.getElementById('h').className = 'btn active-hold';
-            else document.getElementById('p').style.background = '#451a03';
+        async function updateDashboard() {
+            try {
+                const response = await fetch('data.json?v=' + Date.now());
+                const d = await response.json();
+                
+                document.getElementById('tv').textContent = '$' + d.total.toLocaleString();
+                document.getElementById('tm').textContent = d.mult + 'x';
+                
+                // Logica Semafor conform interpretării tale
+                document.getElementById('h').className = 'btn';
+                document.getElementById('p').className = 'btn';
+                document.getElementById('s').className = 'btn';
 
-            let h = '';
-            d.coins.forEach(c => {
-                h += `<tr><td><b>${c.symbol}</b><br><small>$${c.price}</small></td>
-                    <td>$${c.value.toLocaleString()}</td>
-                    <td style="color:#888">$${c.apr} / $${c.mai}</td>
-                    <td style="color:#00ff88"><b>${c.pot}x</b></td></tr>`;
-            });
-            document.getElementById('rows').innerHTML = h;
-        });
+                if (d.exit >= 80) {
+                    document.getElementById('s').classList.add('active-exec');
+                    document.getElementById('s').textContent = 'EXECUȚIE';
+                } else if (d.exit >= 50) {
+                    document.getElementById('p').classList.add('active-prepare');
+                } else {
+                    document.getElementById('h').classList.add('active-hold');
+                }
+
+                let html = '';
+                d.coins.forEach(c => {
+                    html += `<tr>
+                        <td><b>${c.symbol}</b><br><small style="color:#666">$${c.price.toFixed(4)}</small></td>
+                        <td>$${c.value.toLocaleString()}</td>
+                        <td style="color:#aaa">$${c.apr} / $${c.mai}</td>
+                        <td class="pot-val">${c.pot}x</td>
+                    </tr>`;
+                });
+                document.getElementById('rows').innerHTML = html;
+            } catch (e) {
+                console.error("Eroare la încărcarea datelor:", e);
+            }
+        }
+        updateDashboard();
+        setInterval(updateDashboard, 60000);
     </script>
 </body>
 </html>
