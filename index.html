@@ -1,30 +1,37 @@
 <!DOCTYPE html><html lang="ro"><head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body { background: #0b0e14; color: #e1e1e1; font-family: sans-serif; padding: 10px; font-size: 12px; }
-        .target-panel { background: #052e16; border: 1px solid #22c55e; padding: 10px; border-radius: 8px; margin-bottom: 15px; text-align: center; }
+        /* Panel Verde Mai Mare */
+        .target-panel { 
+            background: #052e16; border: 2px solid #22c55e; padding: 18px; 
+            border-radius: 10px; margin-bottom: 20px; text-align: center;
+            font-size: 16px; font-weight: bold; letter-spacing: 1px;
+            box-shadow: 0 0 15px rgba(34, 197, 94, 0.2);
+        }
         .macro-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 10px; }
-        .m-card { background: #1a1c24; padding: 8px; border-radius: 6px; border: 1px solid #333; text-align: center; }
-        .m-label { font-size: 9px; color: #888; margin-bottom: 3px; text-transform: uppercase; }
-        .m-val { font-weight: bold; font-size: 13px; }
-        .stats-main { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-        .card-big { background: #1a1c24; padding: 15px; border-radius: 8px; border: 1px solid #444; }
-        .val-big { font-size: 26px; font-weight: bold; color: #00ff88; }
+        .m-card { background: #1a1c24; padding: 10px; border-radius: 8px; border: 1px solid #333; text-align: center; }
+        .m-label { font-size: 9px; color: #888; margin-bottom: 4px; text-transform: uppercase; }
+        .m-val { font-weight: bold; font-size: 14px; }
+        .stats-main { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px; }
+        .card-big { background: #1a1c24; padding: 18px; border-radius: 10px; border: 1px solid #444; }
+        .val-big { font-size: 30px; font-weight: bold; color: #00ff88; }
+        /* Stil pentru suma in paranteza */
+        .sub-sum { font-size: 14px; color: #ff4d4d; font-weight: normal; margin-left: 5px; }
         .table-container { background: #1a1c24; border-radius: 8px; overflow-x: auto; border: 1px solid #222; }
-        table { width: 100%; border-collapse: collapse; min-width: 700px; }
-        th { background: #111; padding: 10px; text-align: left; color: #888; font-size: 10px; }
-        td { padding: 12px 10px; border-bottom: 1px solid #222; }
+        table { width: 100%; border-collapse: collapse; min-width: 800px; }
+        th { background: #111; padding: 12px; text-align: left; color: #888; font-size: 10px; text-transform: uppercase; }
+        td { padding: 14px 12px; border-bottom: 1px solid #222; }
         .pot { color: #00ff88; font-weight: bold; }
         .target-price { color: #fbbf24; }
     </style></head><body>
 
     <div class="target-panel">
-        🎯 <b>TARGETS:</b> BTC.D: 46% | VIX: 13.8 | URPD: 86% | USDT.D: 5%
+        🎯 MACRO TARGETS: BTC.D: 46% | VIX: 13.8 | URPD: 86% | USDT.D: 5%
     </div>
 
     <div class="macro-grid">
-        <div class="m-card"><div class="m-label">Rotation Score</div><div id="score" class="m-val" style="color:#00ff88">--%</div></div>
+        <div class="m-card"><div class="m-label">Rotation Score</div><div id="score" class="m-val" style="color:#00ff88">50%</div></div>
         <div class="m-card"><div class="m-label">BTC.D LIVE</div><div id="btcd" class="m-val">--</div></div>
         <div class="m-card"><div class="m-label">TOTAL 3</div><div id="t3" class="m-val">--</div></div>
         <div class="m-card"><div class="m-label">SENTIMENT</div><div id="fng" class="m-val">--</div></div>
@@ -32,9 +39,12 @@
 
     <div class="stats-main">
         <div class="card-big"><div class="m-label">VALOARE PORTOFOLIU</div><div id="v" class="val-big">--</div></div>
-        <div class="card-big"><div class="m-label">PROFIT TEORETIC (MAI)</div><div id="profit" class="val-big" style="color:#fbbf24">--</div></div>
-        <div class="card-big"><div class="m-label">MULTIPLIER ACTUAL</div><div id="m" class="val-big">--</div></div>
-        <div class="card-big"><div class="m-label">USDT.D</div><div id="usdtd" class="m-val" style="font-size:20px">--</div></div>
+        <div class="card-big"><div class="m-label">PROFIT TEORETIC MAI</div><div id="profit" class="val-big" style="color:#fbbf24">--</div></div>
+        <div class="card-big">
+            <div class="m-label">MULTIPLIER ACTUAL</div>
+            <div class="val-big"><span id="m">--</span> <span class="sub-sum">($120,456)</span></div>
+        </div>
+        <div class="card-big"><div class="m-label">USDT.D LIVE</div><div id="usdtd" class="val-big" style="font-size: 24px;">--</div></div>
     </div>
 
     <div class="macro-grid" style="background: rgba(255,255,255,0.03); padding: 10px; border-radius: 8px;">
@@ -66,22 +76,15 @@
         async function load() {
             const r = await fetch('data.json?v=' + Date.now());
             const d = await r.json();
-            
             document.getElementById('v').textContent = '$' + d.portfolio.toLocaleString();
             document.getElementById('m').textContent = d.multiplier + 'x';
             document.getElementById('btcd').textContent = d.btc_d + '%';
             document.getElementById('t3').textContent = d.total3 + 'T';
             document.getElementById('fng').textContent = d.fng;
-            document.getElementById('score').textContent = d.rotation_score + '%';
             document.getElementById('profit').textContent = '€' + d.profit_teoretic;
             document.getElementById('usdtd').textContent = d.usdtd + '%';
-            
-            const vixEl = document.getElementById('vix'); vixEl.textContent = d.vix;
-            vixEl.style.color = d.vix <= 13.8 ? "#00ff88" : "#ff4d4d";
-            
-            const urpdEl = document.getElementById('urpd'); urpdEl.textContent = d.urpd + '%';
-            urpdEl.style.color = d.urpd >= 86 ? "#00ff88" : "#fbbf24";
-
+            document.getElementById('urpd').textContent = d.urpd + '%';
+            document.getElementById('vix').textContent = d.vix;
             document.getElementById('dxy').textContent = d.dxy;
             document.getElementById('m2').textContent = d.m2;
 
