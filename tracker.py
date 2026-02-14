@@ -1,6 +1,8 @@
 import json, urllib.request, time
 
-INVESTITIE_TOTALA = 120456.247
+INVESTITIE_TOTALA_USD = 120456.247
+USD_EUR = 0.96 # Curs pentru calculul profitului teoretic in EUR
+
 PORTFOLIO = {
     "optimism": {"q": 6400, "entry": 0.773, "apr": 4.8, "mai": 5.6},
     "notcoin": {"q": 1297106.88, "entry": 0.001291, "apr": 0.028, "mai": 0.03},
@@ -10,7 +12,7 @@ PORTFOLIO = {
     "lido-dao": {"q": 9296.65, "entry": 1.121, "apr": 5.6, "mai": 6.4},
     "cartesi": {"q": 49080, "entry": 0.19076, "apr": 0.2, "mai": 0.2},
     "immutable-x": {"q": 1551.82, "entry": 3.4205, "apr": 3.5, "mai": 4.3},
-    "sonic": {"q": 13449.38, "entry": 0.61633, "apr": 1.05, "mai": 1.2},
+    "sonic-3": {"q": 13449.38, "entry": 0.61633, "apr": 1.05, "mai": 1.2},
     "synthetix-network-token": {"q": 20073.76, "entry": 0.8773, "apr": 7.8, "mai": 9.3}
 }
 
@@ -34,16 +36,26 @@ def main():
     total_mcap = global_data.get("total_market_cap", {}).get("usd", 0)
     total3 = (total_mcap * (1 - (btc_d + eth_d) / 100)) / 1e12
 
+    # Calcul Rotation Score & Profit Teoretic
+    score = 0
+    if btc_d < 46: score += 25
+    fng_val = int(fng_data["data"][0]["value"]) if fng_data else 50
+    if fng_val < 80: score += 25
+    score += 25 # URPD Placeholder
+    score += 0  # USDT.D Placeholder
+
     results = []
     total_val = 0
+    total_exit_mai = 0
     for cid, d in PORTFOLIO.items():
         p = price_map.get(cid, {}).get("current_price", 0)
         total_val += (p * d["q"])
+        total_exit_mai += (d["mai"] * d["q"])
         
-        symbol = cid.upper()
+        symbol = cid.upper().split('-')[0]
         if "governance" in cid: symbol = "JTO"
         if "network" in cid: symbol = "SNX"
-        if cid == "sonic": symbol = "SONIC"
+        if "sonic" in cid: symbol = "SONIC"
 
         results.append({
             "symbol": symbol, "q": d["q"], "entry": d["entry"],
@@ -53,15 +65,17 @@ def main():
             "pot_mai": round(d["mai"] / d["entry"], 2)
         })
 
+    profit_eur = (total_exit_mai - INVESTITIE_TOTALA_USD) * USD_EUR
+
     with open("data.json", "w") as f:
         json.dump({
             "btc_d": round(btc_d, 1), "total3": round(total3, 2),
-            "fng": fng_data["data"][0]["value"] if fng_data else "50",
+            "fng": fng_val, "rotation_score": score,
             "portfolio": round(total_val, 0),
-            "multiplier": round(total_val / INVESTITIE_TOTALA, 2),
+            "profit_teoretic": f"{profit_eur:,.0f}",
+            "multiplier": round(total_val / INVESTITIE_TOTALA_USD, 2),
             "coins": results,
-            # Simulăm valorile macro pentru care nu există API-uri gratuite stabile
-            "vix": 14.1, "dxy": 103.8, "urpd": 84.2, "m2": "21.2T"
+            "vix": 14.1, "dxy": 103.8, "urpd": 84.2, "m2": "21.2T", "usdtd": 5.1
         }, f)
 
 if __name__ == "__main__": main()
