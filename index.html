@@ -1,50 +1,38 @@
 <!DOCTYPE html><html lang="ro"><head>
     <meta charset="UTF-8">
     <style>
-        body { background: #0b0e14; color: #e1e1e1; font-family: sans-serif; padding: 10px; font-size: 12px; }
-        .target-panel { background: #052e16; border: 2px solid #22c55e; padding: 18px; border-radius: 12px; margin-bottom: 20px; text-align: center; font-size: 17px; font-weight: bold; color: #fff; }
-        .top-nav { display: grid; grid-template-columns: 1fr 1fr 1.2fr 1fr 2fr; gap: 8px; margin-bottom: 15px; }
-        .m-card { background: #1a1c24; padding: 12px; border-radius: 8px; border: 1px solid #333; text-align: center; }
+        body { background: #0b0e14; color: #e1e1e1; font-family: sans-serif; padding: 10px; font-size: 11px; }
+        .target-panel { background: #052e16; border: 1px solid #22c55e; padding: 12px; border-radius: 8px; margin-bottom: 15px; text-align: center; font-weight: bold; color: #fff; }
+        .top-nav { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 15px; }
+        .m-card { background: #1a1c24; padding: 10px; border-radius: 6px; border: 1px solid #333; text-align: center; }
         .m-label { font-size: 8px; color: #888; text-transform: uppercase; margin-bottom: 4px; }
-        .m-val { font-weight: bold; font-size: 15px; }
+        .m-val { font-weight: bold; font-size: 14px; }
         
-        /* Culori Scor Sincronizate */
-        .score-hold { color: #ef4444; } .score-prepare { color: #fbbf24; } .score-sell { color: #00ff88; }
-        
-        .status-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
-        .st-btn { background: #111; border: 1px solid #222; border-radius: 8px; padding: 8px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; color: #333; }
-        .active-h { border-color: #ef4444 !important; color: #ef4444 !important; box-shadow: 0 0 12px rgba(239, 68, 68, 0.3); }
-
         .stats-main { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px; }
-        .card-big { background: #1a1c24; padding: 20px; border-radius: 12px; border: 1px solid #444; text-align: center; }
-        .val-big { font-size: 28px; font-weight: bold; color: #00ff88; }
+        .card-big { background: #1a1c24; padding: 18px; border-radius: 10px; border: 1px solid #444; text-align: center; }
+        .val-big { font-size: 26px; font-weight: bold; color: #00ff88; }
 
-        table { width: 100%; border-collapse: collapse; background: #111; border-radius: 10px; overflow: hidden; }
-        th { text-align: left; color: #555; font-size: 9px; padding: 15px; border-bottom: 2px solid #222; }
+        /* LINIA DE INDICATORI REINTRODUSA */
+        .macro-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-bottom: 15px; }
+
+        table { width: 100%; border-collapse: collapse; background: #0d0f14; border-radius: 8px; overflow: hidden; }
+        th { text-align: left; color: #555; font-size: 9px; padding: 12px; border-bottom: 2px solid #222; text-transform: uppercase; }
         
-        /* Glow White Effect pe rânduri + Aliniere stânga */
-        td { padding: 14px; border-bottom: 1px solid #1a1c24; transition: all 0.3s; text-align: left; }
-        tr:hover td { color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.7); background: rgba(255,255,255,0.02); }
+        /* ALINIERE STANGA + GLOW WHITE */
+        td { padding: 12px; border-bottom: 1px solid #1a1c24; transition: all 0.2s; text-align: left; }
+        tr:hover td { color: #fff !important; text-shadow: 0 0 10px rgba(255,255,255,0.8); background: rgba(255,255,255,0.03); }
 
         .fib-col { font-weight: bold; color: #a855f7; border-left: 1px solid #222; }
-        .sell-alert { background: #ef4444; color: #fff !important; padding: 2px 6px; border-radius: 4px; animation: blink 1s infinite; }
-        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
     </style></head><body>
 
-    <div class="target-panel">
-        🎯 TARGETS: BTC.D: 46% | VIX: 13.8 | DXY: 101 | ETH/BTC: 0.06 | ROTATION SCORE: 70%
-    </div>
+    <div class="target-panel">🎯 TARGETS: BTC.D: 46% | VIX: 13.8 | DXY: 101 | ETH/BTC: 0.06 | ROTATION SCORE: 70%</div>
 
     <div class="top-nav">
-        <div class="m-card"><div class="m-label">Rotation Score</div><div id="score" class="m-val">--</div></div>
+        <div class="m-card"><div class="m-label">Rotation Score</div><div id="score" class="m-val" style="color:#00ff88">75%</div></div>
         <div class="m-card"><div class="m-label">BTC.D LIVE</div><div id="btcd" class="m-val">--</div></div>
         <div class="m-card"><div class="m-label">ETH / BTC</div><div id="ethbtc" class="m-val" style="color:#a855f7">--</div></div>
         <div class="m-card"><div class="m-label">USDT.D LIVE</div><div id="usdtd" class="m-val">--</div></div>
-        <div class="status-container">
-            <div id="btn-h" class="st-btn">HOLD</div>
-            <div id="btn-p" class="st-btn">PREPARE</div>
-            <div id="btn-s" class="st-btn">SELL</div>
-        </div>
+        <div class="m-card" style="border-color:#fbbf24; color:#fbbf24; font-weight:bold; display:flex; align-items:center; justify-content:center;">PREPARE</div>
     </div>
 
     <div class="stats-main">
@@ -53,8 +41,17 @@
         <div class="card-big">
             <div class="m-label">MULTIPLIER ACTUAL</div>
             <div id="m" class="val-big">--</div>
-            <span id="investit" style="color:#888; font-size:11px">--</span>
+            <span id="investit" style="color:#888; font-size:10px">--</span>
         </div>
+    </div>
+
+    <div class="macro-row">
+        <div class="m-card"><div class="m-label">TOTAL 3</div><div id="t3" class="m-val">--</div></div>
+        <div class="m-card"><div class="m-label">SENTIMENT</div><div id="fng" class="m-val">--</div></div>
+        <div class="m-card"><div class="m-label">VIX INDEX</div><div id="vix" class="m-val" style="color:#ef4444">--</div></div>
+        <div class="m-card"><div class="m-label">URPD PROFIT</div><div id="urpd" class="m-val">--</div></div>
+        <div class="m-card"><div class="m-label">DXY INDEX</div><div id="dxy" class="m-val">--</div></div>
+        <div class="m-card"><div class="m-label">M2 SUPPLY</div><div id="m2" class="m-val">--</div></div>
     </div>
 
     <table>
@@ -74,26 +71,24 @@
             const r = await fetch('data.json?v=' + Date.now());
             const d = await r.json();
             
-            // Sincronizare culoare score
-            const sEl = document.getElementById('score');
-            sEl.textContent = d.rotation_score + '%';
-            sEl.className = 'm-val ' + (d.rotation_score < 50 ? 'score-hold' : d.rotation_score < 75 ? 'score-prepare' : 'score-sell');
-
             document.getElementById('btcd').textContent = d.btc_d + '%';
             document.getElementById('ethbtc').textContent = d.eth_btc;
             document.getElementById('usdtd').textContent = d.usdtd + '%';
             document.getElementById('v').textContent = '€' + d.portfolio_eur.toLocaleString();
-            document.getElementById('profit').textContent = '€' + d.profit_teoretic_eur;
+            document.getElementById('profit').textContent = '€' + d.profit_mai_eur;
             document.getElementById('m').textContent = d.multiplier + 'x';
             document.getElementById('investit').textContent = 'Investit: €' + d.investit_eur.toLocaleString();
-
-            const sc = d.rotation_score;
-            document.getElementById('btn-h').className = 'st-btn' + (sc < 50 ? ' active-h' : '');
+            
+            // Incarcare Macro
+            document.getElementById('t3').textContent = d.total3;
+            document.getElementById('fng').textContent = d.fng;
+            document.getElementById('vix').textContent = d.vix;
+            document.getElementById('urpd').textContent = d.urpd + '%';
+            document.getElementById('dxy').textContent = d.dxy;
+            document.getElementById('m2').textContent = d.m2;
 
             let h = '';
             d.coins.forEach(c => {
-                const isClose = c.live_p >= (c.fib * 0.95);
-                const alertStyle = isClose ? 'class="sell-alert"' : '';
                 h += `<tr>
                     <td><b>${c.symbol}</b><br><small style="color:#555">$${c.price}</small></td>
                     <td>${c.q.toLocaleString()}</td>
@@ -102,7 +97,7 @@
                     <td style="color:#00ff88">${c.x_apr}x</td>
                     <td style="color:#fbbf24">$${c.mai}</td>
                     <td style="color:#00ff88">${c.x_mai}x</td>
-                    <td class="fib-col"><span ${alertStyle}>$${c.fib}</span></td>
+                    <td class="fib-col">$${c.fib}</td>
                 </tr>`;
             });
             document.getElementById('rows').innerHTML = h;
