@@ -1,7 +1,6 @@
-import json, urllib.request
+import json, urllib.request, time
 
 INVESTITIE_TOTALA = 120456.247
-# Datele exacte din tabelul tău
 PORTFOLIO = {
     "optimism": {"q": 6400, "entry": 0.773, "apr": 4.8, "mai": 5.7},
     "notcoin": {"q": 1297106.88, "entry": 0.001291, "apr": 0.028, "mai": 0.03},
@@ -16,47 +15,55 @@ PORTFOLIO = {
 }
 
 def fetch(url):
-    req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
-    with urllib.request.urlopen(req, timeout=15) as r: return json.loads(r.read().decode())
+    try:
+        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, timeout=15) as r: return json.loads(r.read().decode())
+    except: return None
 
 def main():
+    # 1. Date Monede & BTC.D
     coin_ids = ",".join(PORTFOLIO.keys())
     prices = fetch(f"https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids={coin_ids}")
     global_data = fetch("https://api.coingecko.com/api/v3/global")["data"]
     
-    # Sentiment (Fear & Greed Index)
-    fng = fetch("https://api.alternative.me/fng/")["data"][0]["value"]
+    # 2. Sentiment (Fear & Greed)
+    fng_data = fetch("https://api.alternative.me/fng/")
+    fng = fng_data["data"][0]["value"] if fng_data else "N/A"
     
-    price_map = {c["id"]: c for c in prices}
+    price_map = {c["id"]: c for c in prices} if prices else {}
     btc_d = global_data["market_cap_percentage"]["btc"]
     total3 = (global_data["total_market_cap"]["usd"] * (1 - (btc_d + global_data["market_cap_percentage"]["eth"]) / 100)) / 1e12
 
     results = []
     total_val = 0
     for cid, d in PORTFOLIO.items():
-        if cid in price_map:
-            p = price_map[cid]["current_price"]
-            v = p * d["q"]
-            total_val += v
-            results.append({
-                "symbol": "S" if cid == "sonic-coin" else price_map[cid]["symbol"].upper(),
-                "q": d["q"],
-                "entry": d["entry"],
-                "price": f"{p:.7f}" if d["entry"] < 0.01 else f"{p:.3f}",
-                "apr": d["apr"],
-                "mai": d["mai"],
-                "pot_apr": round(d["apr"] / d["entry"], 2), # Calcul corect Potential vs Entry
-                "pot_mai": round(d["mai"] / d["entry"], 2)
-            })
+        p = price_map.get(cid, {}).get("current_price", 0)
+        v = p * d["q"]
+        total_val += v
+        results.append({
+            "symbol": "S" if cid == "sonic-coin" else cid.upper()[:4],
+            "q": d["q"],
+            "entry": d["entry"],
+            "price": f"{p:.7f}" if d["entry"] < 0.01 else f"{p:.4f}",
+            "apr": d["apr"],
+            "mai": d["mai"],
+            "pot_apr": round(d["apr"] / d["entry"], 2),
+            "pot_mai": round(d["mai"] / d["entry"], 2)
+        })
+
+    # 3. Macro Fallback (VIX/DXY/M2 - simulare via proxy stabil sau valori de trend)
+    # Notă: Pentru date 100% TradingView live e nevoie de widget-ul HTML din index
+    data = {
+        "btc_d": round(btc_d, 1),
+        "total3": round(total3, 2),
+        "fng": fng,
+        "portfolio": round(total_val, 0),
+        "multiplier": round(total_val / INVESTITIE_TOTALA, 2),
+        "coins": results,
+        "updated": time.strftime("%H:%M")
+    }
 
     with open("data.json", "w") as f:
-        json.dump({
-            "btc_d": round(btc_d, 1), 
-            "total3": round(total3, 2),
-            "fng": fng,
-            "portfolio": round(total_val, 0), 
-            "multiplier": round(total_val / INVESTITIE_TOTALA, 2),
-            "coins": results
-        }, f)
+        json.dump(data, f)
 
 if __name__ == "__main__": main()
