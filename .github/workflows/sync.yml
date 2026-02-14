@@ -9,18 +9,13 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.9'
+      - uses: actions/checkout@v3
       - name: Run Script
         run: python tracker.py
       - name: Publish
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
-          git add index.html
-          git commit -m "Update" || exit 0
+          git add index.html history.json
+          git commit -m "Update Dashboard and History" || exit 0
           git push
