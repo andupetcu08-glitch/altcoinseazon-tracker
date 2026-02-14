@@ -23,23 +23,12 @@ def fetch(url):
     except: return None
 
 def calculate_rotation_score(btc_d, eth_btc, fng):
-    score = 10 # Punctaj de bază
-    # 1. BTC Dominance (Scăderea e bună pentru Alts)
-    if btc_d > 55: score += 5
-    elif 50 <= btc_d <= 55: score += 15
-    else: score += 30
-    
-    # 2. ETH/BTC (Creșterea indică rotație spre Alts)
-    if eth_btc < 0.04: score += 5
-    elif 0.04 <= eth_btc <= 0.05: score += 20
-    else: score += 35
-    
-    # 3. Fear & Greed (Greed ridicat = bani mulți în piață)
-    if fng > 70: score += 25
-    elif 40 <= fng <= 70: score += 15
-    else: score += 5
-    
-    return min(100, score)
+    # Logica de calcul automata
+    score = 15
+    if btc_d < 52: score += 25
+    if eth_btc > 0.045: score += 25
+    if fng > 60: score += 15
+    return min(100, score + 10)
 
 def main():
     ids = list(PORTFOLIO.keys()) + ["bitcoin", "ethereum"]
@@ -97,7 +86,7 @@ def main():
             "investit_eur": round(INVESTITIE_TOTALA_USD * usd_eur_live, 0),
             "multiplier": round(portfolio_eur / (INVESTITIE_TOTALA_USD * usd_eur_live), 2),
             "coins": results, "vix": 13.8, "dxy": 101, "total3": "0.98T", 
-            "fng": f"{fng_val} ({fng_text})", "usdt_d": 7.5
+            "fng": f"{fng_val} ({fng_text})", "usdt_d": 7.5, "urpd": "84.2%", "m2": "21.2T"
         }, f)
 
 if __name__ == "__main__": main()
