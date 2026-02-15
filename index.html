@@ -6,6 +6,7 @@
     <style>
         body { background: #0b0e14; color: #e1e1e1; font-family: sans-serif; padding: 20px; margin: 0; }
         
+        /* Banner CURAT */
         .banner { 
             background: #052e16; border: 2px solid #22c55e; padding: 15px; border-radius: 10px; 
             text-align: center; font-weight: bold; margin-bottom: 25px; font-size: 16px; color: #fff;
@@ -14,38 +15,23 @@
 
         .top-nav { display: grid; grid-template-columns: repeat(4, 1fr) 2fr; gap: 10px; margin-bottom: 20px; }
         
-        /* MAGNIFY & GLOW EFFECT - APLICAT PESTE TOT */
+        /* MAGNIFY & GLOW EFFECT */
         .m-card, tr, .card-big, .st-btn { transition: all 0.2s ease-in-out; }
-        
-        .m-card:hover, .card-big:hover { 
-            transform: scale(1.04); 
-            border-color: #00ff88; 
-            box-shadow: 0 0 20px rgba(0, 255, 136, 0.3); 
-            z-index: 10;
-        }
-
-        tbody tr:hover { 
-            background: rgba(0, 255, 136, 0.08) !important; 
-            transform: scale(1.02); 
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
-            cursor: pointer;
-        }
+        .m-card:hover, .card-big:hover { transform: scale(1.04); border-color: #00ff88; box-shadow: 0 0 20px rgba(0, 255, 136, 0.3); z-index: 10; }
+        tbody tr:hover { background: rgba(0, 255, 136, 0.08) !important; transform: scale(1.02); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5); cursor: pointer; }
 
         .m-card { background: #15171e; padding: 15px; border-radius: 10px; border: 1px solid #222; text-align: center; }
         .m-label { font-size: 10px; color: #666; text-transform: uppercase; margin-bottom: 5px; }
         .m-val { font-size: 18px; font-weight: bold; }
         
-        /* Status Buttons Fix */
         .status-box { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
-        .st-btn { background: #111; border: 1px solid #222; border-radius: 8px; font-size: 11px; color: #444; display: flex; align-items: center; justify-content: center; font-weight: bold; padding: 5px; }
-        .st-btn:hover { transform: scale(1.05); border-color: #666; }
+        .st-btn { background: #111; border: 1px solid #222; border-radius: 8px; font-size: 11px; color: #444; display: flex; align-items: center; justify-content: center; font-weight: bold; }
         .active-h { border-color: #ef4444 !important; color: #ef4444 !important; box-shadow: 0 0 15px rgba(239, 68, 68, 0.3); }
 
         .big-stats { display: grid; grid-template-columns: 1fr 1.5fr 1fr; gap: 20px; margin-bottom: 20px; }
         .card-big { background: #15171e; padding: 25px; border-radius: 12px; border: 1px solid #222; text-align: center; }
         .val-big { font-size: 32px; font-weight: bold; color: #00ff88; }
         
-        /* Cele 2 randuri de casete macro */
         .macro-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 10px; }
 
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
@@ -77,8 +63,12 @@
 
 <div class="big-stats">
     <div class="card-big"><div class="m-label">PORTOFOLIU ACTUAL (EUR)</div><div id="veur" class="val-big">--</div></div>
-    <div class="card-big"><div class="m-label">POTENȚIAL PROFIT TEORETIC (FIB)</div><div style="color:#fbbf24; font-size:24px; font-weight:bold">€311,289 - €443,244</div></div>
-    <div class="card-big"><div class="m-label">MULTIPLIER ACTUAL</div><div id="mult" class="val-big">--</div></div>
+    <div class="card-big"><div class="m-label">POTENȚIAL PROFIT TEORETIC (FIB)</div><div id="pot_profit" style="color:#fbbf24; font-size:24px; font-weight:bold">--</div></div>
+    <div class="card-big">
+        <div class="m-label">MULTIPLIER ACTUAL</div>
+        <div id="mult" class="val-big">--</div>
+        <div id="invest_label" style="font-size: 10px; color: #555; margin-top: 5px;">--</div>
+    </div>
 </div>
 
 <div class="macro-grid" id="macro-row-1"></div>
@@ -108,18 +98,20 @@ async function refresh() {
         document.getElementById('usdtd').innerHTML = d.usdtd + '%' + (d.usdtd > 5 ? up : down);
         document.getElementById('veur').innerHTML = '€' + d.port_eur.toLocaleString() + (d.port_up ? up : down);
         document.getElementById('mult').textContent = d.mult + 'x';
+        document.getElementById('invest_label').textContent = '(Investit: €' + d.invest_eur.toLocaleString() + ')';
+        
+        // Potential Profit dinamic
+        document.getElementById('pot_profit').textContent = '€' + d.pot_min_eur.toLocaleString() + ' - €' + d.pot_max_eur.toLocaleString();
         
         const rotElem = document.getElementById('rot');
         rotElem.textContent = d.rotation + '%';
         rotElem.style.color = d.rotation >= 70 ? '#00ff88' : '#ef4444';
 
-        // Randul 1
         const r1 = [['TOTAL 3','0.98T',up],['SENTIMENT',d.fng,up],['VIX INDEX',d.vix,down],['URPD PROFIT',d.urpd,up],['DXY INDEX',d.dxy,down],['M2 SUPPLY',d.m2,up]];
         document.getElementById('macro-row-1').innerHTML = r1.map(x => `
             <div class="m-card"><div class="m-label">${x[0]}</div><div class="m-val">${x[1]}${x[2]}</div></div>
         `).join('');
 
-        // Randul 2
         const r2 = [['ML SELL PROB','18.9%',down],['MOMENTUM',d.momentum,up],['EXHAUSTION',d.exhaustion,down],['DIVERGENCE',d.divergence,up],['VOLATILITY',d.volatility,down],['LIQUIDITY',d.liquidity,up]];
         document.getElementById('macro-row-2').innerHTML = r2.map(x => `
             <div class="m-card"><div class="m-label">${x[0]}</div><div class="m-val">${x[1]}${x[2]}</div></div>
