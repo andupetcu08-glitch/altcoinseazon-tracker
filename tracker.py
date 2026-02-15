@@ -26,7 +26,7 @@ def calculate_rotation_score(btc_d, eth_btc, fng, usdt_d, dxy):
     if eth_btc > 0.045: score += 20
     if fng > 75: score += 15
     if usdt_d < 5.8: score += 20
-    if dxy < 101: score += 15 # Corelația cu Dolarul
+    if dxy < 101: score += 15
     return min(100, score)
 
 def main():
@@ -38,15 +38,16 @@ def main():
     
     p_map = {c["id"]: c for c in prices} if prices else {}
     btc_usd = p_map.get("bitcoin", {}).get("current_price", 1)
-    usd_eur_live = (btc_eur_data.get("bitcoin", {}).get("eur", 1) / btc_usd) if btc_usd > 1 else 0.92
+    usd_eur_live = (btc_eur_data.get("bitcoin", {}).get("eur", 1) / btc_usd) if btc_usd and btc_eur_data else 0.92
 
-    # LIVE MACRO (DXY & VIX mapped from global sentiment/derivatives proxy)
     btc_d = round(global_api["data"]["market_cap_percentage"]["btc"], 1) if global_api else 56.4
     eth_p = p_map.get("ethereum", {}).get("current_price", 0)
     eth_btc = round(eth_p / btc_usd, 4) if btc_usd > 0 else 0.0299
     fng_val = int(fng_api["data"][0]["value"]) if fng_api else 45
     
-    usdt_d, vix, dxy = 7.5, 14.2, 102.4 # Placeholder macro
+    # Parametrii solicitați anterior
+    usdt_d, vix, dxy = 7.5, 13.8, 101.2
+    total3, m2, urpd = "0.98T", "21.2T", "84.2%"
     
     score = calculate_rotation_score(btc_d, eth_btc, fng_val, usdt_d, dxy)
     
@@ -61,7 +62,7 @@ def main():
         prog = ((p - d["entry"]) / (d["fib"] - d["entry"])) * 100 if d["fib"] > d["entry"] else 0
         
         results.append({
-            "symbol": cid.upper().split('-')[0], "q": d["q"], "entry": d["entry"], 
+            "symbol": cid.upper().split('-')[0].replace("JITO","JTO"), "q": d["q"], "entry": d["entry"], 
             "progres": round(max(0, min(100, prog)), 1), "price": f"{p:.4f}", 
             "apr": d["apr"], "mai": d["mai"], "fib": d["fib"], "change": round(ch, 2),
             "x_apr": round(d["apr"] / d["entry"], 2), "x_mai": round(d["mai"] / d["entry"], 2)
@@ -70,10 +71,10 @@ def main():
     with open("data.json", "w") as f:
         json.dump({
             "btc_d": btc_d, "eth_btc": eth_btc, "rotation_score": score, "vix": vix, "dxy": dxy,
-            "portfolio_eur": round(t_usd * usd_eur_live, 0),
+            "portfolio_eur": round(t_usd * usd_eur_live, 0), "investit": round(INVESTITIE_TOTALA_USD * usd_eur_live, 0),
             "profit_range": f"€{((t_apr - INVESTITIE_TOTALA_USD) * usd_eur_live):,.0f} - €{((t_fib - INVESTITIE_TOTALA_USD) * usd_eur_live):,.0f}",
             "multiplier": round((t_usd * usd_eur_live) / (INVESTITIE_TOTALA_USD * usd_eur_live), 2),
-            "coins": results, "total3": "0.98T", "fng": fng_val, "usdt_d": usdt_d, "m2": "21.2T"
+            "coins": results, "total3": total3, "fng": f"{fng_val} (Neutral)", "usdt_d": usdt_d, "m2": m2, "urpd": urpd
         }, f)
 
 if __name__ == "__main__": main()
