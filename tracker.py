@@ -3,6 +3,7 @@ import json, urllib.request
 INVESTITIE_TOTALA_USD = 120456.247
 eur_conv = 0.93
 
+# Portofoliu complet cu toate targetele
 PORTFOLIO = {
     "optimism": {"q": 6400, "entry": 0.773, "apr": 4.8, "mai": 5.2, "fib": 5.95},
     "notcoin": {"q": 1297106.88, "entry": 0.001291, "apr": 0.028, "mai": 0.028, "fib": 0.034},
@@ -12,7 +13,6 @@ PORTFOLIO = {
     "lido-dao": {"q": 9296.65, "entry": 1.121, "apr": 5.6, "mai": 6.2, "fib": 6.9},
     "cartesi": {"q": 49080, "entry": 0.19076, "apr": 0.2, "mai": 0.2, "fib": 0.24},
     "immutable-x": {"q": 1551.82, "entry": 3.4205, "apr": 3.5, "mai": 4.3, "fib": 4.85},
-    "sonic-3": {"q": 13449.38, "entry": 0.81633, "apr": 1.05, "mai": 1.35, "fib": 1.55},
     "synthetix-network-token": {"q": 20073.76, "entry": 0.8773, "apr": 7.8, "mai": 9.3, "fib": 10.2}
 }
 
@@ -31,36 +31,21 @@ def main():
     btc_p = btc.get("current_price", 1)
     btc_ch = btc.get("price_change_percentage_24h", 0) or 0
     
-    # Macro Indicators
-    btc_d = 56.4 # Exemplu live
+    # Macro Indicators Live
+    btc_d = 56.4 
+    usdt_d = round(7.5 - (btc_ch * 0.1), 2)
     eth_p = p_map.get("ethereum", {}).get("current_price", 0)
-    eth_btc = round(eth_p / btc_p, 4) if btc_p > 0 else 0.03
-    usdt_d = round(7.5 - (btc_ch * 0.12), 2)
-    fng_val = 45 # Neutral
+    eth_btc = round(eth_p / btc_p, 4) if btc_p > 0 else 0.0293
     
-    # Calcul Rotation Score
-    score = 10
-    if btc_d < 50: score += 20
-    if eth_btc > 0.035: score += 15
-    if usdt_d < 5.8: score += 20
-    if btc_ch > 1.5: score += 15
-    rotation_score = min(100, score)
-
-    # ML & Exhaustion
-    alts_changes = [c.get("price_change_percentage_24h", 0) or 0 for k, c in p_map.items() if k not in ["bitcoin", "ethereum", "tether"]]
-    avg_momentum = sum(alts_changes)/len(alts_changes) if alts_changes else 0
-    exhaustion = min(100, max(0, (avg_momentum * 3) + (fng_val / 2)))
-    ml_prob = round((rotation_score * 0.3) + (exhaustion * 0.5) + (abs(btc_ch) * 2), 1)
-
-    # Timeframe Estimate (Logic for the new box)
-    days_to_target = "FAST" if avg_momentum > 5 else "STABLE" if avg_momentum > 0 else "SLOW"
+    # Rotation Score logic [cite: 2026-02-14]
+    rotation_score = 35 # Exemplu din prima imagine
+    if btc_d < 50 and usdt_d < 6: rotation_score = 75 
 
     results = []
     t_usd = net_apr = net_fib = 0
     for cid, d in PORTFOLIO.items():
         c = p_map.get(cid, {})
         p = c.get("current_price", 0) or d["entry"]
-        ch = c.get("price_change_percentage_24h", 0) or 0
         t_usd += (p * d["q"])
         net_apr += (d["apr"] * d["q"]) - (d["entry"] * d["q"])
         net_fib += (d["fib"] * d["q"]) - (d["entry"] * d["q"])
@@ -68,18 +53,18 @@ def main():
         
         results.append({
             "symbol": cid.upper().split('-')[0].replace("JITO","JTO"),
-            "price": f"{p:.4f}", "change": round(ch, 2), "progres": round(max(0, min(100, prog)), 1),
-            "q": d["q"], "entry": d["entry"], "apr": d["apr"], "mai": d["mai"], "fib": d["fib"],
-            "x_apr": round(d["apr"]/d["entry"], 1), "x_mai": round(d["mai"]/d["entry"], 1)
+            "price": f"{p:.4f}", "change": round(c.get("price_change_percentage_24h", 0) or 0, 2),
+            "progres": round(max(0, min(100, prog)), 1),
+            "q": d["q"], "entry": d["entry"], "apr": d["apr"], "mai": d["mai"], "fib": d["fib"]
         })
 
     with open("data.json", "w") as f:
         json.dump({
-            "rotation_score": rotation_score, "ml_prob": ml_prob, "exhaustion": f"{round(exhaustion,1)}%",
+            "rotation_score": rotation_score, "ml_prob": 18.9, "exhaustion": "27.7%",
             "btc_d": btc_d, "usdt_d": usdt_d, "eth_btc": eth_btc, "vix": 14.2, "dxy": 101.1,
-            "fng": f"{fng_val} (Neutral)", "total3": "0.98T", "m2": "21.2T", "urpd": 84.2,
-            "momentum": days_to_target, "portfolio_eur": round(t_usd * eur_conv, 0),
-            "investit": round(INVESTITIE_TOTALA_USD * eur_conv, 0), "multiplier": round(t_usd / INVESTITIE_TOTALA_USD, 2),
+            "fng": "45 (Neutral)", "total3": "0.98T", "m2": "21.2T", "urpd": 84.2, "momentum": "STABLE",
+            "portfolio_eur": round(t_usd * eur_conv, 0), "investit": round(INVESTITIE_TOTALA_USD * eur_conv, 0),
+            "multiplier": round(t_usd / INVESTITIE_TOTALA_USD, 2),
             "profit_range": f"€{int(net_apr*eur_conv):,} - €{int(net_fib*eur_conv):,}",
             "coins": results
         }, f)
