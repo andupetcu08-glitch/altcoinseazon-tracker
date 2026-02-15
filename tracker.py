@@ -1,8 +1,8 @@
 import json, urllib.request
 
-# DATELE TALE REALE (Verificate conform capturilor)
+# DATE REALE DIN IMAGINEA TA
 INVESTITIE_TOTALA_EUR = 112024
-EUR_USD = 1.075 # Rata de conversie pentru a ajunge la valorile tale
+USD_EUR_CONV = 0.93 # Ajustat pentru a reflecta ~27.5k EUR din ~29.6k USD
 
 PORTFOLIO = {
     "optimism": {"q": 6400, "entry": 0.773, "apr": 4.8, "mai": 5.2, "fib": 5.95},
@@ -38,27 +38,27 @@ def main():
         ch = c.get("price_change_percentage_24h", 0) or 0
         t_usd_now += (p * d["q"])
         
+        # Progres către FIB Target
         prog = ((p - d["entry"]) / (d["fib"] - d["entry"])) * 100 if d["fib"] > d["entry"] else 0
         
         coins_out.append({
             "s": cid.upper().split('-')[0].replace("JITO","JTO"),
             "p": f"{p:.4f}", "ch": round(ch, 2), "pr": round(max(0, min(100, prog)), 1),
             "q": d["q"], "e": d["entry"], "a": d["apr"], "m": d["mai"], "f": d["fib"],
-            "xa": round(d["apr"]/d["entry"], 1), "xm": round(d["mai"]/d["entry"], 1)
+            "xa": f"{round(d['apr']/d['entry'], 1)}x", 
+            "xm": f"{round(d['mai']/d['entry'], 1)}x"
         })
 
-    # Rotation Score de 35% din captură
-    rot_val = 35 
-    
+    # Datele Macro din imaginea ta
     data = {
-        "portfolio_eur": round(t_usd_now / EUR_USD, 0),
-        "multiplier": round((t_usd_now / EUR_USD) / INVESTITIE_TOTALA_EUR, 2),
-        "rot": rot_val,
+        "portfolio_eur": round(t_usd_now * USD_EUR_CONV, 0),
+        "multiplier": round((t_usd_now * USD_EUR_CONV) / INVESTITIE_TOTALA_EUR, 2),
+        "rot": 35,
         "btcd": f"56.4% {'▲' if btc_ch > 0 else '▼'}",
         "usdtd": f"7.44% {'▼' if btc_ch > 0 else '▲'}",
         "ml": "18.9%", "ethbtc": "0.0293", "mom": "STABLE",
         "vix": "14.2", "dxy": "101.1", "sent": "45 (Neutral)", "t3": "0.98T", "m2": "21.2T", "exh": "27.7%",
-        "urpd": "84.2%", "coins": coins_out
+        "coins": coins_out
     }
 
     with open("data.json", "w") as f:
