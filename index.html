@@ -2,66 +2,66 @@
 <html lang="ro">
 <head>
     <meta charset="UTF-8">
-    <title>Altcoin Tracker Elite v3</title>
+    <title>Altcoin Tracker Elite Final</title>
     <style>
         body { background: #0b0e14; color: #e1e1e1; font-family: sans-serif; padding: 20px; margin: 0; overflow-x: hidden; }
         
+        /* Banner Mare si Curat */
         .banner { 
-            background: #052e16; border: 2px solid #22c55e; padding: 12px; border-radius: 10px; 
-            text-align: center; font-weight: bold; margin-bottom: 20px; font-size: 13px; color: #fff;
-            box-shadow: 0 0 20px rgba(34, 197, 94, 0.2);
+            background: rgba(5, 46, 22, 0.9); border: 2px solid #22c55e; padding: 18px; border-radius: 12px; 
+            text-align: center; font-weight: bold; margin-bottom: 25px; font-size: 16px; color: #fff;
+            box-shadow: 0 0 30px rgba(34, 197, 94, 0.3); letter-spacing: 1px;
         }
 
-        /* Top Grid */
-        .top-nav { display: grid; grid-template-columns: repeat(4, 1fr) 2fr; gap: 12px; margin-bottom: 20px; }
+        .top-nav { display: grid; grid-template-columns: repeat(4, 1fr) 2fr; gap: 15px; margin-bottom: 25px; }
         
-        /* Carduri cu Magnify Global */
-        .m-card { 
-            background: #15171e; padding: 15px; border-radius: 10px; border: 1px solid #222; 
-            text-align: center; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        /* Magnify & Glow Global (Casete si Randuri) */
+        .m-card, tr { transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        
+        .m-card { background: #15171e; padding: 15px; border-radius: 10px; border: 1px solid #222; text-align: center; }
+        .m-card:hover { transform: scale(1.06); border-color: #444; box-shadow: 0 0 25px rgba(255,255,255,0.1); z-index: 5; }
+        
+        /* Efect special pentru randurile din tabel */
+        tbody tr:hover { 
+            background: rgba(255, 255, 255, 0.03) !important; 
+            transform: scale(1.01) translateX(5px); 
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.1);
+            border-left: 3px solid #00ff88;
         }
-        .m-card:hover { transform: scale(1.08); border-color: #444; box-shadow: 0 0 25px rgba(255,255,255,0.15); z-index: 10; }
-        
+
         .m-label { font-size: 9px; color: #666; text-transform: uppercase; margin-bottom: 5px; letter-spacing: 1px; }
         .m-val { font-size: 18px; font-weight: bold; }
 
-        /* Status Buttons */
-        .status-box { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
-        .st-btn { 
-            background: #111; border: 1px solid #222; border-radius: 8px; 
-            font-size: 9px; font-weight: bold; color: #333; display: flex; align-items: center; justify-content: center;
-        }
-        .active-h { border-color: #ef4444; color: #ef4444; box-shadow: 0 0 15px rgba(239, 68, 68, 0.3); opacity: 1; }
-        .active-p { border-color: #fbbf24; color: #fbbf24; box-shadow: 0 0 15px rgba(251, 191, 36, 0.3); animation: pulse 1.5s infinite; opacity: 1; }
-        .active-s { border-color: #00ff88; color: #00ff88; box-shadow: 0 0 15px rgba(0, 255, 136, 0.3); animation: pulse 1s infinite; opacity: 1; }
-
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
-
-        /* Middle Cards */
-        .big-stats { display: grid; grid-template-columns: 1fr 1.5fr 1fr; gap: 20px; margin-bottom: 25px; }
-        .card-big { background: #15171e; padding: 25px; border-radius: 15px; border: 1px solid #222; text-align: center; transition: 0.3s; }
-        .card-big:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .val-big { font-size: 34px; font-weight: bold; color: #00ff88; }
+        .status-box { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+        .st-btn { background: #111; border: 1px solid #222; border-radius: 8px; font-size: 9px; font-weight: bold; color: #333; display: flex; align-items: center; justify-content: center; opacity: 0.3; }
         
-        /* Macro Grid - Toate cele 12 casete */
-        .macro-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 25px; }
+        .active-h { border-color: #ef4444; color: #ef4444; opacity: 1; box-shadow: 0 0 15px rgba(239, 68, 68, 0.3); }
+        .active-p { border-color: #fbbf24; color: #fbbf24; opacity: 1; box-shadow: 0 0 15px rgba(251, 191, 36, 0.3); animation: blink 1.5s infinite; }
+        .active-s { border-color: #00ff88; color: #00ff88; opacity: 1; box-shadow: 0 0 15px rgba(0, 255, 136, 0.4); animation: blink 1s infinite; }
 
-        /* Table Style */
-        table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; color: #555; padding: 12px; font-size: 10px; text-transform: uppercase; border-bottom: 1px solid #222; }
-        td { padding: 18px 12px; border-bottom: 1px solid #15171e; font-size: 16px; font-weight: bold; }
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
+
+        .big-stats { display: grid; grid-template-columns: 1fr 1.5fr 1fr; gap: 20px; margin-bottom: 30px; }
+        .card-big { background: #15171e; padding: 30px; border-radius: 15px; border: 1px solid #222; text-align: center; }
+        .val-big { font-size: 38px; font-weight: bold; color: #00ff88; }
+        
+        .macro-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin-bottom: 30px; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { text-align: left; color: #444; padding: 15px; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid #222; }
+        td { padding: 20px 15px; border-bottom: 1px solid #15171e; font-size: 17px; font-weight: bold; }
+        
         .up { color: #00ff88; } .down { color: #ef4444; }
+        .prog-bg { width: 140px; height: 6px; background: #222; border-radius: 3px; margin-top: 8px; }
+        .prog-fill { height: 100%; transition: 0.8s ease-out; border-radius: 3px; }
         
-        .prog-bg { width: 120px; height: 5px; background: #222; border-radius: 3px; margin-top: 8px; }
-        .prog-fill { height: 100%; transition: 0.5s; border-radius: 3px; }
-        
-        .bec { width: 8px; height: 8px; background: #00ff88; border-radius: 50%; display: inline-block; margin-left: 8px; box-shadow: 0 0 10px #00ff88; animation: pulse 1s infinite; }
+        .bec { width: 10px; height: 10px; background: #00ff88; border-radius: 50%; display: inline-block; margin-left: 10px; box-shadow: 0 0 12px #00ff88; animation: blink 1s infinite; }
     </style>
 </head>
 <body>
 
-<div class="banner">
-    🎯 TARGETS: BTC.D: 46% | VIX: 13.8 | USDT.D: 5.1% | URPD: 86% | ETH/BTC: 0.085 | ROTATION SCORE: 70% | 15.02.2026
+<div class="banner" id="top-banner">
+    🎯 TARGETS: BTC.D: 46% | VIX: 13.8 | USDT.D: 5.1% | URPD: 86% | ETH/BTC: 0.085 | ROTATION SCORE: 70% | 15.02.2026 [cite: 2026-02-14]
 </div>
 
 <div class="top-nav">
@@ -78,11 +78,11 @@
 
 <div class="big-stats">
     <div class="card-big"><div class="m-label">PORTOFOLIU ACTUAL (EUR)</div><div id="veur" class="val-big">--</div></div>
-    <div class="card-big"><div class="m-label">POTENȚIAL PROFIT TEORETIC</div><div style="color:#fbbf24; font-size:24px; font-weight:bold">€311,289 - €443,244</div></div>
+    <div class="card-big"><div class="m-label">POTENȚIAL PROFIT TEORETIC</div><div style="color:#fbbf24; font-size:26px; font-weight:bold">€311,289 - €443,244</div></div>
     <div class="card-big">
         <div class="m-label">MULTIPLIER ACTUAL</div>
         <div id="mult" class="val-big">--</div>
-        <div id="vinv" style="font-size:10px; color:#555; margin-top:5px;"></div>
+        <div id="vinv" style="font-size:11px; color:#555; margin-top:5px;">--</div>
     </div>
 </div>
 
@@ -106,43 +106,40 @@ async function refresh() {
     const d = await res.json();
     const up = '<span class="up"> ▲</span>', down = '<span class="down"> ▼</span>';
 
-    // Rotation & Buttons Logic
+    // Status Buttons & Rotation
     const rot = d.rotation;
-    const rotEl = document.getElementById('rot');
-    rotEl.textContent = rot + '%';
+    document.getElementById('rot').textContent = rot + '%';
+    document.getElementById('rot').style.color = rot >= 70 ? '#00ff88' : (rot >= 50 ? '#fbbf24' : '#ef4444');
     
     document.getElementById('bh').className = 'st-btn' + (rot < 50 ? ' active-h' : '');
     document.getElementById('bp').className = 'st-btn' + (rot >= 50 && rot < 70 ? ' active-p' : '');
     document.getElementById('bs').className = 'st-btn' + (rot >= 70 ? ' active-s' : '');
-    rotEl.style.color = rot >= 70 ? '#00ff88' : (rot >= 50 ? '#fbbf24' : '#ef4444');
 
-    // Main Cards
+    // Carduri Principale
     document.getElementById('btcd').innerHTML = d.btcd + '%' + (d.btcd > 50 ? up : down);
     document.getElementById('ethbtc').textContent = d.ethbtc;
     document.getElementById('usdtd').innerHTML = d.usdtd + '%' + (d.usdtd > 5 ? up : down);
     document.getElementById('veur').innerHTML = '€' + d.port_eur.toLocaleString() + (d.port_up ? up : down);
     document.getElementById('mult').textContent = d.mult + 'x';
-    document.getElementById('vinv').textContent = '(Investit: €' + d.invest_eur.toLocaleString() + ')';
+    document.getElementById('vinv').textContent = 'Investit: €' + d.invest_eur.toLocaleString();
 
-    // Macro Grid (Toate cele 12 casete cu Magnify)
+    // Macro Grid (Magnify pe toate)
     const mItems = [
-        ['TOTAL 3','0.98T',up],['SENTIMENT',d.fng,up],['VIX',d.vix,down],
-        ['URPD',d.urpd,up],['DXY',d.dxy,down],['M2',d.m2,up],
-        ['ML SELL',d.ml+'%',down],['MOMENTUM','STABLE',up],['EXHAUSTION',d.exh+'%',down],
-        ['DIVERGENCE','NORMAL',up],['VOLATILITY','LOW',down],['LIQUIDITY','HIGH',up]
+        ['TOTAL 3','0.98T',up],['SENTIMENT',d.fng,up],['VIX',d.vix,down],['URPD',d.urpd,up],['DXY',d.dxy,down],['M2',d.m2,up],
+        ['ML SELL',d.ml+'%',down],['MOMENTUM','STABLE',up],['EXHAUSTION',d.exh+'%',down],['DIVERGENCE','NORMAL',up],['VOLATILITY','LOW',down],['LIQUIDITY','HIGH',up]
     ];
     document.getElementById('macro').innerHTML = mItems.map(x => `
         <div class="m-card"><div class="m-label">${x[0]}</div><div class="m-val">${x[1]}${x[2]}</div></div>
     `).join('');
 
-    // Table Logic - Curățat de text repetitiv
+    // Tabel cu Magnify pe Randuri
     document.getElementById('rows').innerHTML = d.coins.map(c => {
         const bec = c.prog >= 85 ? '<span class="bec"></span>' : '';
         const heatmap = `linear-gradient(90deg, #f97316 0%, #00ff88 ${c.prog}%)`;
         return `
         <tr>
             <td>
-                ${c.symbol} <span class="${c.change>=0?'up':'down'}" style="font-size:10px">(${c.change}%)</span>
+                ${c.symbol} <span class="${c.change>=0?'up':'down'}" style="font-size:11px">(${c.change}%)</span>
                 <div class="prog-bg"><div class="prog-fill" style="width:${c.prog}%; background:${heatmap}"></div></div>
             </td>
             <td>${c.q.toLocaleString()}</td><td>$${c.entry}</td>
