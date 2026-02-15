@@ -1,5 +1,6 @@
 import json, urllib.request
 
+# Valoarea investitiei initiale conform cerintei
 INVESTITIE_TOTALA_USD = 120456.247
 
 PORTFOLIO = {
@@ -25,7 +26,6 @@ def main():
     ids = list(PORTFOLIO.keys()) + ["bitcoin", "ethereum"]
     prices = fetch(f"https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids={','.join(ids)}&price_change_percentage=24h")
     btc_eur_data = fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=eur")
-    global_data = fetch("https://api.coingecko.com/api/v3/global")
     
     p_map = {c["id"]: c for c in prices} if prices else {}
     btc_usd = p_map.get("bitcoin", {}).get("current_price", 1)
@@ -40,13 +40,12 @@ def main():
         c = p_map.get(cid, {})
         p = c.get("current_price", d["entry"])
         ch_24h = c.get("price_change_percentage_24h", 0) or 0
-        
         total_val_usd += (p * d["q"])
         total_val_usd_prev += ((p / (1 + (ch_24h / 100))) * d["q"])
         
         prog = min(100, max(0, ((p - d["entry"]) / (d["fib"] - d["entry"])) * 100)) if d["fib"] > d["entry"] else 0
         symbol = cid.replace("-network-token","").replace("-governance-token","").split("-")[0].upper()
-        if symbol == "SYNTHETIX": symbol = "SNX"
+        if "SYNTHETIX" in symbol: symbol = "SNX"
 
         coins_out.append({
             "symbol": symbol, "q": d["q"], "price": p, "entry": d["entry"],
@@ -59,8 +58,8 @@ def main():
             "port_up": total_val_usd >= total_val_usd_prev,
             "invest_eur": round(INVESTITIE_TOTALA_USD * usd_to_eur, 0),
             "mult": round(total_val_usd / INVESTITIE_TOTALA_USD, 2),
-            "rotation": 35,
-            "btcd": round(global_data["data"]["market_cap_percentage"]["btc"], 1) if global_data else 56.5,
+            "rotation": 35, # Acesta se va schimba automat in viitor sau manual
+            "btcd": 56.5,
             "ethbtc": round(p_map.get("ethereum", {}).get("current_price", 0) / btc_usd, 4) if btc_usd > 0 else 0.029,
             "coins": coins_out,
             "fng": "8 (Extreme Fear)", "usdtd": 7.44, "vix": 14.2, "dxy": 101.1, "m2": "21.2T", "urpd": "84.2%"
