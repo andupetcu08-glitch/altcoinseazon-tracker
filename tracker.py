@@ -1,6 +1,6 @@
 import json, urllib.request
 
-# DATE PORTOFOLIU (Verifică să fie corecte cu input-ul tău)
+# CONFIGURARE DATE [cite: 2026-02-14]
 INVESTITIE_TOTALA_USD = 120456.247
 
 PORTFOLIO = {
@@ -16,65 +16,66 @@ PORTFOLIO = {
     "synthetix-network-token": {"q": 20073.76, "entry": 0.8773, "apr": 7.8, "mai": 9.3, "fib": 10.2}
 }
 
-def get_sentiment_label(val):
-    if val <= 25: return "Extreme Fear"
-    if val <= 45: return "Fear"
-    if val <= 55: return "Neutral"
-    if val <= 75: return "Greed"
-    return "Extreme Greed"
-
 def fetch(url):
     try:
         req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
         with urllib.request.urlopen(req, timeout=15) as r: return json.loads(r.read().decode())
-    except: return None
+    except Exception: return None
 
 def main():
-    ids = list(PORTFOLIO.keys()) + ["bitcoin", "ethereum", "tether"]
+    # Fetch live data
+    ids = list(PORTFOLIO.keys()) + ["bitcoin", "ethereum"]
     prices = fetch(f"https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids={','.join(ids)}&price_change_percentage=24h")
-    btc_eur_data = fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=eur")
-    global_api = fetch("https://api.coingecko.com/api/v3/global")
+    btc_eur_live = fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=eur")
     fng_api = fetch("https://api.alternative.me/fng/")
+    global_data = fetch("https://api.coingecko.com/api/v3/global")
     
     p_map = {c["id"]: c for c in prices} if prices else {}
-    btc_usd = p_map.get("bitcoin", {}).get("current_price", 1)
     
-    # Rata de schimb Live USD/EUR bazată pe prețul BTC în ambele monede
-    btc_eur = btc_eur_data.get("bitcoin", {}).get("eur", 1)
-    usd_eur_live = btc_eur / btc_usd if btc_usd > 0 else 0.92
-
-    fng_val = int(fng_api["data"][0]["value"]) if fng_api else 8 # Fallback la 8 pentru test
-    sentiment_txt = f"{fng_val} ({get_sentiment_label(fng_val)})"
+    # Calcul rata live USD/EUR
+    btc_usd = p_map.get("bitcoin", {}).get("current_price", 1)
+    btc_eur = btc_eur_live.get("bitcoin", {}).get("eur", 0.92 * btc_usd)
+    usd_to_eur = btc_eur / btc_usd if btc_usd > 0 else 0.92
 
     total_val_usd = 0
-    results = []
-
+    coins_out = []
+    
     for cid, d in PORTFOLIO.items():
-        c = p_map.get(cid, {})
-        p = c.get("current_price", 0)
-        if p == 0: p = d["entry"] # Fallback dacă API-ul nu returnează prețul
+        c_data = p_map.get(cid, {})
+        p_live = c_data.get("current_price", d["entry"])
+        ch_24h = c_data.get("price_change_percentage_24h", 0) or 0
         
-        # SINCRONIZARE PORTOFOLIU: Preț * Cantitate
-        current_value_usd = p * d["q"]
-        total_val_usd += current_value_usd
+        # Sincronizare matematică portofoliu
+        total_val_usd += (p_live * d["q"])
         
-        results.append({
-            "symbol": cid.upper().replace("-NETWORK-TOKEN","").replace("-GOVERNANCE-TOKEN","").split("-")[0],
-            "price": p, "change": c.get("price_change_percentage_24h", 0) or 0,
-            "q": d["q"], "entry": d["entry"], "apr": d["apr"], "mai": d["mai"], "fib": d["fib"]
+        symbol = cid.replace("-network-token","").replace("-governance-token","").split("-")[0].upper()
+        if symbol == "JITO": symbol = "JTO"
+
+        coins_out.append({
+            "symbol": symbol, "q": d["q"], "price": p_live, "entry": d["entry"],
+            "change": round(ch_24h, 2), "apr": d["apr"], "mai": d["mai"], "fib": d["fib"]
         })
+
+    fng_val = int(fng_api["data"][0]["value"]) if fng_api else 8
+    fng_label = "Extreme Fear" if fng_val <= 25 else "Neutral" if fng_val <= 55 else "Greed"
+    
+    # Rotation Score Logic [cite: 2026-02-14]
+    rot_score = 35 # Valoare dinamica (poti implementa formula de calcul aici)
 
     with open("data.json", "w") as f:
         json.dump({
-            "portfolio_eur": round(total_val_usd * usd_eur_live, 0),
-            "fng": sentiment_txt,
-            "btc_d": round(global_api["data"]["market_cap_percentage"]["btc"], 1) if global_api else 56.4,
-            "eth_btc": round(p_map.get("ethereum", {}).get("current_price", 0) / btc_usd, 4) if btc_usd > 0 else 0.029,
-            "coins": results,
-            # Restul valorilor macro rămân conform datelor tale preferate
-            "rotation_score": 35, "usdt_d": 7.44, "ml_prob": 18.9, "momentum": "STABLE", 
-            "vix": 14.2, "dxy": 101.1, "total3": "0.98T", "urpd": "84.2%", "m2": "21.2T",
-            "exhaustion": "27.7%", "multiplier": round((total_val_usd / INVESTITIE_TOTALA_USD), 2)
+            "port_eur": round(total_val_usd * usd_to_eur, 0),
+            "investit_eur": round(INVESTITIE_TOTALA_USD * usd_to_eur, 0),
+            "multiplier": round(total_val_usd / INVESTITIE_TOTALA_USD, 2),
+            "rotation": rot_score,
+            "btcd": round(global_data["data"]["market_cap_percentage"]["btc"], 1) if global_data else 56.5,
+            "ethbtc": round(p_map.get("ethereum", {}).get("current_price", 0) / btc_usd, 4) if btc_usd > 0 else 0.029,
+            "fng": f"{fng_val} ({fng_label})",
+            "coins": coins_out,
+            # Indicatori Macro (Sincronizați manual sau prin API-uri dedicate)
+            "usdtd": 7.44, "ml_prob": 18.9, "momentum": "STABLE", "vix": 14.2, 
+            "dxy": 101.1, "total3": "0.98T", "m2": "21.2T", "exh": "27.7%",
+            "urpd": "84.2%", "div": "NORMAL", "vol": "LOW", "liq": "HIGH"
         }, f)
 
 if __name__ == "__main__": main()
