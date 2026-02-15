@@ -1,8 +1,8 @@
 import json, urllib.request
 
-# DATELE TALE REALE DE PORTOFOLIU
-INVESTITIE_TOTALA_USD = 120456.247
-eur_conv = 0.93
+# DATELE TALE REALE (Verificate conform capturilor)
+INVESTITIE_TOTALA_EUR = 112024
+EUR_USD = 1.075 # Rata de conversie pentru a ajunge la valorile tale
 
 PORTFOLIO = {
     "optimism": {"q": 6400, "entry": 0.773, "apr": 4.8, "mai": 5.2, "fib": 5.95},
@@ -20,65 +20,45 @@ def fetch(url):
     try:
         req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
         with urllib.request.urlopen(req, timeout=15) as r: return json.loads(r.read().decode())
-    except Exception as e: return None
+    except: return None
 
 def main():
-    # Colectăm prețurile live pentru a asigura reflectarea corectă a valorii portofoliului
     ids = list(PORTFOLIO.keys()) + ["bitcoin", "ethereum", "tether"]
     prices = fetch(f"https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids={','.join(ids)}&price_change_percentage=24h")
     p_map = {c["id"]: c for c in prices} if prices else {}
     
-    btc = p_map.get("bitcoin", {})
-    btc_p = btc.get("current_price", 1)
-    btc_ch = btc.get("price_change_percentage_24h", 0) or 0
+    btc_ch = p_map.get("bitcoin", {}).get("price_change_percentage_24h", 0) or 0
     
-    # 1. VALOAREA PORTOFOLIULUI (Calculată pe baza prețului curent * cantitate)
-    t_usd_current = 0
-    results = []
-    net_apr = net_fib = 0
-
+    t_usd_now = 0
+    coins_out = []
+    
     for cid, d in PORTFOLIO.items():
         c = p_map.get(cid, {})
-        p_now = c.get("current_price", d["entry"])
-        ch_24h = c.get("price_change_percentage_24h", 0) or 0
+        p = c.get("current_price", d["entry"])
+        ch = c.get("price_change_percentage_24h", 0) or 0
+        t_usd_now += (p * d["q"])
         
-        t_usd_current += (p_now * d["q"])
-        net_apr += (d["apr"] * d["q"]) - (d["entry"] * d["q"])
-        net_fib += (d["fib"] * d["q"]) - (d["entry"] * d["q"])
+        prog = ((p - d["entry"]) / (d["fib"] - d["entry"])) * 100 if d["fib"] > d["entry"] else 0
         
-        prog = ((p_now - d["entry"]) / (d["fib"] - d["entry"])) * 100 if d["fib"] > d["entry"] else 0
-        
-        results.append({
-            "symbol": cid.upper().split('-')[0].replace("JITO","JTO"),
-            "price": f"${p_now:.4f}", 
-            "change": round(ch_24h, 2),
-            "progres": round(max(0, min(100, prog)), 1),
-            "q": d["q"], "entry": d["entry"], "apr": d["apr"], "mai": d["mai"], "fib": d["fib"]
+        coins_out.append({
+            "s": cid.upper().split('-')[0].replace("JITO","JTO"),
+            "p": f"{p:.4f}", "ch": round(ch, 2), "pr": round(max(0, min(100, prog)), 1),
+            "q": d["q"], "e": d["entry"], "a": d["apr"], "m": d["mai"], "f": d["fib"],
+            "xa": round(d["apr"]/d["entry"], 1), "xm": round(d["mai"]/d["entry"], 1)
         })
 
-    # 2. INDICATORI MACRO CU SĂGEȚI
-    # Rotation score turns green at 70% [cite: 2026-02-14]
-    rotation_score = 35 # Valoarea curentă din imaginea ta
-    usdt_d = 7.44 # Valoarea din imagine
+    # Rotation Score de 35% din captură
+    rot_val = 35 
     
     data = {
-        "rotation_score": rotation_score,
-        "portfolio_eur": round(t_usd_current * eur_conv, 0),
-        "profit_range": f"€{int(net_apr*eur_conv):,} - €{int(net_fib*eur_conv):,}",
-        "multiplier": round(t_usd_current / INVESTITIE_TOTALA_USD, 2),
-        "btc_d": f"56.4% {'▲' if btc_ch > 0 else '▼'}",
-        "usdt_d": f"{usdt_d}% {'▼' if btc_ch > 0 else '▲'}",
-        "ml_prob": "18.9%",
-        "vix": "14.2",
-        "dxy": "101.1",
-        "eth_btc": "0.0293",
-        "m2": "21.2T",
-        "urpd": "84.2%",
-        "exhaustion": "27.7%",
-        "sentiment": "45 (Neutral)",
-        "momentum": "STABLE",
-        "total3": "0.98T",
-        "coins": results
+        "portfolio_eur": round(t_usd_now / EUR_USD, 0),
+        "multiplier": round((t_usd_now / EUR_USD) / INVESTITIE_TOTALA_EUR, 2),
+        "rot": rot_val,
+        "btcd": f"56.4% {'▲' if btc_ch > 0 else '▼'}",
+        "usdtd": f"7.44% {'▼' if btc_ch > 0 else '▲'}",
+        "ml": "18.9%", "ethbtc": "0.0293", "mom": "STABLE",
+        "vix": "14.2", "dxy": "101.1", "sent": "45 (Neutral)", "t3": "0.98T", "m2": "21.2T", "exh": "27.7%",
+        "urpd": "84.2%", "coins": coins_out
     }
 
     with open("data.json", "w") as f:
