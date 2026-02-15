@@ -2,45 +2,41 @@
 <html lang="ro">
 <head>
     <meta charset="UTF-8">
-    <title>Altcoin Tracker Pro Ultra</title>
     <style>
-        body { background: #0b0e14; color: #e1e1e1; font-family: sans-serif; padding: 15px; font-size: 11px; margin: 0; }
-        .target-panel { background: #052e16; border: 2px solid #22c55e; padding: 18px; border-radius: 12px; margin-bottom: 25px; text-align: center; font-size: 15px; font-weight: bold; color: #fff; }
-        .top-nav { display: grid; grid-template-columns: repeat(4, 1fr) 1.5fr; gap: 10px; margin-bottom: 20px; }
+        body { background: #0b0e14; color: #e1e1e1; font-family: sans-serif; padding: 15px; font-size: 11px; }
+        .target-panel { background: #052e16; border: 2px solid #22c55e; padding: 15px; border-radius: 12px; margin-bottom: 20px; text-align: center; font-weight: bold; }
+        .top-nav { display: grid; grid-template-columns: repeat(4, 1fr) 2fr; gap: 10px; margin-bottom: 20px; }
         .m-card { background: #1a1c24; padding: 12px; border-radius: 8px; border: 1px solid #333; text-align: center; }
-        .m-label { font-size: 8px; color: #888; text-transform: uppercase; margin-bottom: 6px; }
-        .m-val { font-weight: bold; font-size: 16px; }
-        .status-box { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
-        .st-btn { background: #111; border: 1px solid #222; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: #333; }
-        .active-h { border-color: #ef4444 !important; color: #ef4444 !important; box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); }
-        .active-p { border-color: #fbbf24 !important; color: #fbbf24 !important; box-shadow: 0 0 15px rgba(251, 191, 36, 0.4); }
-        .active-s { border-color: #00ff88 !important; color: #00ff88 !important; box-shadow: 0 0 15px rgba(0, 255, 136, 0.4); }
-
-        .stats-main { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px; }
-        .card-big { background: #1a1c24; padding: 25px; border-radius: 12px; border: 1px solid #444; text-align: center; }
-        .val-big { font-size: 32px; font-weight: bold; color: #00ff88; }
-        .macro-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 25px; }
-
-        table { width: 100%; border-collapse: collapse; background: #0d0f14; border-radius: 10px; overflow: hidden; }
-        th { text-align: left; color: #fff; font-size: 11px; font-weight: bold; padding: 15px; border-bottom: 2px solid #222; }
-        td { padding: 15px; border-bottom: 1px solid #1a1c24; transition: all 0.2s; }
+        .m-label { font-size: 8px; color: #888; text-transform: uppercase; }
+        .m-val { font-weight: bold; font-size: 16px; margin-top: 5px; }
         
+        /* BUTOANE NOI LOGIC */
+        .status-box { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
+        .st-btn { background: #111; border: 1px solid #333; border-radius: 6px; color: #444; font-weight: bold; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
+        .active-h { border-color: #ef4444 !important; color: #ef4444 !important; box-shadow: 0 0 10px rgba(239, 68, 68, 0.2); }
+        .active-p { border-color: #fbbf24 !important; color: #fbbf24 !important; box-shadow: 0 0 10px rgba(251, 191, 36, 0.2); }
+        .active-s { border-color: #00ff88 !important; color: #00ff88 !important; box-shadow: 0 0 10px rgba(0, 255, 136, 0.2); }
+
         /* MAGNIFY EFFECT */
-        tr:hover td { background: rgba(0, 255, 136, 0.05); transform: scale(1.005); color: #fff; }
-        
-        .prog-bg { width: 100%; background: #222; height: 5px; border-radius: 3px; margin-top: 6px; overflow: hidden; }
-        .prog-fill { height: 100%; border-radius: 3px; }
-        .trend-up { color: #00ff88; } .trend-down { color: #ef4444; }
+        tr { transition: transform 0.2s; }
+        tr:hover { transform: scale(1.015); background: rgba(255,255,255,0.05) !important; cursor: crosshair; }
+        tr:hover td { color: #fff; text-shadow: 0 0 8px rgba(0,255,136,0.5); }
+
+        table { width: 100%; border-collapse: collapse; background: #0d0f14; }
+        th { padding: 15px; text-align: left; border-bottom: 2px solid #222; }
+        td { padding: 15px; border-bottom: 1px solid #1a1c24; }
+        .prog-bg { width: 100%; background: #222; height: 4px; border-radius: 2px; margin-top: 5px; }
+        .prog-fill { height: 100%; border-radius: 2px; }
     </style>
 </head>
 <body>
-    <div class="target-panel">🎯 TARGETS: BTC.D: 46% | VIX: 13.8 | USDT.D: 5.1% | URPD Supply: 86% | DXY: 100 | ROTATION SCORE: 70%</div>
+    <div class="target-panel">🎯 TARGETS: BTC.D: 46% | VIX: 13.8 | USDT.D: 5.1% | DXY: 100 | ROTATION SCORE: 70%</div>
 
     <div class="top-nav">
         <div class="m-card"><div class="m-label">Rotation Score</div><div id="score" class="m-val">--</div></div>
-        <div class="m-card"><div class="m-label">BTC.D LIVE</div><div id="btcd" class="m-val">--</div></div>
-        <div class="m-card"><div class="m-label">ETH / BTC</div><div id="ethbtc" class="m-val" style="color:#a855f7">--</div></div>
-        <div class="m-card"><div class="m-label">USDT.D LIVE</div><div id="usdtd" class="m-val">--</div></div>
+        <div class="m-card" style="border-color:#a855f7"><div class="m-label">ML Sell Prob</div><div id="ml" class="m-val" style="color:#a855f7">--</div></div>
+        <div class="m-card"><div class="m-label">Exhaustion</div><div id="exh" class="m-val">--</div></div>
+        <div class="m-card"><div class="m-label">VIX (Live Proxy)</div><div id="vix" class="m-val">--</div></div>
         <div class="status-box">
             <div id="btn-h" class="st-btn">HOLD</div>
             <div id="btn-p" class="st-btn">PREPARE</div>
@@ -48,70 +44,47 @@
         </div>
     </div>
 
-    <div class="stats-main">
-        <div class="card-big"><div class="m-label">PORTOFOLIU ACTUAL (EUR)</div><div id="v" class="val-big">--</div></div>
-        <div class="card-big"><div class="m-label">POTENȚIAL PROFIT TEORETIC</div><div id="profit" class="val-big" style="color:#fbbf24; font-size: 24px;">--</div></div>
-        <div class="card-big"><div class="m-label">MULTIPLIER ACTUAL</div><div id="m" class="val-big">--</div><br><small id="investit" style="color:#666"></small></div>
-    </div>
-
-    <div class="macro-row">
-        <div class="m-card"><div class="m-label">TOTAL 3</div><div id="t3" class="m-val">--</div></div>
-        <div class="m-card"><div class="m-label">SENTIMENT (F&G)</div><div id="fng" class="m-val">--</div></div>
-        <div class="m-card"><div class="m-label">VIX INDEX</div><div id="vix" class="m-val" style="color:#ef4444">--</div></div>
-        <div class="m-card"><div class="m-label">URPD PROFIT</div><div id="urpd" class="m-val">--</div></div>
-        <div class="m-card"><div class="m-label">DXY INDEX</div><div id="dxy" class="m-val" style="color:#fbbf24">--</div></div>
-        <div class="m-card"><div class="m-label">M2 SUPPLY</div><div id="m2" class="m-val">--</div></div>
-    </div>
+    <div id="macro-row" style="display:grid; grid-template-columns:repeat(6, 1fr); gap:10px; margin-bottom:20px;">
+        </div>
 
     <table>
         <thead>
-            <tr><th>MONEDA / MOMENTUM</th><th>CANTITATE</th><th>ENTRY</th><th>TARGET APR</th><th>X APR</th><th>TARGET MAI</th><th>X MAI</th><th style="color:#a855f7">FINAL FIB TARGET</th></tr>
+            <tr><th>MONEDA</th><th>PRET / 24H</th><th>ENTRY</th><th>TARGET APR</th><th>X</th><th style="color:#a855f7">FIB TARGET</th></tr>
         </thead>
         <tbody id="rows"></tbody>
     </table>
 
     <script>
-        async function load() {
-            try {
-                const r = await fetch('data.json?v=' + Date.now());
-                const d = await r.json();
-                const s = d.rotation_score;
-                
-                document.getElementById('score').textContent = s + '%';
-                document.getElementById('score').style.color = s >= 70 ? '#00ff88' : '#ef4444';
-                
-                document.getElementById('btn-h').className = 'st-btn' + (s < 50 ? ' active-h' : '');
-                document.getElementById('btn-p').className = 'st-btn' + (s >= 50 && s < 70 ? ' active-p' : '');
-                document.getElementById('btn-s').className = 'st-btn' + (s >= 70 ? ' active-s' : '');
+        async function update() {
+            const r = await fetch('data.json?t=' + Date.now());
+            const d = await r.json();
+            
+            // Rotation Score & Buttons
+            const s = d.score;
+            const scoreEl = document.getElementById('score');
+            scoreEl.innerText = s + '%';
+            scoreEl.style.color = s >= 70 ? '#00ff88' : '#ef4444';
+            
+            document.getElementById('ml').innerText = d.ml_prob + '%';
+            document.getElementById('exh').innerText = d.exhaustion + '%';
+            document.getElementById('vix').innerText = d.vix;
 
-                document.getElementById('btcd').innerHTML = `${d.btc_d}% <span class="trend-up">▲</span>`;
-                document.getElementById('ethbtc').innerHTML = `${d.eth_btc} <span class="trend-down">▼</span>`;
-                document.getElementById('usdtd').innerHTML = `${d.usdt_d}% <span class="trend-up">▲</span>`;
-                
-                document.getElementById('v').textContent = '€' + d.portfolio_eur.toLocaleString();
-                document.getElementById('profit').textContent = d.profit_range;
-                document.getElementById('m').textContent = d.multiplier + 'x';
-                document.getElementById('investit').textContent = 'Investit: €' + d.investit.toLocaleString();
+            document.getElementById('btn-h').className = 'st-btn' + (s < 50 ? ' active-h' : '');
+            document.getElementById('btn-p').className = 'st-btn' + (s >= 50 && s < 70 ? ' active-p' : '');
+            document.getElementById('btn-s').className = 'st-btn' + (s >= 70 ? ' active-s' : '');
 
-                document.getElementById('t3').innerHTML = `${d.total3} <span class="trend-up">▲</span>`;
-                document.getElementById('fng').textContent = d.fng;
-                document.getElementById('vix').textContent = d.vix;
-                document.getElementById('urpd').textContent = d.urpd;
-                document.getElementById('dxy').textContent = d.dxy;
-                document.getElementById('m2').innerHTML = `${d.m2} <span class="trend-up">▲</span>`;
-
-                let h = '';
-                d.coins.forEach(c => {
-                    let color = c.progres >= 80 ? '#00ff88' : '#fbbf24';
-                    h += `<tr>
-                        <td><b>${c.symbol}</b> <small class="${c.change > 0 ? 'trend-up':'trend-down'}">(${c.change}%)</small><br><small style="color:#555">$${c.price}</small><div class="prog-bg"><div class="prog-fill" style="width:${c.progres}%; background-color:${color};"></div></div></td>
-                        <td>${c.q.toLocaleString()}</td><td>$${c.entry}</td><td style="color:#fbbf24">$${c.apr}</td><td style="color:#00ff88">${c.x_apr}x</td><td style="color:#fbbf24">$${c.mai}</td><td style="color:#00ff88">${c.x_mai}x</td><td style="color:#a855f7; font-weight:bold">$${c.fib}</td>
-                    </tr>`;
-                });
-                document.getElementById('rows').innerHTML = h;
-            } catch (e) { console.log("Sync..."); }
+            let h = '';
+            d.coins.forEach(c => {
+                let color = c.progres > 70 ? '#00ff88' : '#fbbf24';
+                h += `<tr>
+                    <td><b>${c.symbol}</b><div class="prog-bg"><div class="prog-fill" style="width:${c.progres}%; background:${color}"></div></div></td>
+                    <td>$${c.price} <small style="color:${c.change>0?'#00ff88':'#ff4444'}">(${c.change}%)</small></td>
+                    <td>$${c.entry}</td><td>$${c.apr}</td><td>${c.x_apr}x</td><td style="color:#a855f7"><b>$${c.fib}</b></td>
+                </tr>`;
+            });
+            document.getElementById('rows').innerHTML = h;
         }
-        load(); setInterval(load, 60000);
+        update(); setInterval(update, 30000);
     </script>
 </body>
 </html>
