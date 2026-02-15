@@ -12,7 +12,7 @@ PORTFOLIO = {
     "cartesi": {"q": 49080, "entry": 0.19076, "apr": 0.2, "mai": 0.2, "fib": 0.24},
     "immutable-x": {"q": 1551.82, "entry": 3.4205, "apr": 3.5, "mai": 4.3, "fib": 4.85},
     "sonic-3": {"q": 13449.38, "entry": 0.81633, "apr": 1.05, "mai": 1.35, "fib": 1.55},
-    "synthetix": {"q": 20073.76, "entry": 0.8773, "apr": 7.8, "mai": 9.3, "fib": 10.2}
+    "synthetix-network-token": {"q": 20073.76, "entry": 0.8773, "apr": 7.8, "mai": 9.3, "fib": 10.2}
 }
 
 def fetch(url):
@@ -22,15 +22,15 @@ def fetch(url):
     except: return None
 
 def main():
-    ids = list(PORTFOLIO.keys()) + ["bitcoin", "ethereum", "tether"]
+    # SNX foloseste 'synthetix-network-token' ca ID oficial in API
+    ids = list(PORTFOLIO.keys()) + ["bitcoin", "ethereum"]
     prices = fetch(f"https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids={','.join(ids)}&price_change_percentage=24h")
-    btc_eur_live = fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=eur")
-    fng_api = fetch("https://api.alternative.me/fng/")
+    btc_eur_data = fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=eur")
     global_data = fetch("https://api.coingecko.com/api/v3/global")
     
     p_map = {c["id"]: c for c in prices} if prices else {}
     btc_usd = p_map.get("bitcoin", {}).get("current_price", 1)
-    btc_eur = btc_eur_live.get("bitcoin", {}).get("eur", 0.92 * btc_usd)
+    btc_eur = btc_eur_data.get("bitcoin", {}).get("eur", 0.92 * btc_usd)
     usd_to_eur = btc_eur / btc_usd if btc_usd > 0 else 0.92
 
     total_val_usd = 0
@@ -38,45 +38,40 @@ def main():
     coins_out = []
     
     for cid, d in PORTFOLIO.items():
-        c_data = p_map.get(cid, {})
-        p_live = c_data.get("current_price", d["entry"])
-        ch_24h = c_data.get("price_change_percentage_24h", 0) or 0
+        c = p_map.get(cid, {})
+        p = c.get("current_price", d["entry"])
+        ch_24h = c.get("price_change_percentage_24h", 0) or 0
         
-        # Calcul sume pentru trend portofoliu
-        current_v = p_live * d["q"]
-        prev_v = (p_live / (1 + (ch_24h / 100))) * d["q"]
-        total_val_usd += current_v
-        total_val_usd_prev += prev_v
+        total_val_usd += (p * d["q"])
+        total_val_usd_prev += ((p / (1 + (ch_24h / 100))) * d["q"])
         
+        # Calcul progres pana la Final Target
+        progress = min(100, max(0, ((p - d["entry"]) / (d["fib"] - d["entry"])) * 100)) if d["fib"] > d["entry"] else 0
+
         symbol = cid.replace("-network-token","").replace("-governance-token","").split("-")[0].upper()
         if symbol == "SYNTHETIX": symbol = "SNX"
         if symbol == "JITO": symbol = "JTO"
 
         coins_out.append({
-            "symbol": symbol, "q": d["q"], "price": p_live, "entry": d["entry"],
-            "change": round(ch_24h, 2), "apr": d["apr"], "mai": d["mai"], "fib": d["fib"]
+            "symbol": symbol, "q": d["q"], "price": p, "entry": d["entry"],
+            "change": round(ch_24h, 2), "apr": d["apr"], "mai": d["mai"], "fib": d["fib"],
+            "prog": round(progress, 1)
         })
-
-    fng_val = int(fng_api["data"][0]["value"]) if fng_api else 8
-    
-    # Calcul trenduri BTC.D și USDT.D
-    btcd_now = round(global_data["data"]["market_cap_percentage"]["btc"], 1) if global_data else 56.5
-    usdtd_now = 7.44 # Valoare simulată sau trage din p_map["tether"] dacă e nevoie
 
     with open("data.json", "w") as f:
         json.dump({
             "port_eur": round(total_val_usd * usd_to_eur, 0),
             "port_up": total_val_usd >= total_val_usd_prev,
-            "investit_eur": round(INVESTITIE_TOTALA_USD * usd_to_eur, 0),
-            "multiplier": round(total_val_usd / INVESTITIE_TOTALA_USD, 2),
+            "invest_eur": round(INVESTITIE_TOTALA_USD * usd_to_eur, 0),
+            "mult": round(total_val_usd / INVESTITIE_TOTALA_USD, 2),
             "rotation": 35,
-            "btcd": btcd_now, "btcd_up": True,
+            "btcd": round(global_data["data"]["market_cap_percentage"]["btc"], 1) if global_data else 56.5,
+            "btcd_up": True,
             "ethbtc": round(p_map.get("ethereum", {}).get("current_price", 0) / btc_usd, 4) if btc_usd > 0 else 0.029,
-            "usdtd": usdtd_now, "usdtd_up": False,
-            "fng": f"{fng_val} (Extreme Fear)" if fng_val <= 25 else f"{fng_val} (Neutral)",
+            "usdtd": 7.44, "usdtd_up": False,
             "coins": coins_out,
-            "total3": "0.98T", "ml_prob": 18.9, "momentum": "STABLE", "vix": 14.2, 
-            "dxy": 101.1, "m2": "21.2T", "exh": "27.7%", "urpd": "84.2%", "div": "NORMAL", "vol": "LOW", "liq": "HIGH"
+            # Placeholder macro
+            "fng": "8 (Extreme Fear)", "total3": "0.98T", "ml": 18.9, "vix": 14.2, "dxy": 101.1, "m2": "21.2T"
         }, f)
 
 if __name__ == "__main__": main()
