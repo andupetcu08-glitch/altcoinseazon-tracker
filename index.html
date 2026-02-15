@@ -1,69 +1,93 @@
 <!DOCTYPE html>
-<html>
+<html lang="ro">
 <head>
-<meta charset="utf-8">
-<title>Altcoin Rotation Tracker PRO</title>
-<style>
-body{background:#0b0f14;color:#eaeaea;font-family:Arial}
-table{width:100%;border-collapse:collapse}
-th,td{padding:10px;border-bottom:1px solid #222}
-.trend-up{color:#4cff4c}
-.trend-down{color:#ff4c4c}
-.bar{height:8px;border-radius:6px;background:linear-gradient(90deg,#ff4c4c,#ffd84c,#4cff4c)}
-.badge{padding:3px 6px;border-radius:5px;font-size:12px;margin-right:4px}
-.div{background:#9b59ff}
-.blow{background:#ff5c5c}
-.exh{background:#f1c40f;color:#000}
-</style>
+    <meta charset="UTF-8">
+    <style>
+        :root { --bg: #080a0f; --card: #12151c; --green: #00ff88; --red: #ff4444; --yellow: #ffbb00; }
+        body { background: var(--bg); color: #fff; font-family: 'Segoe UI', sans-serif; padding: 20px; font-size: 12px; }
+        .grid-header { display: grid; grid-template-columns: repeat(4, 1fr) 1.5fr; gap: 15px; margin-bottom: 25px; }
+        .card { background: var(--card); padding: 15px; border-radius: 10px; border: 1px solid #222; text-align: center; }
+        .label { font-size: 9px; color: #666; text-transform: uppercase; letter-spacing: 1px; }
+        .val { font-size: 20px; font-weight: bold; margin-top: 5px; }
+        
+        /* Status Buttons */
+        .btn-group { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+        .st-btn { background: #000; border: 2px solid #222; border-radius: 8px; font-weight: bold; color: #222; opacity: 0.3; transition: 0.4s; }
+        .active-h { border-color: var(--red) !important; color: var(--red) !important; opacity: 1; box-shadow: 0 0 20px rgba(255,68,68,0.2); }
+        .active-p { border-color: var(--yellow) !important; color: var(--yellow) !important; opacity: 1; box-shadow: 0 0 20px rgba(255,187,0,0.2); }
+        .active-s { border-color: var(--green) !important; color: var(--green) !important; opacity: 1; box-shadow: 0 0 20px rgba(0,255,136,0.2); }
+
+        /* Heatmap & Table */
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th { padding: 15px; text-align: left; background: #000; color: #888; border-bottom: 2px solid #222; }
+        td { padding: 15px; border-bottom: 1px solid #1a1a1a; }
+        .hm-up { color: var(--green); background: rgba(0,255,136,0.05); }
+        .hm-down { color: var(--red); background: rgba(255,68,68,0.05); }
+        
+        .prog-bar { width: 100%; height: 4px; background: #222; border-radius: 2px; margin-top: 8px; }
+        .prog-fill { height: 100%; background: var(--green); border-radius: 2px; }
+        
+        .ml-box { border: 1px solid #a855f7; background: rgba(168,85,247,0.05); color: #a855f7; }
+    </style>
 </head>
 <body>
 
-<h2>Rotation Score: <span id="rot"></span>% | Breadth: <span id="breadth"></span>% | Regime: <span id="regime"></span></h2>
+    <div class="grid-header">
+        <div class="card"><div class="label">Rotation Score</div><div id="score" class="val">--</div></div>
+        <div class="card"><div class="label">Breadth (Alts)</div><div id="breadth" class="val">--</div></div>
+        <div class="card ml-box"><div class="label">ML Sell Prob</div><div id="ml" class="val">--</div></div>
+        <div class="card"><div class="label">Exhaustion</div><div id="exh" class="val">--</div></div>
+        <div class="btn-group">
+            <div id="h" class="st-btn">HOLD</div>
+            <div id="p" class="st-btn">PREPARE</div>
+            <div id="s" class="st-btn">SELL</div>
+        </div>
+    </div>
 
-<table>
-<thead>
-<tr>
-<th>COIN</th>
-<th>PRICE</th>
-<th>PROGRESS</th>
-<th>HEAT</th>
-<th>SIGNALS</th>
-</tr>
-</thead>
-<tbody id="rows"></tbody>
-</table>
+    <table>
+        <thead>
+            <tr>
+                <th>COIN</th><th>PRICE / 24H</th><th>ENTRY</th><th>TARGET FIB</th><th>PROGRESS</th><th>HEATMAP</th>
+            </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+    </table>
 
-<script>
-fetch("data.json?v="+Date.now())
-.then(r=>r.json())
-.then(d=>{
- document.getElementById("rot").textContent=d.rotation
- document.getElementById("breadth").textContent=d.breadth
- document.getElementById("regime").textContent=d.regime
+    <script>
+        async function load() {
+            const r = await fetch('data.json?v=' + Date.now());
+            const d = await r.json();
 
- let html=""
- d.coins.forEach(c=>{
-   let sig=""
-   if(c.divergence) sig+=`<span class="badge div">DIV</span>`
-   if(c.blowoff) sig+=`<span class="badge blow">BLOW</span>`
-   if(c.exhaustion>80) sig+=`<span class="badge exh">EXH ${c.exhaustion}</span>`
+            // Logica Butoane conform cerinței 2026-02-14 [cite: 2026-02-14]
+            const s = d.score;
+            document.getElementById('score').innerText = s + '%';
+            document.getElementById('score').style.color = s >= 70 ? 'var(--green)' : 'var(--red)';
+            
+            document.getElementById('h').className = 'st-btn' + (s < 50 ? ' active-h' : '');
+            document.getElementById('p').className = 'st-btn' + (s >= 50 && s < 70 ? ' active-p' : '');
+            document.getElementById('s').className = 'st-btn' + (s >= 70 ? ' active-s' : '');
 
-   html+=`
-   <tr>
-     <td>${c.symbol}</td>
-     <td>$${c.price}
-      <span class="${c.trend=='up'?'trend-up':'trend-down'}">
-      ${c.trend=='up'?'▲':'▼'} ${c.change}%
-      </span>
-     </td>
-     <td>${c.progress}%</td>
-     <td><div class="bar" style="width:${c.heat*100}%"></div></td>
-     <td>${sig}</td>
-   </tr>`
- })
- document.getElementById("rows").innerHTML=html
-})
-</script>
+            document.getElementById('ml').innerText = d.ml_prob + '%';
+            document.getElementById('breadth').innerText = d.breadth + '%';
+            document.getElementById('exh').innerText = d.exhaustion + '%';
 
+            let h = '';
+            d.coins.forEach(c => {
+                const heatClass = c.change > 0 ? 'hm-up' : 'hm-down';
+                h += `<tr class="${heatClass}">
+                    <td><b>${c.symbol}</b></td>
+                    <td>$${c.price.toFixed(4)} <small>(${c.change}%)</small></td>
+                    <td>$${c.entry}</td><td>$${c.fib}</td>
+                    <td>
+                        ${c.prog}%
+                        <div class="prog-bar"><div class="prog-fill" style="width:${c.prog}%"></div></div>
+                    </td>
+                    <td>${c.change > 5 ? '🔥 BLOW-OFF' : c.change > 0 ? 'BULL' : 'BEAR'}</td>
+                </tr>`;
+            });
+            document.getElementById('rows').innerHTML = h;
+        }
+        load(); setInterval(load, 30000);
+    </script>
 </body>
 </html>
