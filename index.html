@@ -5,38 +5,38 @@
     <style>
         body { background: #0b0e14; color: #e1e1e1; font-family: sans-serif; padding: 15px; font-size: 11px; margin: 0; }
         
-        /* Bannerul original cu margini rotunjite */
+        /* Banner superior - stil Panel */
         .target-banner { 
-            background: #052e16; border: 1px solid #22c55e; padding: 10px; border-radius: 8px; 
+            background: #052e16; border: 1px solid #22c55e; padding: 12px; border-radius: 8px; 
             margin-bottom: 20px; text-align: center; font-weight: bold; font-size: 13px; color: #fff;
         }
 
         /* Butoane Status */
         .btn-box { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
         .st-btn { background: #1a1c24; border: 1px solid #333; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; color: #444; }
-        .active-h { border-color: #ef4444; color: #ef4444; }
+        .active-h { border-color: #ef4444; color: #ef4444; box-shadow: 0 0 10px rgba(239, 68, 68, 0.1); }
 
-        /* Linia Financiară Principală */
+        /* Sectiune Financiara */
         .stats-main { display: grid; grid-template-columns: 1fr 1.5fr 1fr; gap: 15px; margin-bottom: 20px; }
         .card-big { background: #1a1c24; padding: 25px; border-radius: 12px; border: 1px solid #333; text-align: center; }
         .val-big { font-size: 32px; font-weight: bold; color: #00ff88; }
         .m-label { font-size: 8px; color: #555; text-transform: uppercase; margin-bottom: 5px; letter-spacing: 1px; }
 
-        /* Casete Macro (6 per rând) */
+        /* Casete Macro */
         .macro-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 10px; }
         .m-card { background: #1a1c24; padding: 12px; border-radius: 8px; border: 1px solid #333; text-align: center; }
         .m-val { font-weight: bold; font-size: 15px; margin-top: 5px; }
 
-        /* Tabel - Restaurarea coloanelor X */
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th { text-align: left; padding: 12px; color: #444; border-bottom: 1px solid #222; text-transform: uppercase; font-size: 9px; }
-        td { padding: 12px 10px; border-bottom: 1px solid #1a1c24; }
+        /* Tabel corectat pentru spatiere */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; table-layout: fixed; }
+        th { text-align: left; padding: 12px 5px; color: #444; border-bottom: 1px solid #222; font-size: 9px; }
+        td { padding: 15px 5px; border-bottom: 1px solid #1a1c24; vertical-align: middle; }
         
-        .prog-bg { width: 100%; background: #222; height: 3px; border-radius: 2px; margin-top: 8px; }
-        .prog-fill { height: 100%; border-radius: 2px; transition: 1.5s ease-out; }
+        .prog-bg { width: 80%; background: #222; height: 3px; border-radius: 2px; margin-top: 8px; }
+        .prog-fill { height: 100%; border-radius: 2px; transition: 1s ease; }
         
         .up { color: #00ff88; } .down { color: #ef4444; }
-        .x-col { color: #22c55e; font-size: 10px; font-weight: bold; } /* Stilul coloanei X */
+        .x-col { color: #22c55e; font-weight: bold; font-size: 10px; }
     </style>
 </head>
 <body>
@@ -52,7 +52,7 @@
 
     <div class="stats-main">
         <div class="card-big"><div class="m-label">Portofoliu Actual (EUR)</div><div id="v" class="val-big">--</div></div>
-        <div class="card-big"><div class="m-label">Potential Profit Teoretic</div><div class="val-big" style="color:#fbbf24; font-size: 24px;">€311,289 - €443,244</div></div>
+        <div class="card-big"><div class="m-label">Profit Net Teoretic (FIB)</div><div class="val-big" style="color:#fbbf24; font-size: 24px;">€311,289 - €443,244</div></div>
         <div class="card-big"><div class="m-label">Multiplier Actual</div><div id="m" class="val-big">--</div><div style="font-size:9px; color:#444">Investit: €112,024</div></div>
     </div>
 
@@ -62,7 +62,14 @@
     <table>
         <thead>
             <tr>
-                <th>Moneda / Momentum</th><th>Cantitate</th><th>Entry</th><th>Target Apr</th><th style="color:#22c55e">X</th><th>Target Mai</th><th style="color:#22c55e">X</th><th style="color:#a855f7">FIB Target</th>
+                <th width="15%">MONEDA / MOMENTUM</th>
+                <th width="12%">CANTITATE</th>
+                <th width="10%">ENTRY</th>
+                <th width="12%">TARGET APR</th>
+                <th width="5%" style="color:#22c55e">X</th>
+                <th width="12%">TARGET MAI</th>
+                <th width="5%" style="color:#22c55e">X</th>
+                <th width="10%" style="color:#a855f7">FIB TARGET</th>
             </tr>
         </thead>
         <tbody id="rows"></tbody>
@@ -76,7 +83,7 @@
             document.getElementById('v').textContent = '€' + d.portfolio_eur.toLocaleString();
             document.getElementById('m').textContent = d.multiplier + 'x';
 
-            const scoreColor = d.rot >= 70 ? '#00ff88' : '#e1e1e1'; [cite: 2026-02-14]
+            const scoreColor = d.rot >= 70 ? '#00ff88' : '#e1e1e1';
 
             const row1 = [
                 ['Rotation Score', `<span style="color:${scoreColor}">${d.rot}%</span>`], 
@@ -98,12 +105,12 @@
                     <td><b>${c.s}</b> <span class="${c.ch>=0?'up':'down'}" style="font-size:9px;">(${c.ch}%)</span>
                         <div class="prog-bg"><div class="prog-fill" style="width:${c.pr}%; background:${c.pr>80?'#00ff88':'#fbbf24'}"></div></div>
                     </td>
-                    <td>${c.q.toLocaleString()}</td>
+                    <td>${parseFloat(c.q).toLocaleString()}</td>
                     <td>$${c.e}</td>
                     <td>$${c.a}</td>
-                    <td class="x-col">${c.xa}x</td>
+                    <td class="x-col">${c.xa}</td>
                     <td>$${c.m}</td>
-                    <td class="x-col">${c.xm}x</td>
+                    <td class="x-col">${c.xm}</td>
                     <td style="color:#a855f7; font-weight:bold;">$${c.f}</td>
                 </tr>`;
             });
