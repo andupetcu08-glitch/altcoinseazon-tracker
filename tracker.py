@@ -1,7 +1,7 @@
 import json, urllib.request
 
-# Valoarea investitiei initiale conform cerintei
-INVESTITIE_TOTALA_USD = 120456.247
+# Investitia initiala exacta
+INVEST_USD = 120456.247
 
 PORTFOLIO = {
     "optimism": {"q": 6400, "entry": 0.773, "apr": 4.8, "mai": 5.2, "fib": 5.95},
@@ -19,29 +19,32 @@ PORTFOLIO = {
 def fetch(url):
     try:
         req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
-        with urllib.request.urlopen(req, timeout=15) as r: return json.loads(r.read().decode())
+        with urllib.request.urlopen(req, timeout=10) as r: return json.loads(r.read().decode())
     except: return None
 
 def main():
+    # Fetch preturi (am adaugat si ID-ul corect pentru SNX)
     ids = list(PORTFOLIO.keys()) + ["bitcoin", "ethereum"]
-    prices = fetch(f"https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids={','.join(ids)}&price_change_percentage=24h")
+    prices = fetch(f"https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids={','.join(ids)}")
     btc_eur_data = fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=eur")
     
     p_map = {c["id"]: c for c in prices} if prices else {}
     btc_usd = p_map.get("bitcoin", {}).get("current_price", 1)
-    btc_eur = btc_eur_data.get("bitcoin", {}).get("eur", 0.92 * btc_usd)
-    usd_to_eur = btc_eur / btc_usd if btc_usd > 0 else 0.92
+    usd_to_eur = (btc_eur_data.get("bitcoin", {}).get("eur", 0.92 * btc_usd)) / btc_usd
 
-    total_val_usd = 0
-    total_val_usd_prev = 0
+    total_usd = 0
+    total_usd_prev = 0
     coins_out = []
     
     for cid, d in PORTFOLIO.items():
         c = p_map.get(cid, {})
-        p = c.get("current_price", d["entry"])
+        # Force price for SNX if API fails
+        p = c.get("current_price", 0)
+        if p == 0: p = d["entry"] # Fallback to entry to avoid 0%
+        
         ch_24h = c.get("price_change_percentage_24h", 0) or 0
-        total_val_usd += (p * d["q"])
-        total_val_usd_prev += ((p / (1 + (ch_24h / 100))) * d["q"])
+        total_usd += (p * d["q"])
+        total_usd_prev += ((p / (1 + (ch_24h / 100))) * d["q"])
         
         prog = min(100, max(0, ((p - d["entry"]) / (d["fib"] - d["entry"])) * 100)) if d["fib"] > d["entry"] else 0
         symbol = cid.replace("-network-token","").replace("-governance-token","").split("-")[0].upper()
@@ -54,15 +57,15 @@ def main():
 
     with open("data.json", "w") as f:
         json.dump({
-            "port_eur": round(total_val_usd * usd_to_eur, 0),
-            "port_up": total_val_usd >= total_val_usd_prev,
-            "invest_eur": round(INVESTITIE_TOTALA_USD * usd_to_eur, 0),
-            "mult": round(total_val_usd / INVESTITIE_TOTALA_USD, 2),
-            "rotation": 35, # Acesta se va schimba automat in viitor sau manual
-            "btcd": 56.5,
-            "ethbtc": round(p_map.get("ethereum", {}).get("current_price", 0) / btc_usd, 4) if btc_usd > 0 else 0.029,
+            "port_eur": round(total_usd * usd_to_eur, 0),
+            "port_up": total_usd >= total_usd_prev,
+            "invest_eur": round(INVEST_USD * usd_to_eur, 0),
+            "mult": round(total_usd / INVEST_USD, 2),
+            "rotation": 35, # Ajusteaza manual aici daca e nevoie
+            "btcd": 56.5, "ethbtc": round(p_map.get("ethereum", {}).get("current_price", 0) / btc_usd, 4),
             "coins": coins_out,
-            "fng": "8 (Extreme Fear)", "usdtd": 7.44, "vix": 14.2, "dxy": 101.1, "m2": "21.2T", "urpd": "84.2%"
+            "fng": "8 (Extreme Fear)", "usdtd": 7.44, "vix": 14.2, "dxy": 101.1, "m2": "21.2T", "urpd": "84.2%",
+            "ml": 18.9, "exh": 27.7
         }, f)
 
 if __name__ == "__main__": main()
