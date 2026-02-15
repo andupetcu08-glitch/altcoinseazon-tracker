@@ -31,4 +31,27 @@ def main():
     total_usd_prev = 0
     coins_out = []
     
-    for cid, d
+    # Fix Syntax Error: added .items() to iterate correctly
+    for cid, d in PORTFOLIO.items():
+        c = p_map.get(cid, {})
+        p = c.get("current_price", d["entry"])
+        ch_24h = c.get("price_change_percentage_24h", 0) or 0
+        total_usd += (p * d["q"])
+        total_usd_prev += ((p / (1 + (ch_24h / 100))) * d["q"])
+        prog = min(100, max(0, ((p - d["entry"]) / (d["fib"] - d["entry"])) * 100))
+        name = "SNX" if "synthetix" in cid else cid.replace("-governance-token","").replace("-network-token","").split("-")[0].upper()
+
+        coins_out.append({
+            "symbol": name, "q": d["q"], "price": p, "entry": d["entry"],
+            "change": round(ch_24h, 2), "apr": d["apr"], "mai": d["mai"], "fib": d["fib"], "prog": round(prog, 1)
+        })
+
+    with open("data.json", "w") as f:
+        json.dump({
+            "port_eur": round(total_usd * 0.92, 0), "port_up": total_usd >= total_usd_prev,
+            "invest_eur": round(120456.247 * 0.92, 0), "mult": round(total_usd / 120456.247, 2),
+            "rotation": 35, "btcd": 56.5, "ethbtc": round(p_map.get("ethereum", {}).get("current_price", 0) / btc_p, 4),
+            "coins": coins_out, "fng": "8 (Extreme Fear)", "usdtd": 7.44, "vix": 14.2, "dxy": 101.1, "m2": "21.2T", "urpd": "84.2%"
+        }, f)
+
+if __name__ == "__main__": main()
