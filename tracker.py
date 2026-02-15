@@ -12,7 +12,7 @@ PORTFOLIO = {
     "cartesi": {"q": 49080, "entry": 0.19076, "apr": 0.2, "mai": 0.2, "fib": 0.24},
     "immutable-x": {"q": 1551.82, "entry": 3.4205, "apr": 3.5, "mai": 4.3, "fib": 4.85},
     "sonic-3": {"q": 13449.38, "entry": 0.81633, "apr": 1.05, "mai": 1.35, "fib": 1.55},
-    "synthetix-network-token": {"q": 20073.76, "entry": 0.8773, "apr": 7.8, "mai": 9.3, "fib": 10.2}
+    "synthetix": {"q": 20073.76, "entry": 0.8773, "apr": 7.8, "mai": 9.3, "fib": 10.2}
 }
 
 def fetch(url):
@@ -24,52 +24,46 @@ def fetch(url):
 def main():
     ids = list(PORTFOLIO.keys()) + ["bitcoin", "ethereum"]
     prices = fetch(f"https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids={','.join(ids)}")
-    btc_eur_data = fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=eur")
     
     p_map = {c["id"]: c for c in prices} if prices else {}
-    btc_usd = p_map.get("bitcoin", {}).get("current_price", 1)
-    # Calculeaza EUR/USD ratio corect
-    eur_val = btc_eur_data.get("bitcoin", {}).get("eur", 0.92 * btc_usd) if btc_eur_data else 0.92 * btc_usd
-    usd_to_eur = eur_val / btc_usd
-
+    btc_p = p_map.get("bitcoin", {}).get("current_price", 1)
+    
     total_usd = 0
     total_usd_prev = 0
     coins_out = []
     
     for cid, d in PORTFOLIO.items():
         c = p_map.get(cid, {})
-        p = c.get("current_price", 0)
-        
-        # FIX SNX: Daca pretul e 0, forțează o interogare separată sau fallback la entry pentru a nu strica dashboardul
-        if p <= 0:
-            fallback = fetch(f"https://api.coingecko.com/api/v3/simple/price?ids={cid}&vs_currencies=usd")
-            p = fallback.get(cid, {}).get("usd", d["entry"]) if fallback else d["entry"]
-        
+        p = c.get("current_price", d["entry"])
         ch_24h = c.get("price_change_percentage_24h", 0) or 0
+        
+        # Securitate pentru SNX/Synthetix
+        if cid == "synthetix" and p == d["entry"]:
+            alt = fetch("https://api.coingecko.com/api/v3/simple/price?ids=synthetix-network-token&vs_currencies=usd&include_24hr_change=true")
+            if alt:
+                p = alt.get("synthetix-network-token", {}).get("usd", p)
+                ch_24h = alt.get("synthetix-network-token", {}).get("usd_24h_change", 0)
+
         total_usd += (p * d["q"])
         total_usd_prev += ((p / (1 + (ch_24h / 100))) * d["q"])
+        prog = min(100, max(0, ((p - d["entry"]) / (d["fib"] - d["entry"])) * 100))
         
-        prog = min(100, max(0, ((p - d["entry"]) / (d["fib"] - d["entry"])) * 100)) if d["fib"] > d["entry"] else 0
-        symbol = cid.replace("-network-token","").replace("-governance-token","").split("-")[0].upper()
-        if "SYNTHETIX" in symbol: symbol = "SNX"
-
         coins_out.append({
-            "symbol": symbol, "q": d["q"], "price": p, "entry": d["entry"],
-            "change": round(ch_24h, 2), "apr": d["apr"], "mai": d["mai"], "fib": d["fib"], "prog": round(prog, 1)
+            "symbol": "SNX" if "synthetix" in cid else cid.split("-")[0].upper(),
+            "q": d["q"], "price": p, "entry": d["entry"], "change": round(ch_24h, 2),
+            "apr": d["apr"], "mai": d["mai"], "fib": d["fib"], "prog": round(prog, 1)
         })
 
     with open("data.json", "w") as f:
         json.dump({
-            "port_eur": round(total_usd * usd_to_eur, 0),
+            "port_eur": round(total_usd * 0.92, 0),
             "port_up": total_usd >= total_usd_prev,
-            "invest_eur": round(INVEST_USD * usd_to_eur, 0),
+            "invest_eur": round(INVEST_USD * 0.92, 0),
             "mult": round(total_usd / INVEST_USD, 2),
-            "rotation": 35, # Scorul tau actual din imagine
-            "btcd": 56.5, 
-            "ethbtc": round(p_map.get("ethereum", {}).get("current_price", 0) / btc_usd, 4) if btc_usd > 0 else 0.0291,
+            "rotation": 35,
+            "btcd": 56.5, "ethbtc": round(p_map.get("ethereum", {}).get("current_price", 0) / btc_p, 4),
             "coins": coins_out,
-            "fng": "8 (Extreme Fear)", "usdtd": 7.44, "vix": 14.2, "dxy": 101.1, "m2": "21.2T", "urpd": "84.2%",
-            "ml": 18.9, "exh": 27.7
+            "fng": "8 (Extreme Fear)", "usdtd": 7.44, "vix": 14.2, "dxy": 101.1, "m2": "21.2T", "urpd": "84.2%"
         }, f)
 
 if __name__ == "__main__": main()
