@@ -1,6 +1,5 @@
 import json, urllib.request
 
-# CONFIGURARE INVESTIȚIE
 INVESTITIE_TOTALA_USD = 120456.247
 
 PORTFOLIO = {
@@ -13,7 +12,7 @@ PORTFOLIO = {
     "cartesi": {"q": 49080, "entry": 0.19076, "apr": 0.2, "mai": 0.2, "fib": 0.24},
     "immutable-x": {"q": 1551.82, "entry": 3.4205, "apr": 3.5, "mai": 4.3, "fib": 4.85},
     "sonic-3": {"q": 13449.38, "entry": 0.81633, "apr": 1.05, "mai": 1.35, "fib": 1.55},
-    "synthetix-network-token": {"q": 20073.76, "entry": 0.8773, "apr": 7.8, "mai": 9.3, "fib": 10.2}
+    "synthetix": {"q": 20073.76, "entry": 0.8773, "apr": 7.8, "mai": 9.3, "fib": 10.2} # Corectat ID-ul aici
 }
 
 def fetch(url):
@@ -40,15 +39,21 @@ def main():
 
     for cid, d in PORTFOLIO.items():
         c = p_map.get(cid, {})
-        # Logica SNX: Daca API-ul nu raspunde, folosim entry ca fallback temporar sa nu dea 0
         p = c.get("current_price", d["entry"])
         ch_24h = c.get("price_change_percentage_24h", 0) or 0
         
-        total_val_usd += (p * d["q"])
-        total_val_usd_prev += ((p / (1 + (ch_24h / 100))) * d["q"])
+        # Calculăm valoarea actuală și cea de acum 24h pentru săgeata de portofoliu
+        current_usd = p * d["q"]
+        prev_usd = (p / (1 + (ch_24h / 100))) * d["q"]
         
-        name = cid.split("-")[0].upper().replace("SYNTHETIX", "SNX").replace("JITO", "JTO")
-        coins_out.append({"symbol": name, "q": d["q"], "price": p, "entry": d["entry"], "change": round(ch_24h, 2), "apr": d["apr"], "mai": d["mai"], "fib": d["fib"]})
+        total_val_usd += current_usd
+        total_val_usd_prev += prev_usd
+        
+        coins_out.append({
+            "symbol": cid.split("-")[0].upper().replace("SYNTHETIX", "SNX").replace("JITO", "JTO"),
+            "q": d["q"], "price": p, "entry": d["entry"], "change": round(ch_24h, 2),
+            "apr": d["apr"], "mai": d["mai"], "fib": d["fib"]
+        })
 
     fng_val = int(fng_api["data"][0]["value"]) if fng_api else 8
     
@@ -59,10 +64,10 @@ def main():
             "invest_eur": round(INVESTITIE_TOTALA_USD * usd_to_eur, 0),
             "mult": round(total_val_usd / INVESTITIE_TOTALA_USD, 2),
             "rotation": 35,
-            "btcd": round(global_api["data"]["market_cap_percentage"]["btc"], 1) if global_api else 56.4,
-            "btcd_up": True,
+            "btcd": round(global_api["data"]["market_cap_percentage"]["btc"], 1) if global_api else 56.5,
+            "btcd_up": (global_api["data"]["market_cap_percentage_24h_change"]["btc"] > 0) if global_api else True,
             "ethbtc": round(p_map.get("ethereum", {}).get("current_price", 0) / btc_usd, 4) if btc_usd > 0 else 0.029,
-            "usdtd": 7.44, "usdtd_up": False,
+            "usdtd": 7.44, "usdtd_up": True, # USDT.D de obicei crește când piața scade
             "fng": f"{fng_val} (Extreme Fear)" if fng_val <= 25 else f"{fng_val} (Neutral)",
             "coins": coins_out,
             "total3": "0.98T", "ml": 18.9, "vix": 14.2, "dxy": 101.1, "m2": "21.2T", "urpd": "84.2%", "exh": "27.7%"
