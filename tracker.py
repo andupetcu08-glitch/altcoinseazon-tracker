@@ -50,7 +50,8 @@ def main():
             "port_eur": round(total_usd * 0.92, 0), "port_up": total_usd >= total_usd_prev,
             "invest_eur": round(120456.247 * 0.92, 0), "mult": round(total_usd / 120456.247, 2),
             "rotation": 35, "btcd": 56.5, "ethbtc": round(p_map.get("ethereum", {}).get("current_price", 0) / btc_p, 4),
-            "coins": coins_out, "fng": "8 (Extreme Fear)", "usdtd": 7.44, "vix": 14.2, "dxy": 101.1, "m2": "21.2T", "urpd": "84.2%"
+            "coins": coins_out, "fng": "8 (Extreme Fear)", "usdtd": 7.44, "vix": 14.2, "dxy": 101.1, "m2": "21.2T", "urpd": "84.2%",
+            "momentum": "STABLE", "exhaustion": "27.7%", "divergence": "NORMAL", "volatility": "LOW", "liquidity": "HIGH"
         }, f)
 
 if __name__ == "__main__": main()
