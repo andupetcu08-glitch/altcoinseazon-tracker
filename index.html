@@ -5,50 +5,64 @@
     <style>
         body { background: #0b0e14; color: #e1e1e1; font-family: sans-serif; padding: 15px; font-size: 11px; margin: 0; }
         
-        /* BANNERUL ROBUST REVENIT */
-        .target-panel { 
-            background: #052e16; border: 2px solid #22c55e; padding: 12px; border-radius: 12px; 
+        /* Bannerul original cu margini rotunjite */
+        .target-banner { 
+            background: #052e16; border: 1px solid #22c55e; padding: 10px; border-radius: 8px; 
             margin-bottom: 20px; text-align: center; font-weight: bold; font-size: 13px; color: #fff;
         }
 
-        .stats-main { display: grid; grid-template-columns: 1fr 1.5fr 1fr; gap: 15px; margin-bottom: 20px; }
-        .card-big { background: #1a1c24; padding: 20px; border-radius: 12px; border: 1px solid #333; text-align: center; position: relative; }
-        .val-big { font-size: 30px; font-weight: bold; color: #00ff88; margin-top: 10px; }
-        .m-label { font-size: 8px; color: #666; text-transform: uppercase; letter-spacing: 1px; }
+        /* Butoane Status */
+        .btn-box { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+        .st-btn { background: #1a1c24; border: 1px solid #333; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; color: #444; }
+        .active-h { border-color: #ef4444; color: #ef4444; }
 
-        /* CASUTE MACRO CU SAGETI */
-        .macro-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 20px; }
+        /* Linia Financiară Principală */
+        .stats-main { display: grid; grid-template-columns: 1fr 1.5fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .card-big { background: #1a1c24; padding: 25px; border-radius: 12px; border: 1px solid #333; text-align: center; }
+        .val-big { font-size: 32px; font-weight: bold; color: #00ff88; }
+        .m-label { font-size: 8px; color: #555; text-transform: uppercase; margin-bottom: 5px; letter-spacing: 1px; }
+
+        /* Casete Macro (6 per rând) */
+        .macro-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 10px; }
         .m-card { background: #1a1c24; padding: 12px; border-radius: 8px; border: 1px solid #333; text-align: center; }
         .m-val { font-weight: bold; font-size: 15px; margin-top: 5px; }
 
-        .up { color: #00ff88; } .down { color: #ef4444; }
-        
-        /* GLOW MAGNIFY LA HOVER */
-        tr:hover { transform: scale(1.005); background: rgba(0, 255, 136, 0.05) !important; cursor: pointer; }
-        tr { transition: 0.2s; border-bottom: 1px solid #1a1c24; }
+        /* Tabel - Restaurarea coloanelor X */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { text-align: left; padding: 12px; color: #444; border-bottom: 1px solid #222; text-transform: uppercase; font-size: 9px; }
+        td { padding: 12px 10px; border-bottom: 1px solid #1a1c24; }
         
         .prog-bg { width: 100%; background: #222; height: 3px; border-radius: 2px; margin-top: 8px; }
-        .prog-fill { height: 100%; border-radius: 2px; transition: 1s; }
+        .prog-fill { height: 100%; border-radius: 2px; transition: 1.5s ease-out; }
+        
+        .up { color: #00ff88; } .down { color: #ef4444; }
+        .x-col { color: #22c55e; font-size: 10px; font-weight: bold; } /* Stilul coloanei X */
     </style>
 </head>
 <body>
-    <div class="target-panel">
+    <div class="target-banner">
         🎯 TARGETS: BTC.D: 46% | VIX: 13.8 | USDT.D: 5.1% | URPD Supply: 86% | DXY: 100 | ROTATION SCORE: 70%
+    </div>
+
+    <div class="btn-box">
+        <div class="st-btn active-h">HOLD / ACCUMULATE</div>
+        <div class="st-btn">PREPARE FOR SELL</div>
+        <div class="st-btn">SELL / TAKE PROFIT</div>
     </div>
 
     <div class="stats-main">
         <div class="card-big"><div class="m-label">Portofoliu Actual (EUR)</div><div id="v" class="val-big">--</div></div>
-        <div class="card-big"><div class="m-label">Profit Net Teoretic (FIB)</div><div id="profit" class="val-big" style="color:#fbbf24">--</div></div>
-        <div class="card-big"><div class="m-label">Multiplier Actual</div><div id="m" class="val-big">--</div></div>
+        <div class="card-big"><div class="m-label">Potential Profit Teoretic</div><div class="val-big" style="color:#fbbf24; font-size: 24px;">€311,289 - €443,244</div></div>
+        <div class="card-big"><div class="m-label">Multiplier Actual</div><div id="m" class="val-big">--</div><div style="font-size:9px; color:#444">Investit: €112,024</div></div>
     </div>
 
-    <div class="macro-grid" id="m-row-1"></div>
-    <div class="macro-grid" id="m-row-2"></div>
+    <div class="macro-grid" id="m1"></div>
+    <div class="macro-grid" id="m2"></div>
 
     <table>
         <thead>
-            <tr style="text-align:left; color:#555;">
-                <th style="padding:15px;">MONEDA</th><th>CANTITATE</th><th>ENTRY</th><th>TARGET APR</th><th>TARGET MAI</th><th style="color:#a855f7">TARGET FIB</th>
+            <tr>
+                <th>Moneda / Momentum</th><th>Cantitate</th><th>Entry</th><th>Target Apr</th><th style="color:#22c55e">X</th><th>Target Mai</th><th style="color:#22c55e">X</th><th style="color:#a855f7">FIB Target</th>
             </tr>
         </thead>
         <tbody id="rows"></tbody>
@@ -59,38 +73,38 @@
             const r = await fetch('data.json?v=' + Date.now());
             const d = await r.json();
             
-            // Valori mari
             document.getElementById('v').textContent = '€' + d.portfolio_eur.toLocaleString();
-            document.getElementById('profit').textContent = d.profit_range;
             document.getElementById('m').textContent = d.multiplier + 'x';
 
-            // Scorul de rotație se aprinde la 70% [cite: 2026-02-14]
-            const scoreColor = d.rotation_score >= 70 ? '#00ff88' : '#e1e1e1';
+            const scoreColor = d.rot >= 70 ? '#00ff88' : '#e1e1e1'; [cite: 2026-02-14]
 
-            // Casete Macro
-            const m1 = [
-                ['Rotation Score', `<span style="color:${scoreColor}">${d.rotation_score}%</span>`],
-                ['BTC Dominance', d.btc_d], ['USDT.D Live', d.usdt_d],
-                ['ML Sell Prob', d.ml_prob], ['ETH / BTC', d.eth_btc], ['Momentum', d.momentum]
+            const row1 = [
+                ['Rotation Score', `<span style="color:${scoreColor}">${d.rot}%</span>`], 
+                ['BTC Dominance', d.btcd], ['USDT.D Live', d.usdtd], 
+                ['ML Sell Prob', d.ml], ['ETH / BTC', d.ethbtc], ['Momentum', d.mom]
             ];
-            const m2 = [
-                ['VIX Index', d.vix], ['DXY Index', d.dxy], ['Sentiment', d.sentiment],
-                ['Total 3', d.total3], ['M2 Supply', d.m2], ['Exhaustion', d.exhaustion]
+            const row2 = [
+                ['VIX Index', d.vix], ['DXY Index', d.dxy], ['Sentiment', d.sent], 
+                ['Total 3', d.t3], ['M2 Supply', d.m2], ['Exhaustion', d.exh]
             ];
 
             const gen = (arr) => arr.map(i => `<div class="m-card"><div class="m-label">${i[0]}</div><div class="m-val">${i[1]}</div></div>`).join('');
-            document.getElementById('m-row-1').innerHTML = gen(m1);
-            document.getElementById('m-row-2').innerHTML = gen(m2);
+            document.getElementById('m1').innerHTML = gen(row1);
+            document.getElementById('m2').innerHTML = gen(row2);
 
             let h = '';
             d.coins.forEach(c => {
                 h += `<tr>
-                    <td style="padding:15px;"><b>${c.symbol}</b> <small class="${c.change>=0?'up':'down'}">(${c.change}%)</small>
-                        <div class="prog-bg"><div class="prog-fill" style="width:${c.progres}%; background:${c.progres>80?'#00ff88':'#fbbf24'}"></div></div>
+                    <td><b>${c.s}</b> <span class="${c.ch>=0?'up':'down'}" style="font-size:9px;">(${c.ch}%)</span>
+                        <div class="prog-bg"><div class="prog-fill" style="width:${c.pr}%; background:${c.pr>80?'#00ff88':'#fbbf24'}"></div></div>
                     </td>
-                    <td>${c.q.toLocaleString()}</td><td>$${c.entry}</td>
-                    <td>$${c.apr}</td><td>$${c.mai}</td>
-                    <td style="color:#a855f7"><b>$${c.fib}</b></td>
+                    <td>${c.q.toLocaleString()}</td>
+                    <td>$${c.e}</td>
+                    <td>$${c.a}</td>
+                    <td class="x-col">${c.xa}x</td>
+                    <td>$${c.m}</td>
+                    <td class="x-col">${c.xm}x</td>
+                    <td style="color:#a855f7; font-weight:bold;">$${c.f}</td>
                 </tr>`;
             });
             document.getElementById('rows').innerHTML = h;
