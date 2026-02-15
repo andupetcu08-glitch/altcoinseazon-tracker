@@ -6,33 +6,34 @@
     <style>
         body { background: #0b0e14; color: #e1e1e1; font-family: sans-serif; padding: 20px; margin: 0; }
         
-        /* Banner Mare si Curat - Fara text reziduu */
+        /* Banner Mare si Curat */
         .banner { 
             background: #052e16; border: 2px solid #22c55e; padding: 15px; border-radius: 10px; 
-            text-align: center; font-weight: bold; margin-bottom: 20px; font-size: 16px; color: #fff;
+            text-align: center; font-weight: bold; margin-bottom: 25px; font-size: 16px; color: #fff;
             box-shadow: 0 0 20px rgba(34, 197, 94, 0.2);
         }
 
         .top-nav { display: grid; grid-template-columns: repeat(4, 1fr) 2fr; gap: 10px; margin-bottom: 20px; }
         
-        /* MAGNIFY & GLOW EFFECT - Aplicat pe casete si randuri */
-        .m-card, tr { transition: all 0.2s ease-in-out; }
+        /* MAGNIFY & GLOW EFFECT */
+        .m-card, tr, .card-big { transition: all 0.2s ease-in-out; }
         
-        .m-card:hover { 
+        .m-card:hover, .card-big:hover { 
             transform: scale(1.04); 
             border-color: #00ff88; 
-            box-shadow: 0 0 20px rgba(0, 255, 136, 0.25); 
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.3); 
             z-index: 10;
+            cursor: default;
         }
 
         tbody tr:hover { 
-            background: rgba(0, 255, 136, 0.05) !important; 
-            transform: scale(1.015); 
-            box-shadow: 0 0 25px rgba(0, 255, 136, 0.15);
+            background: rgba(0, 255, 136, 0.08) !important; 
+            transform: scale(1.02); 
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
             cursor: pointer;
         }
 
-        .m-card { background: #15171e; padding: 15px; border-radius: 10px; border: 1px solid #222; text-align: center; }
+        .m-card { background: #15171e; padding: 15px; border-radius: 10px; border: 1px solid #222; text-align: center; position: relative; }
         .m-label { font-size: 10px; color: #666; text-transform: uppercase; margin-bottom: 5px; }
         .m-val { font-size: 18px; font-weight: bold; }
         
@@ -46,8 +47,8 @@
         
         .macro-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 20px; }
 
-        table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; color: #444; padding: 12px; font-size: 11px; text-transform: uppercase; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { text-align: left; color: #444; padding: 12px; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid #222; }
         td { padding: 18px 12px; border-bottom: 1px solid #15171e; font-size: 16px; font-weight: bold; }
         
         .up { color: #00ff88; } .down { color: #ef4444; }
@@ -64,7 +65,7 @@
 <div class="top-nav">
     <div class="m-card"><div class="m-label">Rotation Score</div><div id="rot" class="m-val" style="color:#ef4444">35%</div></div>
     <div class="m-card"><div class="m-label">BTC.D LIVE</div><div id="btcd" class="m-val">--</div></div>
-    <div class="m-card"><div class="m-label">ETH / BTC</div><div id="ethbtc" class="m-val" style="color:#a855f7">0.0291</div></div>
+    <div class="m-card"><div class="m-label">ETH / BTC</div><div id="ethbtc" class="m-val" style="color:#a855f7">--</div></div>
     <div class="m-card"><div class="m-label">USDT.D LIVE</div><div id="usdtd" class="m-val">--</div></div>
     <div class="status-box">
         <div class="st-btn active-h">HOLD / ACCUMULATE</div>
@@ -101,9 +102,15 @@ async function refresh() {
         const up = '<span class="up"> ▲</span>', down = '<span class="down"> ▼</span>';
 
         document.getElementById('btcd').innerHTML = d.btcd + '%' + (d.btcd > 50 ? up : down);
+        document.getElementById('ethbtc').textContent = d.ethbtc;
         document.getElementById('usdtd').innerHTML = d.usdtd + '%' + (d.usdtd > 5 ? up : down);
         document.getElementById('veur').innerHTML = '€' + d.port_eur.toLocaleString() + (d.port_up ? up : down);
         document.getElementById('mult').textContent = d.mult + 'x';
+        
+        // Rotation Score color logic
+        const rotElem = document.getElementById('rot');
+        rotElem.textContent = d.rotation + '%';
+        rotElem.style.color = d.rotation >= 70 ? '#00ff88' : '#ef4444';
 
         const mItems = [['TOTAL 3','0.98T',up],['SENTIMENT',d.fng,up],['VIX',d.vix,down],['URPD',d.urpd,up],['DXY',d.dxy,down],['M2',d.m2,up]];
         document.getElementById('macro').innerHTML = mItems.map(x => `
