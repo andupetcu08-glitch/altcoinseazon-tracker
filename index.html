@@ -5,84 +5,42 @@
     <title>Altcoin Tracker Elite</title>
     <style>
         body { background: #0b0e14; color: #e1e1e1; font-family: sans-serif; padding: 15px; margin: 0; }
-        
-        /* Banner superior cu Target ML Sell Prob */
         .target-panel { 
             background: #052e16; border: 2px solid #22c55e; padding: 15px; border-radius: 12px; 
             margin-bottom: 25px; text-align: center; font-size: 14px; font-weight: bold; color: #fff;
-            box-shadow: 0 0 20px rgba(34, 197, 94, 0.2);
         }
-
         .top-nav { display: grid; grid-template-columns: repeat(4, 1fr) 1.5fr; gap: 10px; margin-bottom: 20px; }
         .m-card { background: #1a1c24; padding: 12px; border-radius: 8px; border: 1px solid #333; text-align: center; }
-        .m-label { font-size: 8px; color: #888; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 1px; }
+        .m-label { font-size: 8px; color: #888; text-transform: uppercase; margin-bottom: 6px; }
         .m-val { font-weight: bold; font-size: 16px; }
-        
-        /* ETH/BTC Move Glow */
-        #ethbtc { color: #a855f7; text-shadow: 0 0 10px rgba(168, 85, 247, 0.8); }
-
-        .status-box { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
-        .st-btn { background: #111; border: 1px solid #222; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: #333; }
-        .active-h { border-color: #ef4444 !important; color: #ef4444 !important; box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); }
-        .active-p { border-color: #fbbf24 !important; color: #fbbf24 !important; box-shadow: 0 0 15px rgba(251, 191, 36, 0.4); }
-        .active-s { border-color: #00ff88 !important; color: #00ff88 !important; box-shadow: 0 0 15px rgba(0, 255, 136, 0.4); }
-
-        .stats-main { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px; }
         .card-big { background: #1a1c24; padding: 25px; border-radius: 12px; border: 1px solid #444; text-align: center; }
         .val-big { font-size: 32px; font-weight: bold; color: #00ff88; }
-        
         .macro-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 10px; }
-
-        /* TABEL FINAL: Text Bold și Mărit 1.5x */
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th { text-align: left; color: #555; font-size: 10px; padding: 15px; text-transform: uppercase; }
-        
-        .data-row td { 
-            padding: 20px 15px; 
-            border-bottom: 1px solid #1a1c24; 
-            font-size: 16.5px; /* Mărit 1.5x de la 11px */
-            font-weight: bold; /* Tot textul Bold */
-            transition: all 0.3s;
-        }
-
-        tr:hover { 
-            background: rgba(0, 255, 136, 0.05); 
-            transform: scale(1.01); 
-            box-shadow: 0 0 20px rgba(0, 255, 136, 0.1);
-        }
-
-        .multiplier-col { color: #00ff88 !important; }
-        .fib-col { color: #a855f7; text-shadow: 0 0 8px rgba(168, 85, 247, 0.4); font-size: 18px !important; }
-        
-        .prog-bg { width: 100%; background: #222; height: 5px; border-radius: 3px; margin-top: 10px; }
-        .prog-fill { height: 100%; border-radius: 3px; }
-        
-        .trend-up { color: #00ff88; font-size: 12px; }
-        .trend-down { color: #ef4444; font-size: 12px; }
+        .data-row td { padding: 20px 15px; border-bottom: 1px solid #1a1c24; font-size: 16.5px; font-weight: bold; }
+        tr:hover { background: rgba(0, 255, 136, 0.05); transform: scale(1.005); transition: 0.2s; }
+        .multiplier-col { color: #00ff88; }
+        .fib-col { color: #a855f7; font-size: 18px !important; }
     </style>
 </head>
 <body>
 
     <div class="target-panel">
-        🎯 TARGETS: BTC.D: 46% | VIX: 13.8 | USDT.D: 5.1% | URPD: 86% | ML SELL: 50% | ROTATION: 70% [cite: 2026-02-14]
+        🎯 TARGETS: BTC.D: 46% | VIX: 13.8 | USDT.D: 5.1% | URPD: 86% | ML SELL: 50% | ROTATION SCORE: 70%
     </div>
 
     <div class="top-nav">
         <div class="m-card"><div class="m-label">Rotation Score</div><div id="score" class="m-val">--</div></div>
         <div class="m-card"><div class="m-label">BTC.D LIVE</div><div id="btcd" class="m-val">--</div></div>
-        <div class="m-card"><div class="m-label">ETH / BTC</div><div id="ethbtc" class="m-val">--</div></div>
+        <div class="m-card"><div class="m-label">ETH / BTC</div><div id="ethbtc" class="m-val" style="color:#a855f7">--</div></div>
         <div class="m-card"><div class="m-label">USDT.D LIVE</div><div id="usdtd" class="m-val">--</div></div>
-        <div class="status-box">
-            <div id="btn-h" class="st-btn">HOLD</div>
-            <div id="btn-p" class="st-btn">PREPARE</div>
-            <div id="btn-s" class="st-btn">SELL</div>
-        </div>
+        <div id="status" class="card-big" style="padding:10px; font-size:12px; border-color:#ef4444; color:#ef4444">HOLD / ACCUMULATE</div>
     </div>
 
-    <div class="stats-main">
+    <div class="stats-main" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:15px; margin-bottom:20px;">
         <div class="card-big"><div class="m-label">PORTOFOLIU ACTUAL (EUR)</div><div id="v" class="val-big">--</div></div>
-        <div class="card-big"><div class="m-label">POTENȚIAL PROFIT TEORETIC</div><div id="profit" class="val-big" style="color:#fbbf24; font-size: 24px;">--</div></div>
-        <div class="card-big"><div class="m-label">MULTIPLIER ACTUAL</div><div id="m" class="val-big">--</div><span id="investit" style="color:#888; font-size:10px">--</span></div>
+        <div class="card-big"><div class="m-label">POTENȚIAL PROFIT TEORETIC</div><div style="color:#fbbf24; font-size:24px; font-weight:bold">€311,289 - €443,244</div></div>
+        <div class="card-big"><div class="m-label">MULTIPLIER ACTUAL</div><div id="m" class="val-big">--</div></div>
     </div>
 
     <div class="macro-row" id="m1"></div>
@@ -90,68 +48,38 @@
 
     <table>
         <thead>
-            <tr>
-                <th>MONEDA</th><th>CANTITATE</th><th>ENTRY</th><th>TARGET APR</th><th style="color:#00ff88">MULTIPLIER</th><th>TARGET MAI</th><th style="color:#00ff88">MULTIPLIER</th><th style="color:#a855f7">FINAL TARGET</th>
-            </tr>
+            <tr><th>MONEDA</th><th>CANTITATE</th><th>ENTRY</th><th>TARGET APR</th><th style="color:#00ff88">MULTIPLIER</th><th>TARGET MAI</th><th style="color:#00ff88">MULTIPLIER</th><th style="color:#a855f7">FINAL TARGET</th></tr>
         </thead>
         <tbody id="rows"></tbody>
     </table>
 
     <script>
         async function load() {
-            try {
-                const r = await fetch('data.json?v=' + Date.now());
-                const d = await r.json();
+            const r = await fetch('data.json?v=' + Date.now());
+            const d = await r.json();
 
-                // 1. Score & Buttons [cite: 2026-02-14]
-                const s = d.rotation_score;
-                const scoreEl = document.getElementById('score');
-                scoreEl.textContent = s + '%';
-                scoreEl.style.color = s >= 70 ? '#00ff88' : '#ef4444';
+            document.getElementById('score').textContent = d.rotation_score + '%';
+            document.getElementById('btcd').textContent = d.btc_d + '%';
+            document.getElementById('ethbtc').textContent = d.eth_btc;
+            document.getElementById('usdtd').textContent = d.usdt_d + '%';
+            document.getElementById('v').textContent = '€' + d.portfolio_eur.toLocaleString();
+            document.getElementById('m').textContent = d.multiplier + 'x';
 
-                document.getElementById('btn-h').className = 'st-btn' + (s < 50 ? ' active-h' : '');
-                document.getElementById('btn-p').className = 'st-btn' + (s >= 50 && s < 70 ? ' active-p' : '');
-                document.getElementById('btn-s').className = 'st-btn' + (s >= 70 ? ' active-s' : '');
+            const gen = (arr) => arr.map(x => `<div class="m-card"><div class="m-label">${x[0]}</div><div class="m-val">${x[1]}</div></div>`).join('');
+            document.getElementById('m1').innerHTML = gen([['TOTAL 3', d.total3], ['SENTIMENT', d.fng], ['VIX INDEX', d.vix], ['URPD PROFIT', d.urpd], ['DXY INDEX', d.dxy], ['M2 SUPPLY', d.m2]]);
+            document.getElementById('m2').innerHTML = gen([['ML SELL PROB', d.ml_prob+'%'], ['MOMENTUM', d.momentum], ['EXHAUSTION', d.exhaustion], ['DIVERGENCE', 'NORMAL'], ['VOLATILITY', 'LOW'], ['LIQUIDITY', 'HIGH']]);
 
-                const up = '<span class="trend-up"> ▲</span>';
-                const down = '<span class="trend-down"> ▼</span>';
-
-                // 2. Indicators
-                document.getElementById('btcd').innerHTML = d.btc_d + '%' + (d.btc_ch > 0 ? up : down);
-                document.getElementById('ethbtc').innerHTML = d.eth_btc + (d.btc_ch > 0 ? down : up);
-                document.getElementById('usdtd').innerHTML = d.usdt_d + '%' + (d.btc_ch > 0 ? down : up);
-
-                // 3. Macro Rows
-                const gen = (arr) => arr.map(x => `<div class="m-card"><div class="m-label">${x[0]}</div><div class="m-val">${x[1]}${x[2]?up:down}</div></div>`).join('');
-                document.getElementById('m1').innerHTML = gen([['TOTAL 3', d.total3, true], ['SENTIMENT', d.fng, true], ['VIX', d.vix, false], ['URPD', d.urpd, true], ['DXY', d.dxy, false], ['M2', d.m2, true]]);
-                document.getElementById('m2').innerHTML = gen([['ML SELL PROB', d.ml_prob+'%', d.ml_prob>40], ['MOMENTUM', d.momentum, true], ['EXHAUSTION', d.exhaustion, false], ['DIVERGENCE', 'NORMAL', true], ['VOLATILITY', 'LOW', false], ['LIQUIDITY', 'HIGH', true]]);
-
-                // 4. Stats
-                document.getElementById('v').textContent = '€' + d.portfolio_eur.toLocaleString();
-                document.getElementById('profit').textContent = d.profit_range;
-                document.getElementById('m').textContent = d.multiplier + 'x';
-                document.getElementById('investit').textContent = 'Investit: €' + d.investit_eur.toLocaleString();
-
-                // 5. Tabel Elite
-                let h = '';
-                d.coins.forEach(c => {
-                    h += `<tr class="data-row">
-                        <td>
-                            ${c.symbol} <small style="font-size:10px; color:${c.change>=0?'#00ff88':'#ef4444'}">(${c.change}%)</small><br>
-                            <small style="color:#555; font-size:11px;">$${c.price}</small>
-                            <div class="prog-bg"><div class="prog-fill" style="width:${c.progres}%; background:${c.progres>=80?'#00ff88':'#fbbf24'};"></div></div>
-                        </td>
-                        <td>${c.q.toLocaleString()}</td>
-                        <td>$${c.entry}</td>
-                        <td style="color:#fbbf24">$${c.apr}</td>
-                        <td class="multiplier-col">${c.x_apr}x</td>
-                        <td style="color:#fbbf24">$${c.mai}</td>
-                        <td class="multiplier-col">${c.x_mai}x</td>
-                        <td class="fib-col">$${c.fib}</td>
-                    </tr>`;
-                });
-                document.getElementById('rows').innerHTML = h;
-            } catch (e) { console.log("Updating..."); }
+            let h = '';
+            d.coins.forEach(c => {
+                h += `<tr class="data-row">
+                    <td>${c.symbol} <small style="color:${c.change>=0?'#00ff88':'#ef4444'}">(${c.change}%)</small></td>
+                    <td>${c.q.toLocaleString()}</td><td>$${c.entry}</td>
+                    <td style="color:#fbbf24">$${c.apr}</td><td class="multiplier-col">${(c.apr/c.entry).toFixed(1)}x</td>
+                    <td style="color:#fbbf24">$${c.mai}</td><td class="multiplier-col">${(c.mai/c.entry).toFixed(1)}x</td>
+                    <td class="fib-col">$${c.fib}</td>
+                </tr>`;
+            });
+            document.getElementById('rows').innerHTML = h;
         }
         load(); setInterval(load, 30000);
     </script>
