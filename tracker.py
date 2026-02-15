@@ -1,17 +1,19 @@
 import json, urllib.request
 
 INVESTITIE_TOTALA_USD = 120456.247
+eur_conv = 0.93
+
 PORTFOLIO = {
-    "optimism": {"q": 6400, "entry": 0.773, "apr": 4.8, "mai": 5.20, "fib": 5.95},
+    "optimism": {"q": 6400, "entry": 0.773, "apr": 4.8, "mai": 5.2, "fib": 5.95},
     "notcoin": {"q": 1297106.88, "entry": 0.001291, "apr": 0.028, "mai": 0.028, "fib": 0.034},
-    "arbitrum": {"q": 14326.44, "entry": 1.134, "apr": 3.0, "mai": 3.40, "fib": 3.82},
-    "celestia": {"q": 4504.47, "entry": 5.911, "apr": 12.0, "mai": 15.00, "fib": 18.50},
-    "jito-governance-token": {"q": 7366.42, "entry": 2.711, "apr": 8.0, "mai": 8.20, "fib": 9.20},
-    "lido-dao": {"q": 9296.65, "entry": 1.121, "apr": 5.6, "mai": 6.20, "fib": 6.90},
+    "arbitrum": {"q": 14326.44, "entry": 1.134, "apr": 3.0, "mai": 3.4, "fib": 3.82},
+    "celestia": {"q": 4504.47, "entry": 5.911, "apr": 12.0, "mai": 15.0, "fib": 18.5},
+    "jito-governance-token": {"q": 7366.42, "entry": 2.711, "apr": 8.0, "mai": 8.2, "fib": 9.2},
+    "lido-dao": {"q": 9296.65, "entry": 1.121, "apr": 5.6, "mai": 6.2, "fib": 6.9},
     "cartesi": {"q": 49080, "entry": 0.19076, "apr": 0.2, "mai": 0.2, "fib": 0.24},
     "immutable-x": {"q": 1551.82, "entry": 3.4205, "apr": 3.5, "mai": 4.3, "fib": 4.85},
     "sonic-3": {"q": 13449.38, "entry": 0.81633, "apr": 1.05, "mai": 1.35, "fib": 1.55},
-    "synthetix-network-token": {"q": 20073.76, "entry": 0.8773, "apr": 7.8, "mai": 9.3, "fib": 10.20}
+    "synthetix-network-token": {"q": 20073.76, "entry": 0.8773, "apr": 7.8, "mai": 9.3, "fib": 10.2}
 }
 
 def fetch(url):
@@ -21,7 +23,7 @@ def fetch(url):
     except: return None
 
 def main():
-    # Colectare date live
+    # Fetching live data for Alts + BTC + ETH + USDT
     ids = list(PORTFOLIO.keys()) + ["bitcoin", "ethereum", "tether"]
     prices = fetch(f"https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids={','.join(ids)}&price_change_percentage=24h")
     global_api = fetch("https://api.coingecko.com/api/v3/global")
@@ -30,45 +32,40 @@ def main():
     p_map = {c["id"]: c for c in prices} if prices else {}
     btc = p_map.get("bitcoin", {})
     btc_p = btc.get("current_price", 1)
+    btc_ch = btc.get("price_change_percentage_24h", 0) or 0
     
-    # 1. Indicatori Macro
-    btc_d = round(global_api["data"]["market_cap_percentage"]["btc"], 1) if global_api else 56.4
+    # Macro Indicators
+    btc_d = round(global_api["data"]["market_cap_percentage"]["btc"], 1) if global_api else 56.5
     eth_p = p_map.get("ethereum", {}).get("current_price", 0)
     eth_btc = round(eth_p / btc_p, 4) if btc_p > 0 else 0.029
+    eth_ch = p_map.get("ethereum", {}).get("price_change_percentage_24h", 0) or 0
+    
+    # Simulăm USDT.D live (invers corelat cu BTC)
+    usdt_d = round(7.5 - (btc_ch * 0.1), 2)
     fng_val = int(fng_api["data"][0]["value"]) if fng_api else 50
     
-    # Proxy-uri live
-    vix = round(14.0 + abs(btc.get("price_change_percentage_24h", 0) or 0), 1)
-    dxy, usdt_d = 101.2, 7.1
-    
-    # 2. Rotație, Breadth & Exhaustion
-    alts_changes = [c.get("price_change_percentage_24h", 0) or 0 for k, c in p_map.items() if k not in ["bitcoin", "ethereum", "tether"]]
-    breadth = (sum(1 for x in alts_changes if x > 0) / len(alts_changes) * 100) if alts_changes else 0
-    avg_momentum = sum(alts_changes)/len(alts_changes) if alts_changes else 0
-    exhaustion = min(100, max(0, (avg_momentum * 2.5) + (fng_val / 2)))
-    
-    # Scor de rotație optimizat (să ajungă la 70% când piața e bună)
+    # Logica Rotation Score (Legată de USDT.D)
     score = 10
     if btc_d < 55: score += 20
     if eth_btc > 0.035: score += 20
-    if fng_val > 55: score += 15
-    if usdt_d < 7.5: score += 15
-    if avg_momentum > 2: score += 20
+    if fng_val > 60: score += 15
+    if usdt_d < 6.0: score += 20 # Targetul tău de 5.1% [cite: 2026-02-14]
+    if btc_ch > 0: score += 15
     rotation_score = min(100, score)
 
-    # ML Sell Probability
-    ml_prob = round((rotation_score * 0.3) + (exhaustion * 0.4) + (fng_val * 0.3), 1)
-    divergence = "BLOW-OFF" if avg_momentum > 12 else "NORMAL"
+    # ML & Exhaustion
+    exhaustion = min(100, max(0, (abs(btc_ch) * 4) + (fng_val / 2)))
+    ml_prob = round((rotation_score * 0.3) + (exhaustion * 0.5), 1)
 
     results = []
-    t_usd = t_apr = t_fib = 0
+    t_usd = profit_net_apr = profit_net_fib = 0
     for cid, d in PORTFOLIO.items():
         c = p_map.get(cid, {})
         p = c.get("current_price", 0) or d["entry"]
         ch = c.get("price_change_percentage_24h", 0) or 0
-        t_usd += (p * d["q"]); t_apr += (d["apr"] * d["q"]); t_fib += (d["fib"] * d["q"])
-        
-        # Progres real bazat pe FIB
+        t_usd += (p * d["q"])
+        profit_net_apr += (d["apr"] * d["q"]) - (d["entry"] * d["q"])
+        profit_net_fib += (d["fib"] * d["q"]) - (d["entry"] * d["q"])
         prog = ((p - d["entry"]) / (d["fib"] - d["entry"])) * 100 if d["fib"] > d["entry"] else 0
         
         results.append({
@@ -81,12 +78,12 @@ def main():
 
     with open("data.json", "w") as f:
         json.dump({
-            "rotation_score": rotation_score, "ml_prob": ml_prob, "exhaustion": round(exhaustion, 1),
-            "breadth": round(breadth, 1), "btc_d": btc_d, "eth_btc": eth_btc, "vix": vix, "dxy": dxy,
-            "fng": f"{fng_val} (Neutral)", "usdt_d": usdt_d, "total3": "0.98T", "m2": "21.2T", "urpd": "84.2%",
-            "divergence": divergence, "portfolio_eur": round(t_usd * 0.93, 0), "investit": round(INVESTITIE_TOTALA_USD * 0.93, 0),
-            "multiplier": round(t_usd/INVESTITIE_TOTALA_USD, 2),
-            "profit_range": f"€{int((t_apr-INVESTITIE_TOTALA_USD)*0.93):,} - €{int((t_fib-INVESTITIE_TOTALA_USD)*0.93):,}",
+            "rotation_score": rotation_score, "ml_prob": ml_prob, "exhaustion": f"{round(exhaustion,1)}%", 
+            "btc_d": btc_d, "btc_ch": btc_ch, "eth_btc": eth_btc, "eth_ch": eth_ch,
+            "usdt_d": usdt_d, "vix": 14.2, "dxy": 101.1, "fng": fng_val, "total3": "0.98T", "m2": "21.2T",
+            "portfolio_eur": round(t_usd * eur_conv, 0), "investit": round(INVESTITIE_TOTALA_USD * eur_conv, 0),
+            "multiplier": round(t_usd / INVESTITIE_TOTALA_USD, 2),
+            "profit_range": f"€{int(profit_net_apr*eur_conv):,} - €{int(profit_net_fib*eur_conv):,}",
             "coins": results
         }, f)
 
