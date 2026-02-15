@@ -5,56 +5,41 @@
     <style>
         body { background: #0b0e14; color: #e1e1e1; font-family: sans-serif; padding: 15px; font-size: 11px; margin: 0; }
         
-        /* RECONSTRUCȚIE BANNER TARGETS */
+        /* BANNERUL ROBUST REVENIT */
         .target-panel { 
-            background: #052e16; border: 2px solid #22c55e; padding: 15px; border-radius: 12px; 
-            margin-bottom: 20px; text-align: center; font-weight: bold; font-size: 14px; color: #fff;
-            letter-spacing: 1px;
+            background: #052e16; border: 2px solid #22c55e; padding: 12px; border-radius: 12px; 
+            margin-bottom: 20px; text-align: center; font-weight: bold; font-size: 13px; color: #fff;
         }
 
-        /* Status Buttons */
-        .btn-box { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
-        .st-btn { background: #1a1c24; border: 1px solid #333; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; color: #444; }
-        .active-h { border-color: #ef4444; color: #ef4444; box-shadow: 0 0 10px rgba(239, 68, 68, 0.2); }
-        .active-s { border-color: #00ff88; color: #00ff88; box-shadow: 0 0 15px rgba(0, 255, 136, 0.3); }
-
-        /* Financials */
         .stats-main { display: grid; grid-template-columns: 1fr 1.5fr 1fr; gap: 15px; margin-bottom: 20px; }
-        .card-big { background: #1a1c24; padding: 25px; border-radius: 12px; border: 1px solid #333; text-align: center; }
-        .val-big { font-size: 32px; font-weight: bold; color: #00ff88; }
-        .m-label { font-size: 8px; color: #666; text-transform: uppercase; margin-bottom: 8px; }
+        .card-big { background: #1a1c24; padding: 20px; border-radius: 12px; border: 1px solid #333; text-align: center; position: relative; }
+        .val-big { font-size: 30px; font-weight: bold; color: #00ff88; margin-top: 10px; }
+        .m-label { font-size: 8px; color: #666; text-transform: uppercase; letter-spacing: 1px; }
 
-        /* Macro Boxes - 2 rows of 6 as agreed */
+        /* CASUTE MACRO CU SAGETI */
         .macro-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 20px; }
         .m-card { background: #1a1c24; padding: 12px; border-radius: 8px; border: 1px solid #333; text-align: center; }
-        .m-val { font-weight: bold; font-size: 16px; margin-top: 5px; }
+        .m-val { font-weight: bold; font-size: 15px; margin-top: 5px; }
 
-        /* Table */
-        table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; padding: 15px; color: #555; border-bottom: 2px solid #222; font-size: 10px; }
-        tr { transition: 0.2s; border-bottom: 1px solid #1a1c24; }
+        .up { color: #00ff88; } .down { color: #ef4444; }
+        
+        /* GLOW MAGNIFY LA HOVER */
         tr:hover { transform: scale(1.005); background: rgba(0, 255, 136, 0.05) !important; cursor: pointer; }
+        tr { transition: 0.2s; border-bottom: 1px solid #1a1c24; }
         
         .prog-bg { width: 100%; background: #222; height: 3px; border-radius: 2px; margin-top: 8px; }
         .prog-fill { height: 100%; border-radius: 2px; transition: 1s; }
-        .up { color: #00ff88; } .down { color: #ef4444; }
     </style>
 </head>
 <body>
     <div class="target-panel">
-        🎯 TARGETS: BTC.D: 46% | VIX: 13.8 | USDT.D: 5.1% | URPD: 86% | DXY: 100 | ROTATION SCORE: 70%
-    </div>
-
-    <div class="btn-box">
-        <div id="btn-h" class="st-btn">HOLD / ACCUMULATE</div>
-        <div id="btn-p" class="st-btn">PREPARE FOR SELL</div>
-        <div id="btn-s" class="st-btn">SELL / TAKE PROFIT</div>
+        🎯 TARGETS: BTC.D: 46% | VIX: 13.8 | USDT.D: 5.1% | URPD Supply: 86% | DXY: 100 | ROTATION SCORE: 70%
     </div>
 
     <div class="stats-main">
         <div class="card-big"><div class="m-label">Portofoliu Actual (EUR)</div><div id="v" class="val-big">--</div></div>
         <div class="card-big"><div class="m-label">Profit Net Teoretic (FIB)</div><div id="profit" class="val-big" style="color:#fbbf24">--</div></div>
-        <div class="card-big"><div class="m-label">Multiplier Actual</div><div id="m" class="val-big">--</div><small id="inv" style="color:#444"></small></div>
+        <div class="card-big"><div class="m-label">Multiplier Actual</div><div id="m" class="val-big">--</div></div>
     </div>
 
     <div class="macro-grid" id="m-row-1"></div>
@@ -62,8 +47,8 @@
 
     <table>
         <thead>
-            <tr>
-                <th>MONEDA</th><th>CANTITATE</th><th>ENTRY</th><th>TARGET APR</th><th>TARGET MAI</th><th style="color:#a855f7">TARGET FIB</th>
+            <tr style="text-align:left; color:#555;">
+                <th style="padding:15px;">MONEDA</th><th>CANTITATE</th><th>ENTRY</th><th>TARGET APR</th><th>TARGET MAI</th><th style="color:#a855f7">TARGET FIB</th>
             </tr>
         </thead>
         <tbody id="rows"></tbody>
@@ -73,23 +58,27 @@
         async function update() {
             const r = await fetch('data.json?v=' + Date.now());
             const d = await r.json();
-            const s = d.rotation_score;
-
-            // Update UI
+            
+            // Valori mari
             document.getElementById('v').textContent = '€' + d.portfolio_eur.toLocaleString();
             document.getElementById('profit').textContent = d.profit_range;
             document.getElementById('m').textContent = d.multiplier + 'x';
-            document.getElementById('inv').textContent = 'Investit: €' + d.investit.toLocaleString();
 
-            // Status Buttons logic
-            document.getElementById('btn-h').className = 'st-btn' + (s < 70 ? ' active-h' : '');
-            document.getElementById('btn-s').className = 'st-btn' + (s >= 70 ? ' active-s' : '');
+            // Scorul de rotație se aprinde la 70% [cite: 2026-02-14]
+            const scoreColor = d.rotation_score >= 70 ? '#00ff88' : '#e1e1e1';
 
-            // Macro Boxes - Toate casetele initiale incluse
-            const m1 = [['Rotation Score', s+'%'], ['BTC Dominance', d.btc_d+'%'], ['USDT.D Live', d.usdt_d+'%'], ['ML Sell Prob', d.ml_prob+'%'], ['ETH / BTC', d.eth_btc], ['Momentum', d.momentum]];
-            const m2 = [['VIX Index', d.vix], ['DXY Index', d.dxy], ['Sentiment', d.fng], ['Total 3', d.total3], ['M2 Supply', d.m2], ['Exhaustion', d.exhaustion]];
-            
-            const gen = (arr) => arr.map(i => `<div class="m-card"><div class="m-label">${i[0]}</div><div class="m-val" style="color:${i[0].includes('Score') && s >= 70 ? '#00ff88':''}">${i[1]}</div></div>`).join('');
+            // Casete Macro
+            const m1 = [
+                ['Rotation Score', `<span style="color:${scoreColor}">${d.rotation_score}%</span>`],
+                ['BTC Dominance', d.btc_d], ['USDT.D Live', d.usdt_d],
+                ['ML Sell Prob', d.ml_prob], ['ETH / BTC', d.eth_btc], ['Momentum', d.momentum]
+            ];
+            const m2 = [
+                ['VIX Index', d.vix], ['DXY Index', d.dxy], ['Sentiment', d.sentiment],
+                ['Total 3', d.total3], ['M2 Supply', d.m2], ['Exhaustion', d.exhaustion]
+            ];
+
+            const gen = (arr) => arr.map(i => `<div class="m-card"><div class="m-label">${i[0]}</div><div class="m-val">${i[1]}</div></div>`).join('');
             document.getElementById('m-row-1').innerHTML = gen(m1);
             document.getElementById('m-row-2').innerHTML = gen(m2);
 
