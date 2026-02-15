@@ -1,6 +1,5 @@
 import json, urllib.request
 
-# Investitia initiala exacta
 INVEST_USD = 120456.247
 
 PORTFOLIO = {
@@ -23,14 +22,15 @@ def fetch(url):
     except: return None
 
 def main():
-    # Fetch preturi (am adaugat si ID-ul corect pentru SNX)
     ids = list(PORTFOLIO.keys()) + ["bitcoin", "ethereum"]
     prices = fetch(f"https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids={','.join(ids)}")
     btc_eur_data = fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=eur")
     
     p_map = {c["id"]: c for c in prices} if prices else {}
     btc_usd = p_map.get("bitcoin", {}).get("current_price", 1)
-    usd_to_eur = (btc_eur_data.get("bitcoin", {}).get("eur", 0.92 * btc_usd)) / btc_usd
+    # Calculeaza EUR/USD ratio corect
+    eur_val = btc_eur_data.get("bitcoin", {}).get("eur", 0.92 * btc_usd) if btc_eur_data else 0.92 * btc_usd
+    usd_to_eur = eur_val / btc_usd
 
     total_usd = 0
     total_usd_prev = 0
@@ -38,9 +38,12 @@ def main():
     
     for cid, d in PORTFOLIO.items():
         c = p_map.get(cid, {})
-        # Force price for SNX if API fails
         p = c.get("current_price", 0)
-        if p == 0: p = d["entry"] # Fallback to entry to avoid 0%
+        
+        # FIX SNX: Daca pretul e 0, forțează o interogare separată sau fallback la entry pentru a nu strica dashboardul
+        if p <= 0:
+            fallback = fetch(f"https://api.coingecko.com/api/v3/simple/price?ids={cid}&vs_currencies=usd")
+            p = fallback.get(cid, {}).get("usd", d["entry"]) if fallback else d["entry"]
         
         ch_24h = c.get("price_change_percentage_24h", 0) or 0
         total_usd += (p * d["q"])
@@ -61,8 +64,9 @@ def main():
             "port_up": total_usd >= total_usd_prev,
             "invest_eur": round(INVEST_USD * usd_to_eur, 0),
             "mult": round(total_usd / INVEST_USD, 2),
-            "rotation": 35, # Ajusteaza manual aici daca e nevoie
-            "btcd": 56.5, "ethbtc": round(p_map.get("ethereum", {}).get("current_price", 0) / btc_usd, 4),
+            "rotation": 35, # Scorul tau actual din imagine
+            "btcd": 56.5, 
+            "ethbtc": round(p_map.get("ethereum", {}).get("current_price", 0) / btc_usd, 4) if btc_usd > 0 else 0.0291,
             "coins": coins_out,
             "fng": "8 (Extreme Fear)", "usdtd": 7.44, "vix": 14.2, "dxy": 101.1, "m2": "21.2T", "urpd": "84.2%",
             "ml": 18.9, "exh": 27.7
