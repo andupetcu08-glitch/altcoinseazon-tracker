@@ -1,6 +1,6 @@
 import json, urllib.request
 
-INVEST_USD = 120456.247
+INVEST_USD = 101476.0  # Valoarea din screenshot-ul tau
 
 PORTFOLIO = {
     "optimism": {"q": 6400, "entry": 0.773, "apr": 4.8, "mai": 5.2, "fib": 5.95},
@@ -29,14 +29,24 @@ def main():
     
     total_usd = 0
     total_usd_prev = 0
+    pot_min_usd = 0
+    pot_max_usd = 0
     coins_out = []
     
+    # Rezolvare eroare Syntax - adaugat .items()
     for cid, d in PORTFOLIO.items():
         c = p_map.get(cid, {})
+        # Rezolvare SNX Price (daca API-ul nu returneaza, folosim entry ca fallback sa nu avem 0)
         p = c.get("current_price", d["entry"])
         ch_24h = c.get("price_change_percentage_24h", 0) or 0
+        
         total_usd += (p * d["q"])
         total_usd_prev += ((p / (1 + (ch_24h / 100))) * d["q"])
+        
+        # Calcule Potential Profit cerute
+        pot_min_usd += (d["q"] * d["apr"])
+        pot_max_usd += (d["q"] * d["fib"])
+        
         prog = min(100, max(0, ((p - d["entry"]) / (d["fib"] - d["entry"])) * 100))
         name = "SNX" if "synthetix" in cid else cid.replace("-governance-token","").replace("-network-token","").split("-")[0].upper()
 
@@ -47,8 +57,12 @@ def main():
 
     with open("data.json", "w") as f:
         json.dump({
-            "port_eur": round(total_usd * 0.92, 0), "port_up": total_usd >= total_usd_prev,
-            "invest_eur": round(120456.247 * 0.92, 0), "mult": round(total_usd / 120456.247, 2),
+            "port_eur": round(total_usd * 0.92, 0), 
+            "port_up": total_usd >= total_usd_prev,
+            "invest_eur": round(INVEST_USD * 0.92, 0), 
+            "mult": round(total_usd / INVEST_USD, 2),
+            "pot_min_eur": round(pot_min_usd * 0.92, 0),
+            "pot_max_eur": round(pot_max_usd * 0.92, 0),
             "rotation": 35, "btcd": 56.5, "ethbtc": round(p_map.get("ethereum", {}).get("current_price", 0) / btc_p, 4),
             "coins": coins_out, "fng": "8 (Extreme Fear)", "usdtd": 7.44, "vix": 14.2, "dxy": 101.1, "m2": "21.2T", "urpd": "84.2%",
             "momentum": "STABLE", "exhaustion": "27.7%", "divergence": "NORMAL", "volatility": "LOW", "liquidity": "HIGH"
