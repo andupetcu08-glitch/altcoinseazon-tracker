@@ -2,63 +2,68 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Altcoin Tracker Pro</title>
+<title>Altcoin Rotation Tracker PRO</title>
 <style>
-body{background:#0b0e14;color:#e1e1e1;font-family:sans-serif;font-size:11px}
-tr{transition:.25s}
-tr:hover{transform:scale(1.015);box-shadow:0 0 18px rgba(168,85,247,.35);background:#11131a}
-.trend-up{color:#00ff88}
-.trend-down{color:#ef4444}
-.heat{height:6px;border-radius:4px;margin-top:4px}
-.badge{padding:2px 6px;border-radius:4px;font-size:9px}
-.div{background:#ef4444}
-.blow{background:#fbbf24;color:#000}
-.exh{background:#a855f7}
+body{background:#0b0f14;color:#eaeaea;font-family:Arial}
 table{width:100%;border-collapse:collapse}
-td,th{padding:12px;border-bottom:1px solid #222}
+th,td{padding:10px;border-bottom:1px solid #222}
+.trend-up{color:#4cff4c}
+.trend-down{color:#ff4c4c}
+.bar{height:8px;border-radius:6px;background:linear-gradient(90deg,#ff4c4c,#ffd84c,#4cff4c)}
+.badge{padding:3px 6px;border-radius:5px;font-size:12px;margin-right:4px}
+.div{background:#9b59ff}
+.blow{background:#ff5c5c}
+.exh{background:#f1c40f;color:#000}
 </style>
 </head>
 <body>
 
-<h2>Rotation Score: <span id="score"></span>% | Breadth: <span id="breadth"></span>%</h2>
+<h2>Rotation Score: <span id="rot"></span>% | Breadth: <span id="breadth"></span>% | Regime: <span id="regime"></span></h2>
 
 <table>
 <thead>
-<tr><th>COIN</th><th>PRICE</th><th>PROGRESS</th><th>HEAT</th><th>SIGNALS</th></tr>
+<tr>
+<th>COIN</th>
+<th>PRICE</th>
+<th>PROGRESS</th>
+<th>HEAT</th>
+<th>SIGNALS</th>
+</tr>
 </thead>
 <tbody id="rows"></tbody>
 </table>
 
 <script>
-async function load(){
- const d=await fetch("data.json?v="+Date.now()).then(r=>r.json())
-
- document.getElementById("score").textContent=d.rotation_score
+fetch("data.json?v="+Date.now())
+.then(r=>r.json())
+.then(d=>{
+ document.getElementById("rot").textContent=d.rotation
  document.getElementById("breadth").textContent=d.breadth
+ document.getElementById("regime").textContent=d.regime
 
- let h=""
+ let html=""
  d.coins.forEach(c=>{
-   let heatColor=`linear-gradient(90deg,#ef4444,#fbbf24,#00ff88)`
    let sig=""
-   if(c.divergence) sig+='<span class="badge div">DIV</span> '
-   if(c.blowoff) sig+='<span class="badge blow">BLOW</span> '
-   if(c.exhaustion>80) sig+='<span class="badge exh">EXH</span> '
+   if(c.divergence) sig+=`<span class="badge div">DIV</span>`
+   if(c.blowoff) sig+=`<span class="badge blow">BLOW</span>`
+   if(c.exhaustion>80) sig+=`<span class="badge exh">EXH ${c.exhaustion}</span>`
 
-   h+=`
+   html+=`
    <tr>
-    <td><b>${c.symbol}</b></td>
-    <td>$${c.price} <span class="${c.trend==='up'?'trend-up':'trend-down'}">${c.trend==='up'?'▲':'▼'} ${c.change}%</span></td>
-    <td>${c.progres}%</td>
-    <td>
-      <div class="heat" style="width:${c.heat*100}%;background:${heatColor}"></div>
-    </td>
-    <td>${sig}</td>
+     <td>${c.symbol}</td>
+     <td>$${c.price}
+      <span class="${c.trend=='up'?'trend-up':'trend-down'}">
+      ${c.trend=='up'?'▲':'▼'} ${c.change}%
+      </span>
+     </td>
+     <td>${c.progress}%</td>
+     <td><div class="bar" style="width:${c.heat*100}%"></div></td>
+     <td>${sig}</td>
    </tr>`
  })
- document.getElementById("rows").innerHTML=h
-}
-load()
-setInterval(load,86400000)
+ document.getElementById("rows").innerHTML=html
+})
 </script>
+
 </body>
 </html>
