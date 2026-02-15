@@ -52,4 +52,108 @@
         }
 
         .multiplier-col { color: #00ff88 !important; }
-        .fib-col { color: #a855f7; text-shadow: 0 0 8px rgba(168, 85, 247, 0.4); font-size:
+        .fib-col { color: #a855f7; text-shadow: 0 0 8px rgba(168, 85, 247, 0.4); font-size: 18px !important; }
+        
+        .prog-bg { width: 100%; background: #222; height: 5px; border-radius: 3px; margin-top: 10px; }
+        .prog-fill { height: 100%; border-radius: 3px; }
+        
+        .trend-up { color: #00ff88; font-size: 12px; }
+        .trend-down { color: #ef4444; font-size: 12px; }
+    </style>
+</head>
+<body>
+
+    <div class="target-panel">
+        🎯 TARGETS: BTC.D: 46% | VIX: 13.8 | USDT.D: 5.1% | URPD: 86% | ML SELL: 50% | ROTATION: 70% [cite: 2026-02-14]
+    </div>
+
+    <div class="top-nav">
+        <div class="m-card"><div class="m-label">Rotation Score</div><div id="score" class="m-val">--</div></div>
+        <div class="m-card"><div class="m-label">BTC.D LIVE</div><div id="btcd" class="m-val">--</div></div>
+        <div class="m-card"><div class="m-label">ETH / BTC</div><div id="ethbtc" class="m-val">--</div></div>
+        <div class="m-card"><div class="m-label">USDT.D LIVE</div><div id="usdtd" class="m-val">--</div></div>
+        <div class="status-box">
+            <div id="btn-h" class="st-btn">HOLD</div>
+            <div id="btn-p" class="st-btn">PREPARE</div>
+            <div id="btn-s" class="st-btn">SELL</div>
+        </div>
+    </div>
+
+    <div class="stats-main">
+        <div class="card-big"><div class="m-label">PORTOFOLIU ACTUAL (EUR)</div><div id="v" class="val-big">--</div></div>
+        <div class="card-big"><div class="m-label">POTENȚIAL PROFIT TEORETIC</div><div id="profit" class="val-big" style="color:#fbbf24; font-size: 24px;">--</div></div>
+        <div class="card-big"><div class="m-label">MULTIPLIER ACTUAL</div><div id="m" class="val-big">--</div><span id="investit" style="color:#888; font-size:10px">--</span></div>
+    </div>
+
+    <div class="macro-row" id="m1"></div>
+    <div class="macro-row" id="m2"></div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>MONEDA</th><th>CANTITATE</th><th>ENTRY</th><th>TARGET APR</th><th style="color:#00ff88">MULTIPLIER</th><th>TARGET MAI</th><th style="color:#00ff88">MULTIPLIER</th><th style="color:#a855f7">FINAL TARGET</th>
+            </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+    </table>
+
+    <script>
+        async function load() {
+            try {
+                const r = await fetch('data.json?v=' + Date.now());
+                const d = await r.json();
+
+                // 1. Score & Buttons [cite: 2026-02-14]
+                const s = d.rotation_score;
+                const scoreEl = document.getElementById('score');
+                scoreEl.textContent = s + '%';
+                scoreEl.style.color = s >= 70 ? '#00ff88' : '#ef4444';
+
+                document.getElementById('btn-h').className = 'st-btn' + (s < 50 ? ' active-h' : '');
+                document.getElementById('btn-p').className = 'st-btn' + (s >= 50 && s < 70 ? ' active-p' : '');
+                document.getElementById('btn-s').className = 'st-btn' + (s >= 70 ? ' active-s' : '');
+
+                const up = '<span class="trend-up"> ▲</span>';
+                const down = '<span class="trend-down"> ▼</span>';
+
+                // 2. Indicators
+                document.getElementById('btcd').innerHTML = d.btc_d + '%' + (d.btc_ch > 0 ? up : down);
+                document.getElementById('ethbtc').innerHTML = d.eth_btc + (d.btc_ch > 0 ? down : up);
+                document.getElementById('usdtd').innerHTML = d.usdt_d + '%' + (d.btc_ch > 0 ? down : up);
+
+                // 3. Macro Rows
+                const gen = (arr) => arr.map(x => `<div class="m-card"><div class="m-label">${x[0]}</div><div class="m-val">${x[1]}${x[2]?up:down}</div></div>`).join('');
+                document.getElementById('m1').innerHTML = gen([['TOTAL 3', d.total3, true], ['SENTIMENT', d.fng, true], ['VIX', d.vix, false], ['URPD', d.urpd, true], ['DXY', d.dxy, false], ['M2', d.m2, true]]);
+                document.getElementById('m2').innerHTML = gen([['ML SELL PROB', d.ml_prob+'%', d.ml_prob>40], ['MOMENTUM', d.momentum, true], ['EXHAUSTION', d.exhaustion, false], ['DIVERGENCE', 'NORMAL', true], ['VOLATILITY', 'LOW', false], ['LIQUIDITY', 'HIGH', true]]);
+
+                // 4. Stats
+                document.getElementById('v').textContent = '€' + d.portfolio_eur.toLocaleString();
+                document.getElementById('profit').textContent = d.profit_range;
+                document.getElementById('m').textContent = d.multiplier + 'x';
+                document.getElementById('investit').textContent = 'Investit: €' + d.investit_eur.toLocaleString();
+
+                // 5. Tabel Elite
+                let h = '';
+                d.coins.forEach(c => {
+                    h += `<tr class="data-row">
+                        <td>
+                            ${c.symbol} <small style="font-size:10px; color:${c.change>=0?'#00ff88':'#ef4444'}">(${c.change}%)</small><br>
+                            <small style="color:#555; font-size:11px;">$${c.price}</small>
+                            <div class="prog-bg"><div class="prog-fill" style="width:${c.progres}%; background:${c.progres>=80?'#00ff88':'#fbbf24'};"></div></div>
+                        </td>
+                        <td>${c.q.toLocaleString()}</td>
+                        <td>$${c.entry}</td>
+                        <td style="color:#fbbf24">$${c.apr}</td>
+                        <td class="multiplier-col">${c.x_apr}x</td>
+                        <td style="color:#fbbf24">$${c.mai}</td>
+                        <td class="multiplier-col">${c.x_mai}x</td>
+                        <td class="fib-col">$${c.fib}</td>
+                    </tr>`;
+                });
+                document.getElementById('rows').innerHTML = h;
+            } catch (e) { console.log("Updating..."); }
+        }
+        load(); setInterval(load, 30000);
+    </script>
+</body>
+</html>
