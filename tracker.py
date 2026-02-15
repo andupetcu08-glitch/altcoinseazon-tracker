@@ -2,7 +2,6 @@ import json, urllib.request
 
 INVESTITIE_TOTALA_USD = 120456.247
 
-# Am actualizat ID-urile pentru a fi 100% compatibile cu API-ul live
 PORTFOLIO = {
     "optimism": {"q": 6400, "entry": 0.773, "apr": 4.8, "mai": 5.2, "fib": 5.95},
     "notcoin": {"q": 1297106.88, "entry": 0.001291, "apr": 0.028, "mai": 0.028, "fib": 0.034},
@@ -13,7 +12,7 @@ PORTFOLIO = {
     "cartesi": {"q": 49080, "entry": 0.19076, "apr": 0.2, "mai": 0.2, "fib": 0.24},
     "immutable-x": {"q": 1551.82, "entry": 3.4205, "apr": 3.5, "mai": 4.3, "fib": 4.85},
     "sonic-3": {"q": 13449.38, "entry": 0.81633, "apr": 1.05, "mai": 1.35, "fib": 1.55},
-    "synthetix": {"q": 20073.76, "entry": 0.8773, "apr": 7.8, "mai": 9.3, "fib": 10.2}
+    "synthetix-network-token": {"q": 20073.76, "entry": 0.8773, "apr": 7.8, "mai": 9.3, "fib": 10.2}
 }
 
 def fetch(url):
@@ -39,7 +38,6 @@ def main():
     
     for cid, d in PORTFOLIO.items():
         c = p_map.get(cid, {})
-        # Fallback la entry daca API-ul nu raspunde pentru a evita 0%
         p = c.get("current_price", d["entry"])
         ch_24h = c.get("price_change_percentage_24h", 0) or 0
         
@@ -47,15 +45,12 @@ def main():
         total_val_usd_prev += ((p / (1 + (ch_24h / 100))) * d["q"])
         
         prog = min(100, max(0, ((p - d["entry"]) / (d["fib"] - d["entry"])) * 100)) if d["fib"] > d["entry"] else 0
-        
         symbol = cid.replace("-network-token","").replace("-governance-token","").split("-")[0].upper()
         if symbol == "SYNTHETIX": symbol = "SNX"
-        if symbol == "JITO": symbol = "JTO"
 
         coins_out.append({
             "symbol": symbol, "q": d["q"], "price": p, "entry": d["entry"],
-            "change": round(ch_24h, 2), "apr": d["apr"], "mai": d["mai"], "fib": d["fib"],
-            "prog": round(prog, 1)
+            "change": round(ch_24h, 2), "apr": d["apr"], "mai": d["mai"], "fib": d["fib"], "prog": round(prog, 1)
         })
 
     with open("data.json", "w") as f:
@@ -66,12 +61,9 @@ def main():
             "mult": round(total_val_usd / INVESTITIE_TOTALA_USD, 2),
             "rotation": 35,
             "btcd": round(global_data["data"]["market_cap_percentage"]["btc"], 1) if global_data else 56.5,
-            "btcd_up": True,
             "ethbtc": round(p_map.get("ethereum", {}).get("current_price", 0) / btc_usd, 4) if btc_usd > 0 else 0.029,
-            "usdtd": 7.44, "usdtd_up": False,
             "coins": coins_out,
-            "fng": "8 (Extreme Fear)", "total3": "0.98T", "ml": 18.9, "vix": 14.2, "dxy": 101.1, "m2": "21.2T",
-            "urpd": "84.2%", "exh": "27.7%", "div": "NORMAL", "vol": "LOW", "liq": "HIGH"
+            "fng": "8 (Extreme Fear)", "usdtd": 7.44, "vix": 14.2, "dxy": 101.1, "m2": "21.2T", "urpd": "84.2%"
         }, f)
 
 if __name__ == "__main__": main()
