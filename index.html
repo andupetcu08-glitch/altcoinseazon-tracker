@@ -5,53 +5,27 @@
     <title>Altcoin Tracker Elite</title>
     <style>
         body { background: #0b0e14; color: #e1e1e1; font-family: sans-serif; padding: 20px; margin: 0; }
-        
-        /* Banner Mare si Curat */
         .banner { 
-            background: #052e16; border: 2px solid #22c55e; padding: 20px; border-radius: 12px; 
-            text-align: center; font-weight: bold; margin-bottom: 25px; font-size: 18px; color: #fff;
-            box-shadow: 0 0 25px rgba(34, 197, 94, 0.2);
+            background: #052e16; border: 2px solid #22c55e; padding: 12px; border-radius: 10px; 
+            text-align: center; font-weight: bold; margin-bottom: 20px; font-size: 14px; color: #fff;
         }
-
-        .top-nav { display: grid; grid-template-columns: repeat(4, 1fr) 2fr; gap: 12px; margin-bottom: 20px; }
-        
-        /* Magnify & Glow Global */
-        .m-card, tr { transition: all 0.3s ease; }
-        .m-card:hover { transform: scale(1.05); border-color: #444; box-shadow: 0 0 20px rgba(255,255,255,0.1); }
-        
-        /* Glow special pentru randurile din tabel */
-        tbody tr:hover { 
-            background: rgba(0, 255, 136, 0.05) !important; 
-            transform: scale(1.01); 
-            box-shadow: 0 0 15px rgba(0, 255, 136, 0.1);
-        }
-
-        .m-label { font-size: 10px; color: #666; text-transform: uppercase; margin-bottom: 6px; }
+        .top-nav { display: grid; grid-template-columns: repeat(4, 1fr) 2fr; gap: 10px; margin-bottom: 20px; }
+        .m-card { background: #15171e; padding: 15px; border-radius: 10px; border: 1px solid #222; text-align: center; }
+        .m-label { font-size: 10px; color: #666; text-transform: uppercase; margin-bottom: 5px; }
         .m-val { font-size: 18px; font-weight: bold; }
-
-        .status-box { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-        .st-btn { background: #111; border: 1px solid #333; border-radius: 8px; font-size: 10px; font-weight: bold; color: #444; display: flex; align-items: center; justify-content: center; }
-        .active-h { border-color: #ef4444; color: #ef4444; box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); }
-        .active-p { border-color: #fbbf24; color: #fbbf24; box-shadow: 0 0 15px rgba(251, 191, 36, 0.4); animation: pulse 1.5s infinite; }
-        .active-s { border-color: #00ff88; color: #00ff88; box-shadow: 0 0 15px rgba(0, 255, 136, 0.4); animation: pulse 1s infinite; }
-
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
-
-        .big-stats { display: grid; grid-template-columns: 1fr 1.5fr 1fr; gap: 20px; margin-bottom: 30px; }
-        .card-big { background: #15171e; padding: 30px; border-radius: 15px; border: 1px solid #222; text-align: center; }
-        .val-big { font-size: 38px; font-weight: bold; color: #00ff88; }
-        
-        .macro-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin-bottom: 25px; }
-
+        .status-box { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+        .st-btn { background: #111; border: 1px solid #222; border-radius: 8px; font-size: 9px; color: #444; display: flex; align-items: center; justify-content: center; }
+        .active-h { border-color: #ef4444; color: #ef4444; }
+        .big-stats { display: grid; grid-template-columns: 1fr 1.5fr 1fr; gap: 20px; margin-bottom: 20px; }
+        .card-big { background: #15171e; padding: 25px; border-radius: 12px; border: 1px solid #222; text-align: center; }
+        .val-big { font-size: 32px; font-weight: bold; color: #00ff88; }
+        .macro-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 20px; }
         table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; color: #444; padding: 12px; font-size: 11px; text-transform: uppercase; }
-        td { padding: 20px 12px; border-bottom: 1px solid #15171e; font-size: 17px; font-weight: bold; }
-        
+        th { text-align: left; color: #444; padding: 10px; font-size: 11px; }
+        td { padding: 15px 10px; border-bottom: 1px solid #15171e; font-size: 15px; font-weight: bold; }
         .up { color: #00ff88; } .down { color: #ef4444; }
-        .prog-bg { width: 130px; height: 6px; background: #222; border-radius: 3px; margin-top: 8px; }
-        .prog-fill { height: 100%; transition: 0.5s; }
-        
-        .bec { width: 10px; height: 10px; background: #00ff88; border-radius: 50%; display: inline-block; margin-left: 10px; box-shadow: 0 0 10px #00ff88; animation: pulse 1s infinite; }
+        .prog-bg { width: 100px; height: 4px; background: #222; border-radius: 2px; margin-top: 5px; }
+        .prog-fill { height: 100%; background: #00ff88; }
     </style>
 </head>
 <body>
@@ -61,25 +35,17 @@
 </div>
 
 <div class="top-nav">
-    <div class="m-card"><div class="m-label">Rotation Score</div><div id="rot" class="m-val">--</div></div>
+    <div class="m-card"><div class="m-label">Rotation Score</div><div id="rot" class="m-val">35%</div></div>
     <div class="m-card"><div class="m-label">BTC.D LIVE</div><div id="btcd" class="m-val">--</div></div>
     <div class="m-card"><div class="m-label">ETH / BTC</div><div id="ethbtc" class="m-val" style="color:#a855f7">--</div></div>
     <div class="m-card"><div class="m-label">USDT.D LIVE</div><div id="usdtd" class="m-val">--</div></div>
-    <div class="status-box">
-        <div id="bh" class="st-btn">HOLD / ACCUMULATE</div>
-        <div id="bp" class="st-btn">PREPARE FOR SELL</div>
-        <div id="bs" class="st-btn">SELL / TAKE PROFIT</div>
-    </div>
+    <div class="status-box"><div class="st-btn active-h">HOLD / ACCUMULATE</div><div class="st-btn">PREPARE</div><div class="st-btn">SELL</div></div>
 </div>
 
 <div class="big-stats">
     <div class="card-big"><div class="m-label">PORTOFOLIU ACTUAL (EUR)</div><div id="veur" class="val-big">--</div></div>
-    <div class="card-big"><div class="m-label">POTENȚIAL PROFIT TEORETIC (FIB)</div><div style="color:#fbbf24; font-size:26px; font-weight:bold">€311,289 - €443,244</div></div>
-    <div class="card-big">
-        <div class="m-label">MULTIPLIER ACTUAL</div>
-        <div id="mult" class="val-big">--</div>
-        <div id="vinv" style="font-size:11px; color:#666; margin-top:5px;"></div>
-    </div>
+    <div class="card-big"><div class="m-label">POTENȚIAL PROFIT TEORETIC</div><div style="color:#fbbf24; font-size:22px; font-weight:bold">€311,289 - €443,244</div></div>
+    <div class="card-big"><div class="m-label">MULTIPLIER ACTUAL</div><div id="mult" class="val-big">--</div></div>
 </div>
 
 <div class="macro-grid" id="macro"></div>
@@ -88,8 +54,8 @@
     <thead>
         <tr>
             <th>MONEDA</th><th>CANTITATE</th><th>ENTRY</th>
-            <th>TARGET APR</th><th class="up">MULTIPLIER</th>
-            <th>TARGET MAI</th><th class="up">MULTIPLIER</th>
+            <th>TARGET APR</th><th>MULTIPLIER</th>
+            <th>TARGET MAI</th><th>MULTIPLIER</th>
             <th style="color:#a855f7">FINAL TARGET</th>
         </tr>
     </thead>
@@ -102,43 +68,25 @@ async function refresh() {
     const d = await res.json();
     const up = '<span class="up"> ▲</span>', down = '<span class="down"> ▼</span>';
 
-    // Rotation & Buttons
-    const rot = d.rotation;
-    document.getElementById('rot').textContent = rot + '%';
-    document.getElementById('bh').className = 'st-btn' + (rot < 50 ? ' active-h' : '');
-    document.getElementById('bp').className = 'st-btn' + (rot >= 50 && rot < 70 ? ' active-p' : '');
-    document.getElementById('bs').className = 'st-btn' + (rot >= 70 ? ' active-s' : '');
-
-    // Main Stats
     document.getElementById('btcd').innerHTML = d.btcd + '%' + (d.btcd > 50 ? up : down);
     document.getElementById('ethbtc').textContent = d.ethbtc;
     document.getElementById('usdtd').innerHTML = d.usdtd + '%' + (d.usdtd > 5 ? up : down);
     document.getElementById('veur').innerHTML = '€' + d.port_eur.toLocaleString() + (d.port_up ? up : down);
     document.getElementById('mult').textContent = d.mult + 'x';
-    document.getElementById('vinv').textContent = '(Investit: €' + d.invest_eur.toLocaleString() + ')';
 
-    // Macro Grid
     const mItems = [['TOTAL 3','0.98T',up],['SENTIMENT',d.fng,up],['VIX',d.vix,down],['URPD',d.urpd,up],['DXY',d.dxy,down],['M2',d.m2,up]];
     document.getElementById('macro').innerHTML = mItems.map(x => `
         <div class="m-card"><div class="m-label">${x[0]}</div><div class="m-val">${x[1]}${x[2]}</div></div>
     `).join('');
 
-    // Table with Glow Rows
-    document.getElementById('rows').innerHTML = d.coins.map(c => {
-        const bec = c.prog >= 85 ? '<span class="bec"></span>' : '';
-        const heatmap = `linear-gradient(90deg, #f97316 0%, #00ff88 ${c.prog}%)`;
-        return `
+    document.getElementById('rows').innerHTML = d.coins.map(c => `
         <tr>
-            <td>
-                ${c.symbol} <span class="${c.change>=0?'up':'down'}" style="font-size:11px">(${c.change}%)</span>
-                <div class="prog-bg"><div class="prog-fill" style="width:${c.prog}%; background:${heatmap}"></div></div>
-            </td>
+            <td>${c.symbol} <span class="${c.change>=0?'up':'down'}" style="font-size:10px">(${c.change}%)</span><div class="prog-bg"><div class="prog-fill" style="width:${c.prog}%"></div></div></td>
             <td>${c.q.toLocaleString()}</td><td>$${c.entry}</td>
             <td style="color:#fbbf24">$${c.apr}</td><td class="up">${(c.apr/c.entry).toFixed(1)}x</td>
             <td style="color:#fbbf24">$${c.mai}</td><td class="up">${(c.mai/c.entry).toFixed(1)}x</td>
-            <td style="color:#a855f7">$${c.fib} ${bec}</td>
-        </tr>`;
-    }).join('');
+            <td style="color:#a855f7">$${c.fib}</td>
+        </tr>`).join('');
 }
 refresh(); setInterval(refresh, 30000);
 </script>
