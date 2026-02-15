@@ -12,7 +12,7 @@ PORTFOLIO = {
     "cartesi": {"q": 49080, "entry": 0.19076, "apr": 0.2, "mai": 0.2, "fib": 0.24},
     "immutable-x": {"q": 1551.82, "entry": 3.4205, "apr": 3.5, "mai": 4.3, "fib": 4.85},
     "sonic-3": {"q": 13449.38, "entry": 0.81633, "apr": 1.05, "mai": 1.35, "fib": 1.55},
-    "synthetix": {"q": 20073.76, "entry": 0.8773, "apr": 7.8, "mai": 9.3, "fib": 10.2}
+    "synthetix-network-token": {"q": 20073.76, "entry": 0.8773, "apr": 7.8, "mai": 9.3, "fib": 10.2}
 }
 
 def fetch(url):
@@ -34,24 +34,22 @@ def main():
     
     for cid, d in PORTFOLIO.items():
         c = p_map.get(cid, {})
-        p = c.get("current_price", d["entry"])
-        ch_24h = c.get("price_change_percentage_24h", 0) or 0
+        p = c.get("current_price", 0)
         
-        # Securitate pentru SNX/Synthetix
-        if cid == "synthetix" and p == d["entry"]:
-            alt = fetch("https://api.coingecko.com/api/v3/simple/price?ids=synthetix-network-token&vs_currencies=usd&include_24hr_change=true")
-            if alt:
-                p = alt.get("synthetix-network-token", {}).get("usd", p)
-                ch_24h = alt.get("synthetix-network-token", {}).get("usd_24h_change", 0)
-
+        # Dacă API-ul dă greș, folosim prețul de intrare ca să nu avem 0%
+        if p == 0: p = d["entry"]
+        
+        ch_24h = c.get("price_change_percentage_24h", 0) or 0
         total_usd += (p * d["q"])
         total_usd_prev += ((p / (1 + (ch_24h / 100))) * d["q"])
+        
         prog = min(100, max(0, ((p - d["entry"]) / (d["fib"] - d["entry"])) * 100))
         
+        name = "SNX" if "synthetix" in cid else cid.replace("-governance-token","").replace("-network-token","").split("-")[0].upper()
+
         coins_out.append({
-            "symbol": "SNX" if "synthetix" in cid else cid.split("-")[0].upper(),
-            "q": d["q"], "price": p, "entry": d["entry"], "change": round(ch_24h, 2),
-            "apr": d["apr"], "mai": d["mai"], "fib": d["fib"], "prog": round(prog, 1)
+            "symbol": name, "q": d["q"], "price": p, "entry": d["entry"],
+            "change": round(ch_24h, 2), "apr": d["apr"], "mai": d["mai"], "fib": d["fib"], "prog": round(prog, 1)
         })
 
     with open("data.json", "w") as f:
