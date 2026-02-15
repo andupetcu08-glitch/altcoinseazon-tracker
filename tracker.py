@@ -31,7 +31,6 @@ def main():
     total_usd_prev = 0
     coins_out = []
     
-    # Fix Syntax Error: added .items() to iterate correctly
     for cid, d in PORTFOLIO.items():
         c = p_map.get(cid, {})
         p = c.get("current_price", d["entry"])
