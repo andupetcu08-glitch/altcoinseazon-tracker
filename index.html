@@ -5,23 +5,23 @@
     <title>Altcoin Tracker Elite</title>
     <style>
         body { background: #0b0e14; color: #e1e1e1; font-family: sans-serif; padding: 20px; margin: 0; }
-        .banner { background: #052e16; border: 1px solid #22c55e; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 20px; font-size: 13px; }
+        .banner { background: #052e16; border: 2px solid #22c55e; padding: 15px; border-radius: 12px; text-align: center; font-weight: bold; margin-bottom: 25px; }
         .top-nav { display: grid; grid-template-columns: repeat(4, 1fr) 2fr; gap: 10px; margin-bottom: 20px; }
-        .m-card { background: #15171e; padding: 15px; border-radius: 8px; border: 1px solid #222; text-align: center; }
-        .m-label { font-size: 9px; color: #666; text-transform: uppercase; margin-bottom: 5px; letter-spacing: 0.5px; }
-        .m-val { font-size: 17px; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 5px; }
-        .status-box { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
-        .st-btn { background: #111; border: 1px solid #333; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: #444; text-align: center; padding: 5px; }
-        .active-h { border-color: #ef4444; color: #ef4444; box-shadow: 0 0 10px rgba(239, 68, 68, 0.15); }
+        .m-card { background: #1a1c24; padding: 15px; border-radius: 10px; border: 1px solid #333; text-align: center; position: relative; }
+        .m-label { font-size: 9px; color: #888; text-transform: uppercase; margin-bottom: 5px; }
+        .m-val { font-size: 18px; font-weight: bold; }
+        .status-box { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+        .st-btn { background: #111; border: 1px solid #222; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; color: #444; }
+        .active-h { border-color: #ef4444; color: #ef4444; box-shadow: 0 0 10px rgba(239, 68, 68, 0.2); }
         .active-p { border-color: #fbbf24; color: #fbbf24; }
         .active-s { border-color: #00ff88; color: #00ff88; }
-        .big-stats { display: grid; grid-template-columns: 1fr 1.5fr 1fr; gap: 15px; margin-bottom: 20px; }
-        .card-big { background: #15171e; padding: 25px; border-radius: 12px; border: 1px solid #222; text-align: center; }
-        .val-big { font-size: 34px; font-weight: bold; color: #00ff88; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .big-stats { display: grid; grid-template-columns: 1fr 1.5fr 1fr; gap: 20px; margin-bottom: 25px; }
+        .card-big { background: #1a1c24; padding: 30px; border-radius: 15px; border: 1px solid #444; text-align: center; }
+        .val-big { font-size: 38px; font-weight: bold; color: #00ff88; }
         .macro-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 20px; }
         table { width: 100%; border-collapse: collapse; }
-        td { padding: 16px; border-bottom: 1px solid #15171e; font-size: 15px; font-weight: bold; }
-        th { text-align: left; color: #444; padding: 12px; font-size: 10px; text-transform: uppercase; }
+        td { padding: 20px; border-bottom: 1px solid #1a1c24; font-size: 16.5px; font-weight: bold; }
+        th { text-align: left; color: #555; padding: 15px; font-size: 11px; }
         .up { color: #00ff88; } .down { color: #ef4444; }
     </style>
 </head>
@@ -31,20 +31,20 @@
 
 <div class="top-nav">
     <div class="m-card"><div class="m-label">Rotation Score</div><div id="rot" class="m-val">--</div></div>
-    <div class="m-card"><div class="m-label">BTC Dominance</div><div id="btcd" class="m-val">--</div></div>
+    <div class="m-card"><div class="m-label">BTC.D LIVE</div><div id="btcd" class="m-val">--</div></div>
     <div class="m-card"><div class="m-label">ETH / BTC</div><div id="ethbtc" class="m-val" style="color:#a855f7">--</div></div>
-    <div class="m-card"><div class="m-label">USDT.D Live</div><div id="usdtd" class="m-val">--</div></div>
+    <div class="m-card"><div class="m-label">USDT.D LIVE</div><div id="usdtd" class="m-val">--</div></div>
     <div class="status-box">
-        <div id="bh" class="st-btn">HOLD / ACCUMULATE</div>
-        <div id="bp" class="st-btn">PREPARE FOR SELL</div>
-        <div id="bs" class="st-btn">SELL / TAKE PROFIT</div>
+        <div id="bh" class="st-btn">HOLD</div>
+        <div id="bp" class="st-btn">PREPARE</div>
+        <div id="bs" class="st-btn">SELL</div>
     </div>
 </div>
 
 <div class="big-stats">
     <div class="card-big"><div class="m-label">PORTOFOLIU ACTUAL (EUR)</div><div id="veur" class="val-big">--</div></div>
-    <div class="card-big"><div class="m-label">POTENȚIAL PROFIT TEORETIC (FIB)</div><div style="color:#fbbf24; font-size:22px; font-weight:bold">€311,289 - €443,244</div></div>
-    <div class="card-big"><div class="m-label">MULTIPLIER ACTUAL</div><div id="mult" class="val-big">--</div><div id="inv" style="font-size:9px; color:#444"></div></div>
+    <div class="card-big"><div class="m-label">POTENȚIAL PROFIT TEORETIC</div><div style="color:#fbbf24; font-size:24px; font-weight:bold">€311,289 - €443,244</div></div>
+    <div class="card-big"><div class="m-label">MULTIPLIER ACTUAL</div><div id="mult" class="val-big">--</div><div id="inv" style="font-size:10px; color:#555"></div></div>
 </div>
 
 <div class="macro-grid" id="macro"></div>
@@ -55,12 +55,12 @@
 </table>
 
 <script>
-async function refresh() {
-    const res = await fetch('data.json?v=' + Date.now());
-    const d = await res.json();
-    const up = '<span class="up">▲</span>', down = '<span class="down">▼</span>';
+async function load() {
+    const r = await fetch('data.json?v=' + Date.now());
+    const d = await r.json();
+    const up = '<span class="up"> ▲</span>', down = '<span class="down"> ▼</span>';
 
-    // Rotation logic
+    // Rotation & Buttons
     const rotEl = document.getElementById('rot');
     rotEl.textContent = d.rotation + '%';
     rotEl.style.color = d.rotation >= 70 ? '#00ff88' : '#ef4444';
@@ -68,7 +68,7 @@ async function refresh() {
     document.getElementById('bp').className = 'st-btn' + (d.rotation >= 50 && d.rotation < 70 ? ' active-p' : '');
     document.getElementById('bs').className = 'st-btn' + (d.rotation >= 70 ? ' active-s' : '');
 
-    // Stats
+    // Top Indicators cu săgeți
     document.getElementById('btcd').innerHTML = d.btcd + '%' + (d.btcd_up ? up : down);
     document.getElementById('ethbtc').textContent = d.ethbtc;
     document.getElementById('usdtd').innerHTML = d.usdtd + '%' + (d.usdtd_up ? up : down);
@@ -76,19 +76,19 @@ async function refresh() {
     document.getElementById('mult').textContent = d.mult + 'x';
     document.getElementById('inv').textContent = 'Investit: €' + d.invest_eur.toLocaleString();
 
-    // Macro
-    const mItems = [['TOTAL 3', d.total3, up],['SENTIMENT', d.fng, up],['VIX INDEX', d.vix, down],['URPD PROFIT', d.urpd, up],['DXY INDEX', d.dxy, down],['M2 SUPPLY', d.m2, up],['ML SELL PROB', d.ml+'%', down],['MOMENTUM','STABLE', up],['EXHAUSTION', d.exh, down],['DIVERGENCE','NORMAL', up],['VOLATILITY','LOW', down],['LIQUIDITY','HIGH', up]];
+    // Macro Grid
+    const mItems = [['TOTAL 3', d.total3, up],['SENTIMENT', d.fng, up],['VIX', d.vix, down],['URPD', d.urpd, up],['DXY', d.dxy, down],['M2', d.m2, up],['ML SELL', d.ml+'%', down],['MOMENTUM','STABLE', up],['EXHAUSTION', d.exh, down],['DIVERGENCE','NORMAL', up],['VOLATILITY','LOW', down],['LIQUIDITY','HIGH', up]];
     document.getElementById('macro').innerHTML = mItems.map(x => `<div class="m-card"><div class="m-label">${x[0]}</div><div class="m-val">${x[1]}${x[2]}</div></div>`).join('');
 
     // Table
     document.getElementById('rows').innerHTML = d.coins.map(c => `
-        <tr><td>${c.symbol} <span class="${c.change>=0?'up':'down'}" style="font-size:10px">(${c.change}%)</span></td>
+        <tr><td>${c.symbol} <small class="${c.change>=0?'up':'down'}">(${c.change}%)</small></td>
         <td>${c.q.toLocaleString()}</td><td>$${c.entry}</td><td style="color:#fbbf24">$${c.apr}</td>
         <td class="up">${(c.apr/c.entry).toFixed(1)}x</td><td style="color:#fbbf24">$${c.mai}</td>
         <td class="up">${(c.mai/c.entry).toFixed(1)}x</td><td style="color:#a855f7">$${c.fib}</td></tr>
     `).join('');
 }
-refresh(); setInterval(refresh, 30000);
+load(); setInterval(load, 30000);
 </script>
 </body>
 </html>
