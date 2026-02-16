@@ -25,24 +25,24 @@ def main():
     ids = ",".join(list(PORTFOLIO.keys()) + ["bitcoin", "ethereum", "tether"])
     prices = fetch(f"https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids={ids}")
     global_data = fetch("https://api.coingecko.com/api/v3/global")
-    
+    fng_data = fetch("https://api.alternative.me/fng/")
+
     if not prices or not global_data: return
     p_map = {c["id"]: c for c in prices}
     total_mcap = global_data["data"]["total_market_cap"]["usd"]
 
-    # --- Calcule Macro ---
-    btc_mcap = p_map.get("bitcoin", {}).get("market_cap", 0)
-    btcd = round((btc_mcap / total_mcap) * 100, 2) # BTC.D Live
-    eth_p = p_map.get("ethereum", {}).get("current_price", 1)
-    btc_p = p_map.get("bitcoin", {}).get("current_price", 1)
-    
-    # --- Calcule Portofoliu ---
+    # Dominante Live
+    btcd = round((p_map.get("bitcoin", {}).get("market_cap", 0) / total_mcap) * 100, 2)
+    usdtd = round((p_map.get("tether", {}).get("market_cap", 0) / total_mcap) * 100, 2)
+    ethbtc = round(p_map.get("ethereum", {}).get("current_price", 1) / p_map.get("bitcoin", {}).get("current_price", 1), 4)
+    fng_val = int(fng_data["data"][0]["value"]) if fng_data else 30
+
     total_usd = 0
     coins_out = []
     for cid, d in PORTFOLIO.items():
         c = p_map.get(cid, {})
         p = c.get("current_price", d["entry"])
-        if cid == "synthetix-network-token" and (p > 0.8 or p == d["entry"]): p = 0.294 # SNX Fix
+        if "synthetix" in cid and (p > 0.8 or p == d["entry"]): p = 0.294 # SNX Fix
         
         total_usd += (p * d["q"])
         coins_out.append({
@@ -52,18 +52,17 @@ def main():
             "apr": d["apr"], "mai": d["mai"], "fib": d["fib"]
         })
 
-    # Rotation Score spre 70% [cite: 2026-02-14]
-    rot_score = round(max(0, min(100, (62 - btcd) * 5 + 20)), 0)
+    port_eur = total_usd * 0.92
+    rot_score = round(max(0, min(100, (62 - btcd) * 5 + (fng_val / 2))), 0)
 
     with open("data.json", "w") as f:
         json.dump({
-            "port_eur": round(total_usd * 0.92, 0),
+            "port_eur": round(port_eur, 0),
             "invest_eur": INVEST_EUR,
-            "mult": round((total_usd * 0.92) / INVEST_EUR, 2),
+            "mult": round(port_eur / INVEST_EUR, 2), # Multiplier Actual
             "rotation": int(rot_score),
-            "btcd": btcd,
-            "ethbtc": round(eth_p / btc_p, 4),
-            "coins": coins_out
+            "btcd": btcd, "ethbtc": ethbtc, "usdtd": usdtd,
+            "fng": fng_val, "coins": coins_out
         }, f)
 
 if __name__ == "__main__": main()
