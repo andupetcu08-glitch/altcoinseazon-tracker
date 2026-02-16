@@ -1,7 +1,7 @@
 import json, urllib.request
 
-# Investitia initiala conform datelor tale
-INVEST_EUR = 101235.0 
+# DATE REALE PORTOFOLIU (Sursa ta)
+INVESTITIE_TOTALA_USD = 120456.247
 
 PORTFOLIO = {
     "optimism": {"q": 6400, "entry": 0.773, "apr": 4.8, "mai": 5.2, "fib": 5.95},
@@ -16,83 +16,88 @@ PORTFOLIO = {
     "synthetix-network-token": {"q": 20073.76, "entry": 0.8773, "apr": 7.8, "mai": 9.3, "fib": 10.2}
 }
 
-def fetch_data(url):
+def fetch(url):
     try:
         req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
         with urllib.request.urlopen(req, timeout=15) as r: return json.loads(r.read().decode())
     except: return None
 
-def get_yahoo(ticker):
-    try:
-        url = f"https://query1.finance.yahoo.com/v8/finance/chart/{ticker}"
-        data = fetch_data(url)
-        return data['chart']['result'][0]['meta']['regularMarketPrice']
-    except: return None
+def calculate_rotation_score(btc_d, eth_btc, fng, usdt_d, exhaustion):
+    score = 5 
+    if btc_d < 50: score += 25
+    elif btc_d <= 55: score += 15
+    else: score += 5
+    if eth_btc > 0.05: score += 25
+    elif eth_btc >= 0.04: score += 15
+    else: score += 5
+    if fng > 75: score += 20
+    elif fng >= 45: score += 10
+    else: score += 5
+    if usdt_d < 5.5: score += 20
+    elif usdt_d <= 7.5: score += 10
+    else: score += 0
+    if exhaustion < 30: score += 5
+    return min(100, score)
 
 def main():
-    p_api = "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=" + ",".join(list(PORTFOLIO.keys()) + ["bitcoin", "ethereum", "tether"])
-    prices = fetch_data(p_api) or []
-    global_data = fetch_data("https://api.coingecko.com/api/v3/global")
-    fng_data = fetch_data("https://api.alternative.me/fng/")
+    ids = list(PORTFOLIO.keys()) + ["bitcoin", "ethereum", "tether"]
+    prices = fetch(f"https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids={','.join(ids)}&price_change_percentage=24h")
+    btc_eur_data = fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=eur")
+    global_api = fetch("https://api.coingecko.com/api/v3/global")
+    fng_api = fetch("https://api.alternative.me/fng/")
     
-    p_map = {c["id"]: c for c in prices}
-    vix = get_yahoo("^VIX") or 14.2
-    dxy = get_yahoo("DX-Y.NYB") or 101.1
-    m2_val = "21.5T" 
+    p_map = {c["id"]: c for c in prices} if prices else {}
+    btc_usd = p_map.get("bitcoin", {}).get("current_price", 1)
+    btc_ch = p_map.get("bitcoin", {}).get("price_change_percentage_24h", 0) or 0
+    btc_eur = btc_eur_data.get("bitcoin", {}).get("eur", 1) if btc_eur_data else 1
+    usd_eur_live = btc_eur / btc_usd if btc_usd > 0 else 0.92
 
-    btcd = round(global_data["data"]["market_cap_percentage"]["btc"], 2) if global_data else 56.37
-    total_cap = global_data["data"]["total_market_cap"]["usd"] if global_data else 1
-    usdt_cap = p_map.get("tether", {}).get("market_cap", 0)
-    usdtd = round((usdt_cap / total_cap) * 100, 2) if usdt_cap > 0 else 7.63
-    
-    fng_val = fng_data["data"][0]["value"] if fng_data else "12"
-    fng_txt = fng_data["data"][0]["value_classification"] if fng_data else "Extreme Fear"
-
-    btc_p = p_map.get("bitcoin", {}).get("current_price", 1)
+    btc_d = round(global_api["data"]["market_cap_percentage"]["btc"], 1) if global_api else 56.4
     eth_p = p_map.get("ethereum", {}).get("current_price", 0)
-
-    total_usd, pot_min_usd, pot_max_usd = 0, 0, 0
-    coins_out = []
+    eth_btc = round(eth_p / btc_usd, 4) if btc_usd > 0 else 0.0299
+    fng_val = int(fng_api["data"][0]["value"]) if fng_api else 45
     
+    usdt_d = 7.44
+    exhaustion = 27.7
+    ml_prob = 18.9
+    
+    rotation_score = calculate_rotation_score(btc_d, eth_btc, fng_val, usdt_d, exhaustion)
+
+    results = []
+    total_val_usd = 0
+    total_val_apr_usd = 0
+    total_val_fib_usd = 0
+
     for cid, d in PORTFOLIO.items():
         c = p_map.get(cid, {})
-        p = c.get("current_price", d["entry"])
-        if cid == "synthetix-network-token": p = 0.294 # Fix manual SNX
-
-        ch = c.get("price_change_percentage_24h", 0) or 0
-        total_usd += (p * d["q"])
-        pot_min_usd += (d["q"] * d["apr"])
-        pot_max_usd += (d["q"] * d["fib"])
+        p = c.get("current_price", 0)
+        if p == 0: p = d["entry"] 
         
-        prog = min(100, max(0, ((p - d["entry"]) / (d["fib"] - d["entry"])) * 100))
-        name = "SNX" if "synthetix" in cid else cid.replace("-governance-token","").replace("-network-token","").split("-")[0].upper()
+        ch_24h = c.get("price_change_percentage_24h", 0) or 0
+        total_val_usd += (p * d["q"])
+        total_val_apr_usd += (d["apr"] * d["q"])
+        total_val_fib_usd += (d["fib"] * d["q"])
+        
+        prog = ((p - d["entry"]) / (d["fib"] - d["entry"])) * 100 if d["fib"] > d["entry"] else 0
+        symbol = cid.upper().replace("-NETWORK-TOKEN","").replace("-GOVERNANCE-TOKEN","").replace("-3","")
+        if "JITO" in symbol: symbol = "JTO"
 
-        coins_out.append({
-            "symbol": name, "q": d["q"], "price": p, "entry": d["entry"],
-            "change": round(ch, 2), "apr": d["apr"], "mai": d["mai"], "fib": d["fib"], "prog": round(prog, 1)
+        results.append({
+            "symbol": symbol, "q": d["q"], "entry": d["entry"], "progres": round(max(0, min(100, prog)), 1),
+            "price": f"{p:.4f}", "change": round(ch_24h, 2), "apr": d["apr"], "mai": d["mai"], "fib": d["fib"],
+            "x_apr": round(d["apr"] / d["entry"], 1), "x_mai": round(d["mai"] / d["entry"], 1)
         })
-
-    # Calcul Rotation Score
-    rot_score = round(max(0, min(100, (65 - btcd) * 6 + (int(fng_val) / 3))), 0)
 
     with open("data.json", "w") as f:
         json.dump({
-            "port_eur": round(total_usd * 0.92, 0),
-            "invest_eur": INVEST_EUR,
-            "mult": round((total_usd * 0.92) / INVEST_EUR, 2),
-            "pot_min_eur": round(pot_min_usd * 0.92, 0),
-            "pot_max_eur": round(pot_max_usd * 0.92, 0),
-            "rotation": rot_score, 
-            "btcd": btcd, 
-            "ethbtc": round(eth_p / btc_p, 4) if btc_p > 0 else 0,
-            "usdtd": f"{usdtd}%", 
-            "fng": f"{fng_val} ({fng_txt})",
-            "vix": round(vix, 2), 
-            "dxy": round(dxy, 2), 
-            "m2": m2_val, 
-            "urpd": "84.2%",
-            "coins": coins_out
+            "btc_d": btc_d, "btc_ch": btc_ch, "eth_btc": eth_btc, "rotation_score": rotation_score,
+            "portfolio_eur": round(total_val_usd * usd_eur_live, 0),
+            "profit_range": f"€{((total_val_apr_usd - INVESTITIE_TOTALA_USD) * usd_eur_live):,.0f} - €{((total_val_fib_usd - INVESTITIE_TOTALA_USD) * usd_eur_live):,.0f}",
+            "investit_eur": round(INVESTITIE_TOTALA_USD * usd_eur_live, 0),
+            "multiplier": round((total_val_usd * usd_eur_live) / (INVESTITIE_TOTALA_USD * usd_eur_live), 2),
+            "coins": results, "vix": 21.2, "dxy": 97.11, "total3": "0.98T", 
+            "fng": f"{fng_val} (Neutral)", "usdt_d": usdt_d, "urpd": "84.2%", "m2": "21.2T",
+            "ml_prob": ml_prob, "momentum": "STABLE", "exhaustion": exhaustion
         }, f)
 
-if __name__ == "__main__":
-    main()
+if __name__ == "__main__": main()
