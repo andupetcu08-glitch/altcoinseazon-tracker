@@ -2,28 +2,51 @@
 <html lang="ro">
 <head>
     <meta charset="UTF-8">
-    <title>Altcoin Tracker Ultimate - FINAL STABLE</title>
+    <title>Altcoin Tracker - Glow Only Fix</title>
     <style>
         body { background: #0b0e14; color: #e1e1e1; font-family: sans-serif; padding: 15px; font-size: 11px; margin: 0; }
-        .target-panel { background: #052e16; border: 1px solid #22c55e; padding: 12px; border-radius: 8px; margin-bottom: 20px; text-align: center; font-size: 14px; font-weight: 900; color: #fff; text-transform: uppercase; }
+        
+        /* BANNER */
+        .target-panel { 
+            background: #052e16; border: 1px solid #22c55e; padding: 12px; border-radius: 8px; 
+            margin-bottom: 20px; text-align: center; font-size: 14px; font-weight: 900; color: #fff; 
+            text-transform: uppercase;
+        }
+        
         .top-nav { display: grid; grid-template-columns: repeat(4, 1fr) 1.5fr; gap: 10px; margin-bottom: 20px; }
         .m-card, .st-btn, .card-big, .macro-row > div { transition: all 0.2s ease; border: 1px solid #333; background: #1a1c24; border-radius: 6px; }
-        .m-card:hover, .card-big:hover, .macro-row > div:hover, .st-btn:hover { transform: scale(1.02); border-color: #00ff88 !important; box-shadow: 0 0 20px rgba(0, 255, 136, 0.3); }
+        
+        /* EFECT MAGNIFY PE CASETE */
+        .m-card:hover, .card-big:hover, .macro-row > div:hover, .st-btn:hover { 
+            transform: scale(1.02); border-color: #00ff88 !important; z-index: 10;
+        }
+
         .m-card { padding: 10px; text-align: center; min-height: 60px; display: flex; flex-direction: column; justify-content: center; }
         .m-label { font-size: 10px; color: #999; text-transform: uppercase; margin-bottom: 5px; }
         .m-val { font-weight: bold; font-size: 18px; }
+        
         .status-box { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
         .st-btn { display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 900; color: #444; text-transform: uppercase; }
         .active-h { border-color: #ef4444 !important; color: #ef4444 !important; background: rgba(239, 68, 68, 0.1); }
         .active-s { border-color: #00ff88 !important; color: #00ff88 !important; background: rgba(0, 255, 136, 0.1); }
+        
         .stats-main { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px; }
         .card-big { padding: 15px; text-align: center; }
         .val-big { font-size: 26px; font-weight: bold; color: #00ff88; }
+        
         .macro-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 12px; }
-        .glow-table { background: #1a1c24; border-radius: 10px; border: 1px solid #333; box-shadow: 0 0 30px rgba(0, 255, 136, 0.1); overflow: hidden; }
+
+        /* MODIFICAREA CERUTA: GLOW PE TABEL */
+        .table-container { 
+            background: #1a1c24; border-radius: 10px; border: 1px solid #333; 
+            box-shadow: 0 0 25px rgba(0, 255, 136, 0.15); /* Glow verde neon */
+            overflow: hidden; 
+        }
+        
         table { width: 100%; border-collapse: collapse; font-size: 14px; }
         th { text-align: left; color: #999; font-size: 11px; padding: 15px 10px; border-bottom: 2px solid #333; }
         td { padding: 15px 10px; border-bottom: 1px solid #222; }
+        
         .prog-bg { width: 100%; background: #222; height: 4px; border-radius: 2px; margin-top: 6px; }
         .prog-bar { height: 100%; border-radius: 2px; }
         .up { color: #00ff88; font-weight: bold; margin-left: 4px; }
@@ -44,7 +67,7 @@
     <div id="macro1" class="macro-row"></div>
     <div id="macro2" class="macro-row"></div>
 
-    <div class="glow-table">
+    <div class="table-container">
         <table>
             <thead>
                 <tr>
@@ -61,7 +84,7 @@
     <script>
         function arrow(v, t, inv = false) {
             let n = parseFloat(v);
-            if (isNaN(n)) return '<span class="up">▲</span>';
+            if (isNaN(n)) return ''; 
             return (inv ? n < t : n > t) ? '<span class="up">▲</span>' : '<span class="down">▼</span>';
         }
 
@@ -86,13 +109,8 @@
                 const r1 = [['TOTAL 3', d.total3, 1.2], ['SENTIMENT', d.fng, 75], ['VIX INDEX', d.vix, 13.8, true], ['URPD PROFIT', d.urpd+'%', 86], ['DXY INDEX', d.dxy, 100, true], ['M2 SUPPLY', d.m2, 21]];
                 document.getElementById('macro1').innerHTML = r1.map(x => `<div class="m-card"><span class="m-label">${x[0]}</span><div class="m-val">${x[1]}${arrow(x[1], x[2], x[3])}</div></div>`).join('');
 
-                document.getElementById('macro2').innerHTML = `
-                    <div class="m-card"><span class="m-label">ML SELL PROB</span><div class="m-val">${d.ml_prob}% ${arrow(d.ml_prob, 50)}</div></div>
-                    <div class="m-card"><span class="m-label">MOMENTUM</span><div class="m-val">${d.momentum || 'STABLE'} <span class="up">▲</span></div></div>
-                    <div class="m-card"><span class="m-label">EXHAUSTION</span><div class="m-val">${d.exhaustion}% ${arrow(d.exhaustion, 30, true)}</div></div>
-                    <div class="m-card"><span class="m-label">DIVERGENCE</span><div class="m-val">${d.divergence || 'NORMAL'} <span class="up">▲</span></div></div>
-                    <div class="m-card"><span class="m-label">VOLATILITY</span><div class="m-val">${d.volatility || 'LOW'} <span class="up">▲</span></div></div>
-                    <div class="m-card"><span class="m-label">LIQUIDITY</span><div class="m-val">${d.liquidity || 'HIGH'} <span class="up">▲</span></div></div>`;
+                const r2 = [['ML SELL PROB', d.ml_prob+'%', 50], ['MOMENTUM', d.momentum, 0], ['EXHAUSTION', d.exhaustion+'%', 30, true], ['DIVERGENCE', d.divergence, 0], ['VOLATILITY', d.volatility, 0], ['LIQUIDITY', d.liquidity, 0]];
+                document.getElementById('macro2').innerHTML = r2.map(x => `<div class="m-card"><span class="m-label">${x[0]}</span><div class="m-val">${x[1]}</div></div>`).join('');
 
                 document.getElementById('rows').innerHTML = d.coins.map(c => {
                     const p = Math.min(Math.max(((parseFloat(c.price)-parseFloat(c.entry))/(parseFloat(c.fib)-parseFloat(c.entry)))*100,0),100);
