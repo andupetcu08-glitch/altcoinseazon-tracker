@@ -11,82 +11,83 @@
             box-shadow: 0 0 20px rgba(34, 197, 94, 0.2);
         }
         .top-nav { display: grid; grid-template-columns: repeat(4, 1fr) 1.5fr; gap: 10px; margin-bottom: 20px; }
-        .m-card { background: #1a1c24; padding: 12px; border-radius: 8px; border: 1px solid #333; text-align: center; transition: 0.3s; }
-        .m-card:hover { border-color: #666; transform: translateY(-2px); }
+        .m-card { background: #1a1c24; padding: 12px; border-radius: 8px; border: 1px solid #333; text-align: center; }
         .m-label { font-size: 8px; color: #888; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 1px; }
         .m-val { font-weight: bold; font-size: 16px; }
         #ethbtc { color: #a855f7; text-shadow: 0 0 10px rgba(168, 85, 247, 0.8); }
         .status-box { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
         .st-btn { background: #111; border: 1px solid #222; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: #333; }
-        .active-h { border-color: #ef4444 !important; color: #ef4444 !important; box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); }
-        .active-p { border-color: #fbbf24 !important; color: #fbbf24 !important; box-shadow: 0 0 15px rgba(251, 191, 36, 0.4); }
-        .active-s { border-color: #00ff88 !important; color: #00ff88 !important; box-shadow: 0 0 15px rgba(0, 255, 136, 0.4); }
+        .active-h { border-color: #ef4444 !important; color: #ef4444 !important; }
+        .active-s { border-color: #00ff88 !important; color: #00ff88 !important; }
         .stats-main { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px; }
         .card-big { background: #1a1c24; padding: 25px; border-radius: 12px; border: 1px solid #444; text-align: center; }
         .val-big { font-size: 32px; font-weight: bold; color: #00ff88; }
+        /* Marire text Multiplier la 1.5x conform cerintei */
+        .multiplier-val { font-size: 48px !important; color: #00ff88; font-weight: bold; }
         .macro-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 15px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        tr { transition: all 0.3s ease; }
-        tr:hover { background: rgba(0, 255, 136, 0.05); transform: scale(1.01); box-shadow: 0 0 20px rgba(0, 255, 136, 0.1); z-index: 10; position: relative; }
+        table { width: 100%; border-collapse: collapse; }
         th { text-align: left; color: #555; font-size: 9px; padding: 15px; border-bottom: 2px solid #222; }
         td { padding: 15px; border-bottom: 1px solid #1a1c24; }
-        .prog-bg { width: 100%; background: #222; height: 4px; border-radius: 2px; margin-top: 8px; }
-        .prog-fill { height: 100%; border-radius: 2px; }
-        .x-col { color: #00ff88 !important; font-weight: bold; font-size: 10px; }
-        .fib-col { font-weight: bold; color: #a855f7; border-left: 1px solid #222; text-shadow: 0 0 5px rgba(168, 85, 247, 0.3); }
-        .trend-up { color: #00ff88; font-size: 10px; }
-        .trend-down { color: #ef4444; font-size: 10px; }
+        .x-col { color: #00ff88; font-weight: bold; }
     </style>
 </head>
 <body>
-    <div class="target-panel">🎯 TARGETS: BTC.D: 46% | VIX: 13.8 | USDT.D: 5.1% | URPD Supply: 86% | ROTATION SCORE: 70%</div>
+    <div class="target-panel">🎯 TARGETS: BTC.D: 46% | VIX: 13.8 | USDT.D: 5.1% | URPD Supply: 86% | ML SELL Prob Target: 50% | ROTATION SCORE: 70%</div>
+    
     <div class="top-nav">
         <div class="m-card"><div class="m-label">Rotation Score</div><div id="score" class="m-val">--</div></div>
         <div class="m-card"><div class="m-label">BTC.D LIVE</div><div id="btcd" class="m-val">--</div></div>
-        <div class="m-card"><div class="m-label">ETH / BTC</div><div id="ethbtc" class="m-val">--</div></div>
-        <div class="m-card"><div class="m-label">USDT.D LIVE</div><div id="usdtd" class="m-val">--</div></div>
-        <div class="status-box"><div id="btn-h" class="st-btn">HOLD</div><div id="btn-p" class="st-btn">PREPARE</div><div id="btn-s" class="st-btn">SELL</div></div>
+        <div class="m-card"><div class="m-label">ETH / BTC</div><div id="ethbtc" class="m-val">0.0292</div></div>
+        <div class="m-card"><div class="m-label">USDT.D LIVE</div><div id="usdtd" class="m-val">7.44%</div></div>
+        <div class="status-box"><div id="btn-h" class="st-btn">HOLD</div><div class="st-btn">PREPARE</div><div id="btn-s" class="st-btn">SELL</div></div>
     </div>
+
     <div class="stats-main">
         <div class="card-big"><div class="m-label">PORTOFOLIU ACTUAL (EUR)</div><div id="v" class="val-big">--</div></div>
         <div class="card-big"><div class="m-label">POTENȚIAL PROFIT TEORETIC</div><div id="profit" class="val-big" style="color:#fbbf24; font-size: 24px;">--</div></div>
-        <div class="card-big"><div class="m-label">MULTIPLIER ACTUAL</div><div id="m" class="val-big">--</div><span id="investit" style="color:#888; font-size:9px">--</span></div>
+        <div class="card-big"><div class="m-label">MULTIPLIER ACTUAL</div><div id="m" class="multiplier-val">--</div><span id="investit" style="color:#888; font-size:9px">--</span></div>
     </div>
+
     <div class="macro-row" id="row-macro-1"></div>
     <div class="macro-row" id="row-macro-2"></div>
+
     <table>
         <thead>
-            <tr><th>MONEDA</th><th>CANTITATE</th><th>ENTRY</th><th>TARGET APR</th><th style="color:#00ff88">X</th><th>TARGET MAI</th><th style="color:#00ff88">X</th><th style="color:#a855f7">FINAL TARGET PRICE</th></tr>
+            <tr><th>MONEDA</th><th>CANTITATE</th><th>ENTRY</th><th>TARGET APR</th><th style="color:#00ff88">MULTIPLIER</th><th>TARGET MAI</th><th style="color:#00ff88">MULTIPLIER</th><th style="color:#a855f7">FINAL TARGET PRICE</th></tr>
         </thead>
         <tbody id="rows"></tbody>
     </table>
+
     <script>
         async function load() {
             const r = await fetch('data.json?v=' + Date.now());
             const d = await r.json();
             const s = d.rotation_score;
-            const scoreEl = document.getElementById('score');
-            scoreEl.textContent = s + '%';
-            scoreEl.style.color = s >= 70 ? '#00ff88' : '#ef4444';
-            document.getElementById('btn-h').className = 'st-btn' + (s < 50 ? ' active-h' : '');
-            document.getElementById('btn-p').className = 'st-btn' + (s >= 50 && s < 70 ? ' active-p' : '');
+            document.getElementById('score').textContent = s + '%';
+            document.getElementById('score').style.color = s >= 70 ? '#00ff88' : '#ef4444';
+            document.getElementById('btcd').textContent = d.btc_d + '%';
+            document.getElementById('btn-h').className = 'st-btn' + (s < 70 ? ' active-h' : '');
             document.getElementById('btn-s').className = 'st-btn' + (s >= 70 ? ' active-s' : '');
-            const up = '<span class="trend-up"> ▲</span>', down = '<span class="trend-down"> ▼</span>';
-            document.getElementById('btcd').innerHTML = d.btc_d + '%' + (d.btc_ch > 0 ? up : down);
-            document.getElementById('ethbtc').innerHTML = d.eth_btc + (d.btc_ch > 0 ? down : up);
-            document.getElementById('usdtd').innerHTML = d.usdt_d + '%' + (d.btc_ch > 0 ? down : up);
-            const m1 = [['TOTAL 3', d.total3, d.btc_ch > 0], ['SENTIMENT', d.fng, d.btc_ch > 0], ['VIX INDEX', d.vix, d.btc_ch < 0], ['URPD PROFIT', d.urpd, d.btc_ch > 0], ['DXY INDEX', d.dxy, d.btc_ch < 0], ['M2 SUPPLY', d.m2, true]];
-            const m2 = [['ML SELL PROB', d.ml_prob + '%', d.btc_ch > 0], ['MOMENTUM', d.momentum, true], ['EXHAUSTION', d.exhaustion + '%', d.btc_ch > 0], ['DIVERGENCE', 'NORMAL', true], ['VOLATILITY', 'LOW', false], ['LIQUIDITY', 'HIGH', true]];
-            const genMacro = (arr) => arr.map(m => `<div class="m-card"><div class="m-label">${m[0]}</div><div class="m-val">${m[1]}${m[2] ? up : down}</div></div>`).join('');
+            
+            const m1 = [['TOTAL 3', d.total3, false], ['SENTIMENT', d.fng, false], ['VIX INDEX', d.vix, true], ['URPD PROFIT', d.urpd, false], ['DXY INDEX', d.dxy, true], ['M2 SUPPLY', d.m2, true]];
+            const m2 = [['ML SELL PROB', d.ml_prob + '%', false], ['MOMENTUM', d.momentum, true], ['EXHAUSTION', d.exhaustion + '%', false], ['DIVERGENCE', 'NORMAL', true], ['VOLATILITY', 'LOW', false], ['LIQUIDITY', 'HIGH', true]];
+            
+            const genMacro = (arr) => arr.map(m => `<div class="m-card"><div class="m-label">${m[0]}</div><div class="m-val">${m[1]}</div></div>`).join('');
             document.getElementById('row-macro-1').innerHTML = genMacro(m1);
             document.getElementById('row-macro-2').innerHTML = genMacro(m2);
+
             document.getElementById('v').textContent = '€' + d.portfolio_eur.toLocaleString();
             document.getElementById('profit').textContent = d.profit_range;
             document.getElementById('m').textContent = d.multiplier + 'x';
             document.getElementById('investit').textContent = 'Investit: €' + d.investit_eur.toLocaleString();
+
             let h = '';
             d.coins.forEach(c => {
-                h += `<tr><td><b>${c.symbol}</b> <small style="color:${c.change >= 0 ? '#00ff88' : '#ef4444'}">(${c.change}%)</small><br><small style="color:#555">$${c.price}</small><div class="prog-bg"><div class="prog-fill" style="width:${c.progres}%; background:${c.progres >= 80 ? '#00ff88' : '#fbbf24'};"></div></div></td><td>${c.q.toLocaleString()}</td><td>$${c.entry}</td><td style="color:#fbbf24">$${c.apr}</td><td class="x-col">${c.x_apr}x</td><td style="color:#fbbf24">$${c.mai}</td><td class="x-col">${c.x_mai}x</td><td class="fib-col">$${c.fib}</td></tr>`;
+                h += `<tr><td><b>${c.symbol}</b> <small style="color:${c.change >= 0 ? '#00ff88' : '#ef4444'}">(${c.change}%)</small><br>$${c.price}</td>
+                    <td>${c.q.toLocaleString()}</td><td>$${c.entry}</td>
+                    <td style="color:#fbbf24">$${c.apr}</td><td class="x-col">${c.x_apr}x</td>
+                    <td style="color:#fbbf24">$${c.mai}</td><td class="x-col">${c.x_mai}x</td>
+                    <td style="color:#a855f7; font-weight:bold">$${c.fib}</td></tr>`;
             });
             document.getElementById('rows').innerHTML = h;
         }
