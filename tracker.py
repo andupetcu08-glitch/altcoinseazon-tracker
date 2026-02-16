@@ -1,6 +1,6 @@
-import json, urllib.request, re
+import json, urllib.request
 
-# Investitia initiala conform datelor tale de referinta
+# Investitia initiala conform datelor tale
 INVEST_EUR = 101235.0 
 
 PORTFOLIO = {
@@ -23,7 +23,6 @@ def fetch_data(url):
     except: return None
 
 def get_yahoo(ticker):
-    """Fallback manual fara libraria yfinance pentru a evita erorile de import in Actions"""
     try:
         url = f"https://query1.finance.yahoo.com/v8/finance/chart/{ticker}"
         data = fetch_data(url)
@@ -31,40 +30,34 @@ def get_yahoo(ticker):
     except: return None
 
 def main():
-    # 1. APIs pentru Crypto si Sentiment
     p_api = "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=" + ",".join(list(PORTFOLIO.keys()) + ["bitcoin", "ethereum", "tether"])
     prices = fetch_data(p_api) or []
     global_data = fetch_data("https://api.coingecko.com/api/v3/global")
     fng_data = fetch_data("https://api.alternative.me/fng/")
     
     p_map = {c["id"]: c for c in prices}
-    
-    # 2. Automatizare Macro (DXY, VIX, M2 Estimate)
     vix = get_yahoo("^VIX") or 14.2
     dxy = get_yahoo("DX-Y.NYB") or 101.1
     m2_val = "21.5T" 
 
-    # 3. Calcul Dominante
-    btcd = round(global_data["data"]["market_cap_percentage"]["btc"], 2) if global_data else 56.46
+    btcd = round(global_data["data"]["market_cap_percentage"]["btc"], 2) if global_data else 56.37
     total_cap = global_data["data"]["total_market_cap"]["usd"] if global_data else 1
     usdt_cap = p_map.get("tether", {}).get("market_cap", 0)
-    usdtd = round((usdt_cap / total_cap) * 100, 2) if usdt_cap > 0 else 7.66
+    usdtd = round((usdt_cap / total_cap) * 100, 2) if usdt_cap > 0 else 7.63
     
-    fng_val = fng_data["data"][0]["value"] if fng_data else "34"
-    fng_txt = fng_data["data"][0]["value_classification"] if fng_data else "Fear"
+    fng_val = fng_data["data"][0]["value"] if fng_data else "12"
+    fng_txt = fng_data["data"][0]["value_classification"] if fng_data else "Extreme Fear"
 
     btc_p = p_map.get("bitcoin", {}).get("current_price", 1)
     eth_p = p_map.get("ethereum", {}).get("current_price", 0)
 
-    total_usd = 0
-    pot_min_usd = 0
-    pot_max_usd = 0
+    total_usd, pot_min_usd, pot_max_usd = 0, 0, 0
     coins_out = []
     
     for cid, d in PORTFOLIO.items():
         c = p_map.get(cid, {})
         p = c.get("current_price", d["entry"])
-        if cid == "synthetix-network-token": p = 0.294 # SNX Hard Fix
+        if cid == "synthetix-network-token": p = 0.294 # Fix manual SNX
 
         ch = c.get("price_change_percentage_24h", 0) or 0
         total_usd += (p * d["q"])
@@ -79,11 +72,9 @@ def main():
             "change": round(ch, 2), "apr": d["apr"], "mai": d["mai"], "fib": d["fib"], "prog": round(prog, 1)
         })
 
-    # 4. Calcul Dinamic Rotation Score
-    # Scorul este calibrat sa urce spre 70% cand BTC.D scade sub 50%
-    rot_score = round(max(0, min(100, (65 - btcd) * 4 + (int(fng_val) / 2))), 0)
+    # Calcul Rotation Score
+    rot_score = round(max(0, min(100, (65 - btcd) * 6 + (int(fng_val) / 3))), 0)
 
-    # 5. Export Date
     with open("data.json", "w") as f:
         json.dump({
             "port_eur": round(total_usd * 0.92, 0),
@@ -100,8 +91,6 @@ def main():
             "dxy": round(dxy, 2), 
             "m2": m2_val, 
             "urpd": "84.2%",
-            "momentum": "UPWARD" if rot_score >= 70 else "STABLE",
-            "exhaustion": f"{round(100 - (int(fng_val)), 1)}%",
             "coins": coins_out
         }, f)
 
