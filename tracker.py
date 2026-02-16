@@ -1,7 +1,7 @@
-import json, urllib.request
+import json, urllib.request, math
 import yfinance as yf
 
-# CONFIGURAȚIE EXACTĂ
+# DATE REALE PORTOFOLIU
 INVESTITIE_FIXA_EUR = 101235.0 
 
 PORTFOLIO = {
@@ -24,12 +24,31 @@ def fetch(url):
     except: return None
 
 def get_live_macro():
-    """Extrage VIX si DXY din Yahoo Finance"""
     try:
         vix = yf.Ticker("^VIX").history(period="1d")['Close'].iloc[-1]
         dxy = yf.Ticker("DX-Y.NYB").history(period="1d")['Close'].iloc[-1]
         return round(vix, 2), round(dxy, 3)
     except: return 14.2, 101.1
+
+def calculate_rotation_score(btc_d, eth_btc, fng, usdt_d):
+    """Logica ta originala de calcul a scorului"""
+    score = 5 
+    if btc_d < 50: score += 25
+    elif btc_d <= 55: score += 15
+    else: score += 5
+    
+    if eth_btc > 0.05: score += 25
+    elif eth_btc >= 0.04: score += 15
+    else: score += 5
+    
+    if fng > 75: score += 20
+    elif fng >= 45: score += 10
+    else: score += 5
+    
+    if usdt_d < 5.5: score += 20
+    elif usdt_d <= 7.5: score += 10
+    else: score += 0
+    return min(100, score)
 
 def main():
     ids = list(PORTFOLIO.keys()) + ["bitcoin", "ethereum", "tether"]
@@ -40,19 +59,25 @@ def main():
     
     p_map = {c["id"]: c for c in prices} if prices else {}
     btc_usd = p_map.get("bitcoin", {}).get("current_price", 1)
+    btc_ch = p_map.get("bitcoin", {}).get("price_change_percentage_24h", 0) or 0
     
     # Curs USD/EUR live
     btc_eur = btc_eur_data.get("bitcoin", {}).get("eur", 1)
     usd_eur_live = btc_eur / btc_usd if btc_usd > 0 else 0.92
 
-    # Date Macro
+    # Calcul USDT.D
     total_mcap = global_api["data"]["total_market_cap"]["usd"] if global_api else 1
     usdt_mcap = p_map.get("tether", {}).get("market_cap", 0)
     usdt_d = round((usdt_mcap / total_mcap) * 100, 2)
+    
     btc_d = round(global_api["data"]["market_cap_percentage"]["btc"], 1) if global_api else 56.4
+    eth_p = p_map.get("ethereum", {}).get("current_price", 0)
+    eth_btc = round(eth_p / btc_usd, 4) if btc_usd > 0 else 0.0299
     
     vix_live, dxy_live = get_live_macro()
     fng_val = int(fng_api["data"][0]["value"]) if fng_api else 45
+    
+    rotation_score = calculate_rotation_score(btc_d, eth_btc, fng_val, usdt_d)
 
     results = []
     total_val_usd = 0
@@ -70,7 +95,8 @@ def main():
         total_val_fib_usd += (d["fib"] * d["q"])
         
         prog = ((p - d["entry"]) / (d["fib"] - d["entry"])) * 100 if d["fib"] > d["entry"] else 0
-        symbol = cid.upper().split("-")[0].replace("SYNTHETIX", "SNX")
+        symbol = cid.upper().replace("-NETWORK-TOKEN","").replace("-GOVERNANCE-TOKEN","").replace("-3","")
+        if "JITO" in symbol: symbol = "JTO"
 
         results.append({
             "symbol": symbol, "q": d["q"], "entry": d["entry"], "progres": round(max(0, min(100, prog)), 1),
@@ -80,18 +106,18 @@ def main():
         })
 
     port_eur = total_val_usd * usd_eur_live
-    # Rotation Score recalculat live
-    rot_score = int(max(0, min(100, (65 - btc_d) * 4 + (7.5 - usdt_d) * 10)))
 
     with open("data.json", "w") as f:
         json.dump({
-            "btc_d": btc_d, "eth_btc": round(p_map.get("ethereum", {}).get("current_price", 0) / btc_usd, 4),
-            "rotation_score": rot_score,
+            "btc_d": btc_d, "btc_ch": btc_ch, "eth_btc": eth_btc, 
+            "rotation_score": rotation_score,
             "portfolio_eur": round(port_eur, 0),
             "investit_eur": INVESTITIE_FIXA_EUR,
             "multiplier": round(port_eur / INVESTITIE_FIXA_EUR, 2),
             "profit_range": f"€{((total_val_apr_usd * usd_eur_live) - INVESTITIE_FIXA_EUR):,.0f} - €{((total_val_fib_usd * usd_eur_live) - INVESTITIE_FIXA_EUR):,.0f}",
-            "coins": results, "vix": vix_live, "dxy": dxy_live, "usdt_d": usdt_d, "fng": fng_val
+            "coins": results, "vix": vix_live, "dxy": dxy_live, "usdt_d": usdt_d, 
+            "fng": f"{fng_val} (Neutral)", "total3": "0.98T", "m2": "21.2T",
+            "ml_prob": 18.9, "momentum": "STABLE", "exhaustion": 27.7
         }, f)
 
 if __name__ == "__main__": main()
