@@ -2,7 +2,7 @@
 <html lang="ro">
 <head>
     <meta charset="UTF-8">
-    <title>Altcoin Tracker Ultimate - FINAL POLISH</title>
+    <title>Altcoin Tracker Ultimate - FINAL FIX</title>
     <style>
         body { background: #0b0e14; color: #e1e1e1; font-family: sans-serif; padding: 15px; font-size: 11px; margin: 0; }
         
@@ -10,19 +10,18 @@
         .target-panel { 
             background: #052e16; border: 1px solid #22c55e; padding: 12px; border-radius: 8px; 
             margin-bottom: 20px; text-align: center; font-size: 14px; font-weight: 900; color: #fff; 
-            text-transform: uppercase; transition: all 0.3s ease;
+            text-transform: uppercase; transition: all 0.2s ease;
         }
         .target-panel:hover {
             transform: scale(1.02);
             box-shadow: 0 0 20px rgba(34, 197, 94, 0.4);
-            border-color: #00ff88;
         }
         
         .top-nav { display: grid; grid-template-columns: repeat(4, 1fr) 1.5fr; gap: 10px; margin-bottom: 20px; }
         
         /* MAGNIFY PE CASETE SI BUTOANE */
         .m-card, .st-btn, .card-big, .macro-row > div { 
-            transition: all 0.3s ease; border: 1px solid #333; background: #1a1c24;
+            transition: all 0.2s ease; border: 1px solid #333; background: #1a1c24;
         }
         .m-card:hover, .card-big:hover, .macro-row > div:hover, .st-btn:hover { 
             transform: scale(1.05); border-color: #00ff88 !important; 
@@ -38,9 +37,8 @@
         .status-box { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
         .st-btn { border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 900; color: #333; text-transform: uppercase; cursor: pointer; }
         
-        /* GLOW SPECIFIC PE BUTOANE ACTIVE */
-        .active-h { border-color: #ef4444 !important; color: #ef4444 !important; background: rgba(239, 68, 68, 0.1); box-shadow: 0 0 15px rgba(239, 68, 68, 0.3); }
-        .active-s { border-color: #00ff88 !important; color: #00ff88 !important; background: rgba(0, 255, 136, 0.1); box-shadow: 0 0 15px rgba(0, 255, 136, 0.3); }
+        .active-h { border-color: #ef4444 !important; color: #ef4444 !important; background: rgba(239, 68, 68, 0.1); }
+        .active-s { border-color: #00ff88 !important; color: #00ff88 !important; background: rgba(0, 255, 136, 0.1); }
         
         .stats-main { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px; }
         .card-big { padding: 15px; border-radius: 10px; text-align: center; }
@@ -48,11 +46,11 @@
         
         .macro-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 12px; }
 
-        /* TABEL STABIL - DOAR GLOW */
-        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        /* TABEL FIX - FARA SCALE CA SA NU SE MAI STRICE ALINIEREA */
+        table { width: 100%; border-collapse: collapse; font-size: 14px; table-layout: fixed; }
         th { text-align: left; color: #999; font-size: 12px; padding: 12px 10px; border-bottom: 2px solid #333; }
         tr:hover { background: rgba(0, 255, 136, 0.05) !important; outline: 1px solid #00ff88; }
-        td { padding: 15px 10px; border-bottom: 1px solid #1a1c24; }
+        td { padding: 15px 10px; border-bottom: 1px solid #1a1c24; overflow: hidden; }
         
         .up { color: #00ff88; font-weight: bold; margin-left: 4px; }
         .down { color: #ef4444; font-weight: bold; margin-left: 4px; }
@@ -85,10 +83,10 @@
     <table>
         <thead>
             <tr>
-                <th>MONEDA</th><th>CANTITATE</th><th>ENTRY</th>
-                <th style="color:#fbbf24">TARGET APR</th><th style="color:#00ff88">X</th>
-                <th style="color:#fbbf24">TARGET MAI</th><th style="color:#00ff88">X</th>
-                <th style="color:#a855f7">FINAL TARGET</th>
+                <th style="width: 20%">MONEDA</th><th style="width: 15%">CANTITATE</th><th style="width: 10%">ENTRY</th>
+                <th style="width: 12%; color:#fbbf24">TARGET APR</th><th style="width: 8%; color:#00ff88">X</th>
+                <th style="width: 12%; color:#fbbf24">TARGET MAI</th><th style="width: 8%; color:#00ff88">X</th>
+                <th style="width: 15%; color:#a855f7">FINAL TARGET</th>
             </tr>
         </thead>
         <tbody id="rows"></tbody>
@@ -99,8 +97,6 @@
             try {
                 const r = await fetch('data.json?v=' + Date.now());
                 const d = await r.json();
-                
-                // Săgeți pentru casete
                 const arrow = (v, t, i = false) => {
                     let val = parseFloat(v); if (isNaN(val)) return '';
                     return (i ? val < t : val > t) ? '<span class="up">▲</span>' : '<span class="down">▼</span>';
@@ -109,17 +105,10 @@
                 const rot = parseFloat(d.rotation_score);
                 const scoreEl = document.getElementById('score');
                 scoreEl.innerHTML = rot + '%' + arrow(rot, 70);
-                
-                // Logica de culoare conform regulii [cite: 2026-02-14]
-                if (rot >= 70) {
-                    scoreEl.style.color = '#00ff88';
-                    document.getElementById('btn-h').className = 'st-btn';
-                    document.getElementById('btn-s').className = 'st-btn active-s';
-                } else {
-                    scoreEl.style.color = '#ef4444';
-                    document.getElementById('btn-h').className = 'st-btn active-h';
-                    document.getElementById('btn-s').className = 'st-btn';
-                }
+                scoreEl.style.color = rot >= 70 ? '#00ff88' : '#ef4444';
+
+                document.getElementById('btn-h').className = 'st-btn' + (rot < 70 ? ' active-h' : '');
+                document.getElementById('btn-s').className = 'st-btn' + (rot >= 70 ? ' active-s' : '');
 
                 document.getElementById('btcd').innerHTML = d.btc_d + '%' + arrow(d.btc_d, 46, true);
                 document.getElementById('ethbtc').innerHTML = d.eth_btc + arrow(d.eth_btc, 0.05);
@@ -138,17 +127,14 @@
                 document.getElementById('m').textContent = d.multiplier + 'x';
                 document.getElementById('investit').textContent = 'Investit: €' + d.investit_eur.toLocaleString();
 
-                let h = '';
-                d.coins.forEach(c => {
-                    h += `<tr>
-                        <td><b>${c.symbol}</b> <small style="color:${parseFloat(c.change) >= 0 ? '#00ff88' : '#ef4444'}">(${c.change}%)</small><br>$${c.price}</td>
+                document.getElementById('rows').innerHTML = d.coins.map(c => `
+                    <tr>
+                        <td><b>${c.symbol}</b> <span style="color:${parseFloat(c.change) >= 0 ? '#00ff88' : '#ef4444'}">(${c.change}%)</span><br>$${c.price}</td>
                         <td>${c.q.toLocaleString()}</td><td>$${c.entry}</td>
                         <td style="color:#fbbf24">$${c.apr}</td><td style="color:#00ff88; font-weight:bold">${c.x_apr}x</td>
                         <td style="color:#fbbf24">$${c.mai}</td><td style="color:#00ff88; font-weight:bold">${c.x_mai}x</td>
                         <td style="color:#a855f7; font-weight:bold">$${c.fib}</td>
-                    </tr>`;
-                });
-                document.getElementById('rows').innerHTML = h;
+                    </tr>`).join('');
             } catch (e) { console.error(e); }
         }
         load(); setInterval(load, 30000);
