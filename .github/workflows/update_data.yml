@@ -3,7 +3,7 @@ name: Update Crypto Data
 on:
   schedule:
     - cron: '*/30 * * * *' # Rulează automat la fiecare 30 de minute
-  workflow_dispatch:      # Îți permite să îl pornești și manual din tab-ul "Actions"
+  workflow_dispatch:      # Permite pornirea manuală
 
 jobs:
   update:
@@ -20,7 +20,6 @@ jobs:
       - name: Install Libraries
         run: |
           pip install yfinance
-          # Adaugă aici și alte librării dacă mai folosești (ex: pandas)
 
       - name: Execute Tracker Script
         run: python tracker.py
