@@ -1,10 +1,9 @@
 import json, urllib.request
 
-# DATE REALE PORTOFOLIU - Verificat 4x
 INVESTITIE_TOTALA_USD = 120456.247
 
 PORTFOLIO = {
-    "optimism": {"q": 6400, "entry": 0.773, "apr": 4.8, "mai": 5.2, "fib": 5.95},
+    "optimism": {"q": 6400, "entry": 0.773, "apr": 4.8, "mai": 5.2, "fib": 6.86},
     "notcoin": {"q": 1297106.88, "entry": 0.001291, "apr": 0.028, "mai": 0.028, "fib": 0.034},
     "arbitrum": {"q": 14326.44, "entry": 1.134, "apr": 3.0, "mai": 3.4, "fib": 3.82},
     "celestia": {"q": 4504.47, "entry": 5.911, "apr": 12.0, "mai": 15.0, "fib": 18.5},
@@ -40,8 +39,8 @@ def calculate_rotation_score(btc_d, eth_btc, fng, usdt_d, exhaustion):
     return min(100, score)
 
 def main():
-    ids = list(PORTFOLIO.keys()) + ["bitcoin", "ethereum", "tether"]
-    prices = fetch(f"https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids={','.join(ids)}&price_change_percentage=24h")
+    ids = list(PORTFOLIO.keys()) + ["bitcoin", "ethereum"]
+    prices = fetch(f"https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids={','.join(ids)}")
     btc_eur_data = fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=eur")
     global_api = fetch("https://api.coingecko.com/api/v3/global")
     fng_api = fetch("https://api.alternative.me/fng/")
@@ -49,20 +48,20 @@ def main():
     p_map = {c["id"]: c for c in prices} if prices else {}
     btc_usd = p_map.get("bitcoin", {}).get("current_price", 1)
     btc_ch = p_map.get("bitcoin", {}).get("price_change_percentage_24h", 0) or 0
-    
     btc_eur = btc_eur_data.get("bitcoin", {}).get("eur", 1) if btc_eur_data else 1
     usd_eur_live = btc_eur / btc_usd if btc_usd > 0 else 0.92
 
-    btc_d = round(global_api["data"]["market_cap_percentage"]["btc"], 1) if global_api else 56.4
+    # BTC.D LIVE din API
+    btc_d = round(global_api["data"]["market_cap_percentage"]["btc"], 2) if global_api else 56.40
+    
     eth_p = p_map.get("ethereum", {}).get("current_price", 0)
-    eth_btc = round(eth_p / btc_usd, 4) if btc_usd > 0 else 0.0299
-    fng_val = int(fng_api["data"][0]["value"]) if fng_api else 45
+    eth_btc = round(eth_p / btc_usd, 4) if btc_usd > 0 else 0.0292
     
-    usdt_d = 7.44
-    exhaustion = 27.7
-    ml_prob = 18.9
+    # F&G LIVE din API
+    fng_val = int(fng_api["data"][0]["value"]) if fng_api else 12
+    fng_text = fng_api["data"][0]["value_classification"] if fng_api else "Extreme Fear"
     
-    rotation_score = calculate_rotation_score(btc_d, eth_btc, fng_val, usdt_d, exhaustion)
+    rotation_score = calculate_rotation_score(btc_d, eth_btc, fng_val, 7.44, 27.7)
 
     results = []
     total_val_usd = 0
@@ -70,22 +69,18 @@ def main():
     total_val_fib_usd = 0
 
     for cid, d in PORTFOLIO.items():
-        c = p_map.get(cid, {})
-        p = c.get("current_price", 0)
-        if p == 0: p = d["entry"] 
-        
-        ch_24h = c.get("price_change_percentage_24h", 0) or 0
+        p = p_map.get(cid, {}).get("current_price", d["entry"])
         total_val_usd += (p * d["q"])
         total_val_apr_usd += (d["apr"] * d["q"])
         total_val_fib_usd += (d["fib"] * d["q"])
         
-        prog = ((p - d["entry"]) / (d["fib"] - d["entry"])) * 100 if d["fib"] > d["entry"] else 0
         symbol = cid.upper().replace("-NETWORK-TOKEN","").replace("-GOVERNANCE-TOKEN","").replace("-3","")
         if "JITO" in symbol: symbol = "JTO"
 
         results.append({
-            "symbol": symbol, "q": d["q"], "entry": d["entry"], "progres": round(max(0, min(100, prog)), 1),
-            "price": f"{p:.4f}", "change": round(ch_24h, 2), "apr": d["apr"], "mai": d["mai"], "fib": d["fib"],
+            "symbol": symbol, "q": d["q"], "entry": d["entry"], 
+            "price": f"{p:.4f}", "change": round(p_map.get(cid, {}).get("price_change_percentage_24h", 0) or 0, 2),
+            "apr": d["apr"], "mai": d["mai"], "fib": d["fib"],
             "x_apr": round(d["apr"] / d["entry"], 1), "x_mai": round(d["mai"] / d["entry"], 1)
         })
 
@@ -97,8 +92,8 @@ def main():
             "investit_eur": round(INVESTITIE_TOTALA_USD * usd_eur_live, 0),
             "multiplier": round((total_val_usd * usd_eur_live) / (INVESTITIE_TOTALA_USD * usd_eur_live), 2),
             "coins": results, "vix": 14.2, "dxy": 101.1, "total3": "0.98T", 
-            "fng": f"{fng_val} (Neutral)", "usdt_d": usdt_d, "urpd": "84.2%", "m2": "21.2T",
-            "ml_prob": ml_prob, "momentum": "STABLE", "exhaustion": exhaustion
+            "fng": f"{fng_val} ({fng_text})", "usdt_d": 7.44, "urpd": "84.2%", "m2": "21.2T",
+            "ml_prob": 18.9, "momentum": "STABLE", "exhaustion": 27.7
         }, f)
 
 if __name__ == "__main__": main()
