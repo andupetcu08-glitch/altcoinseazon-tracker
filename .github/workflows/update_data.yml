@@ -9,6 +9,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -18,11 +20,11 @@ jobs:
       - name: Run Script
         run: python tracker.py
 
-     - name: Commit and Push
+      - name: Commit and Push
         run: |
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
-          git pull --rebase # <--- ADAUGĂ LINIA ASTA pentru a evita eroarea
           git add data.json
           git commit -m "Update live data" || exit 0
-          git push
+          git pull --rebase origin main
+          git push origin main
