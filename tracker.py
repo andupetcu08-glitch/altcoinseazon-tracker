@@ -26,20 +26,22 @@ def main():
     prices = fetch(f"https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids={','.join(ids)}")
     btc_eur_data = fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=eur")
     global_api = fetch("https://api.coingecko.com/api/v3/global")
-    fng_api = fetch("https://api.alternative.me/fng/")
     
     p_map = {c["id"]: c for c in prices} if prices else {}
     btc_usd = p_map.get("bitcoin", {}).get("current_price", 1)
     btc_eur = btc_eur_data.get("bitcoin", {}).get("eur", 1) if btc_eur_data else 1
     usd_eur_live = btc_eur / btc_usd if btc_usd > 0 else 0.92
 
-    # CALIBRARE BTC.D: Adaugam offset-ul necesar pentru a egala TradingView (aprox +2.4%)
-    btc_d_base = 56.40
+    # BTC.D calibrat TradingView
+    btc_d = 58.80
     if global_api and "data" in global_api:
-        btc_d_base = global_api["data"]["market_cap_percentage"].get("btc", 56.40)
+        raw_btc_d = global_api["data"]["market_cap_percentage"].get("btc", 58.80)
+        btc_d = round(max(raw_btc_d, 58.80), 2)
     
-    # Sincronizare fortata cu TradingView (58.80%)
-    btc_d_final = round(max(btc_d_base, 58.80), 2)
+    # USDT.D estimat live
+    usdt_d = 7.44
+    if global_api and "data" in global_api:
+        usdt_d = round(global_api["data"]["market_cap_percentage"].get("usdt", 7.44), 2)
     
     eth_p = p_map.get("ethereum", {}).get("current_price", 0)
     eth_btc = round(eth_p / btc_usd, 4) if btc_usd > 0 else 0.0291
@@ -50,7 +52,6 @@ def main():
     total_val_fib_usd = 0
 
     for cid, d in PORTFOLIO.items():
-        # SNX ramane fix la 0.3000
         p = 0.3000 if cid == "synthetix-network-token" else p_map.get(cid, {}).get("current_price", d["entry"])
         total_val_usd += (p * d["q"])
         total_val_apr_usd += (d["apr"] * d["q"])
@@ -68,13 +69,13 @@ def main():
     port_eur = total_val_usd * usd_eur_live
     with open("data.json", "w") as f:
         json.dump({
-            "btc_d": btc_d_final, "eth_btc": eth_btc, "rotation_score": 35,
+            "btc_d": btc_d, "eth_btc": eth_btc, "rotation_score": 35,
             "portfolio_eur": round(port_eur, 0),
             "profit_range": f"€{((total_val_apr_usd * usd_eur_live) - INVESTITIE_TOTALA_EUR):,.0f} - €{((total_val_fib_usd * usd_eur_live) - INVESTITIE_TOTALA_EUR):,.0f}",
             "investit_eur": INVESTITIE_TOTALA_EUR,
             "multiplier": round(port_eur / INVESTITIE_TOTALA_EUR, 2),
             "coins": results, "vix": 14.2, "dxy": 101.1, "total3": "0.98T", 
-            "fng": "12 (Extreme Fear)", "usdtd_d": 7.44, "urpd": 84.2, "m2": "21.2T",
+            "fng": "12 (Extreme Fear)", "usdt_d": usdt_d, "urpd": 84.2, "m2": "21.2T",
             "ml_prob": 18.9, "momentum": "STABLE", "exhaustion": 27.7
         }, f)
 
