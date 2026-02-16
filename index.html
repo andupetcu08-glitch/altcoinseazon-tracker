@@ -2,65 +2,60 @@
 <html lang="ro">
 <head>
     <meta charset="UTF-8">
-    <title>Altcoin Tracker Ultimate - REFINED GOLD</title>
+    <title>Altcoin Tracker Ultimate - FIXED VERSION</title>
     <style>
         body { background: #0b0e14; color: #e1e1e1; font-family: sans-serif; padding: 15px; font-size: 11px; margin: 0; }
         
-        /* BANNER - DOAR MARIT (fara exces de spatiu) */
+        /* BANNER ORIGINAL - NU IL MAI MODIFICAM */
         .target-panel { 
-            background: #052e16; border: 2px solid #22c55e; padding: 20px; border-radius: 10px; 
-            margin-bottom: 20px; text-align: center; font-size: 20px; font-weight: 900; color: #fff; 
-            box-shadow: 0 0 20px rgba(34, 197, 94, 0.2); text-transform: uppercase;
+            background: #052e16; border: 1px solid #22c55e; padding: 12px; border-radius: 8px; 
+            margin-bottom: 20px; text-align: center; font-size: 14px; font-weight: 900; color: #fff; 
+            box-shadow: 0 0 15px rgba(34, 197, 94, 0.2); text-transform: uppercase;
         }
         
         .top-nav { display: grid; grid-template-columns: repeat(4, 1fr) 1.5fr; gap: 10px; margin-bottom: 20px; }
         
         .m-card, .st-btn, .card-big, .macro-row > div { 
-            transition: all 0.3s ease; border: 1px solid #333; background: #1a1c24;
+            transition: all 0.3s ease; border: 1px solid #333; background: #1a1c24; 
         }
         
-        /* MAGNIFY DOAR PE CASETE */
+        /* MAGNIFY DOAR PE CASETE, NU PE TABEL */
         .m-card:hover, .card-big:hover, .macro-row > div:hover { 
             transform: scale(1.05); border-color: #00ff88 !important; 
             box-shadow: 0 0 20px rgba(0, 255, 136, 0.4); z-index: 10;
         }
 
-        .m-card { padding: 12px; border-radius: 8px; text-align: center; min-height: 70px; display: flex; flex-direction: column; justify-content: center; }
+        .m-card { padding: 10px; border-radius: 6px; text-align: center; min-height: 60px; display: flex; flex-direction: column; justify-content: center; }
 
-        /* TITLURI MARI SI ALBE */
-        .m-label { 
-            font-size: 15px !important; color: #ffffff !important; 
-            text-transform: uppercase; margin-bottom: 8px; 
-            font-weight: 900 !important; display: block;
-        }
-        .m-val { font-weight: bold; font-size: 20px; }
+        .m-label { font-size: 10px; color: #999; text-transform: uppercase; margin-bottom: 5px; display: block; }
+        .m-val { font-weight: bold; font-size: 18px; }
         
-        /* INVESTIT MARIT */
-        #investit { color: #ccc !important; font-size: 13px !important; font-weight: bold; margin-top: 5px; display: block; }
+        /* INVESTIT MARIT SUB MULTIPLIER */
+        #investit { color: #ccc !important; font-size: 12px !important; font-weight: bold; margin-top: 4px; display: block; }
 
-        /* STATUS BUTTONS */
         .status-box { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
         .st-btn { 
-            border-radius: 8px; display: flex; align-items: center; justify-content: center; 
-            font-size: 16px; font-weight: 900; color: #333; text-transform: uppercase;
+            border-radius: 6px; display: flex; align-items: center; justify-content: center; 
+            font-size: 13px; font-weight: 900; color: #333; text-transform: uppercase;
         }
-        .active-h { border-color: #ef4444 !important; color: #ef4444 !important; box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.1); }
-        .active-s { border-color: #00ff88 !important; color: #00ff88 !important; box-shadow: 0 0 15px rgba(0, 255, 136, 0.4); background: rgba(0, 255, 136, 0.1); }
+        .active-h { border-color: #ef4444 !important; color: #ef4444 !important; background: rgba(239, 68, 68, 0.1); }
+        .active-s { border-color: #00ff88 !important; color: #00ff88 !important; background: rgba(0, 255, 136, 0.1); }
         
         .stats-main { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px; }
-        .card-big { padding: 20px; border-radius: 12px; text-align: center; }
-        .val-big { font-size: 32px; font-weight: bold; color: #00ff88; }
+        .card-big { padding: 15px; border-radius: 10px; text-align: center; }
+        .val-big { font-size: 28px; font-weight: bold; color: #00ff88; }
         
-        .progress-container { width: 100%; background: #222; height: 8px; border-radius: 4px; margin-top: 10px; overflow: hidden; border: 1px solid #333; }
-        .progress-bar { height: 100%; width: 0%; transition: width 1.2s ease-in-out; }
+        .progress-container { width: 100%; background: #222; height: 6px; border-radius: 3px; margin-top: 8px; overflow: hidden; }
+        .progress-bar { height: 100%; width: 0%; transition: width 1s ease-in-out; }
 
-        .macro-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 15px; }
+        .macro-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 12px; }
 
-        /* TABEL - DOAR GLOW */
-        table { width: 100%; border-collapse: collapse; font-size: 16px; }
-        th { text-align: left; color: #999; font-size: 15px; padding: 12px; border-bottom: 2px solid #333; font-weight: 900; }
+        /* TABEL - DOAR GLOW, FARA MAGNIFY */
+        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        th { text-align: left; color: #999; font-size: 12px; padding: 10px; border-bottom: 2px solid #333; }
+        tr { transition: background 0.3s; }
         tr:hover { background: rgba(0, 255, 136, 0.08) !important; outline: 1px solid #00ff88; }
-        td { padding: 15px 12px; border-bottom: 1px solid #1a1c24; }
+        td { padding: 12px 10px; border-bottom: 1px solid #1a1c24; }
         
         .up { color: #00ff88; font-weight: bold; margin-left: 4px; }
         .down { color: #ef4444; font-weight: bold; margin-left: 4px; }
@@ -116,7 +111,7 @@
                 const scoreEl = document.getElementById('score');
                 scoreEl.innerHTML = rot + '%' + getArrow(rot, 70);
                 
-                // Logica de culoare conform cerintei tale
+                // Aplicăm pragul de 70% pentru Rotation Score
                 if (rot >= 70) {
                     scoreEl.style.color = '#00ff88';
                     document.getElementById('btn-h').className = 'st-btn';
@@ -129,7 +124,7 @@
 
                 document.getElementById('btcd').innerHTML = d.btc_d + '%' + getArrow(d.btc_d, 46, true);
                 document.getElementById('ethbtc').innerHTML = d.eth_btc + getArrow(d.eth_btc, 0.05);
-                document.getElementById('usdtd').innerHTML = d.usdt_d + '%' + getArrow(d.usdt_d, 5.1, true);
+                document.getElementById('usdtd').innerHTML = (d.usdt_d || '--') + '%' + getArrow(d.usdt_d, 5.1, true);
 
                 const renderM = (arr) => arr.map(m => {
                     let a = (m[2] !== 0) ? getArrow(m[1], m[2], m[3] || false) : '';
@@ -148,11 +143,13 @@
                 d.coins.forEach(c => {
                     const cur = parseFloat(c.price), ent = parseFloat(c.entry), fib = parseFloat(c.fib);
                     let prog = Math.min(Math.max(((cur - ent) / (fib - ent)) * 100, 0), 100);
+                    
+                    // Logica de culoare degrade la baza barei
                     let barStyle = prog >= 85 ? 'linear-gradient(90deg, #f97316, #fbbf24, #00ff88)' : (prog > 40 ? 'linear-gradient(90deg, #f97316, #fbbf24)' : '#f97316');
 
                     h += `<tr>
-                        <td style="min-width:180px">
-                            <b style="font-size:18px">${c.symbol}</b> <small style="color:${c.change >= 0 ? '#00ff88' : '#ef4444'}">(${c.change}%)</small><br>$${c.price}
+                        <td style="min-width:150px">
+                            <b>${c.symbol}</b> <small style="color:${c.change >= 0 ? '#00ff88' : '#ef4444'}">(${c.change}%)</small><br>$${c.price}
                             <div class="progress-container"><div class="progress-bar" style="width: ${prog}%; background: ${barStyle};"></div></div>
                         </td>
                         <td>${c.q.toLocaleString()}</td><td>$${c.entry}</td>
