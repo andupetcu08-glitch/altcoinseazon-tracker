@@ -22,8 +22,8 @@ def fetch(url):
     except: return None
 
 def main():
-    p_api = "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=" + ",".join(list(PORTFOLIO.keys()) + ["bitcoin", "ethereum", "tether"])
-    prices = fetch(p_api)
+    ids = ",".join(list(PORTFOLIO.keys()) + ["bitcoin", "ethereum", "tether"])
+    prices = fetch(f"https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids={ids}")
     global_data = fetch("https://api.coingecko.com/api/v3/global")
     fng_data = fetch("https://api.alternative.me/fng/")
 
@@ -31,63 +31,41 @@ def main():
     p_map = {c["id"]: c for c in prices}
     total_mcap = global_data["data"]["total_market_cap"]["usd"]
 
-    # 1. Casete Superioare
+    # --- Calcule Macro ---
     btcd = round((p_map.get("bitcoin", {}).get("market_cap", 0) / total_mcap) * 100, 2)
     usdtd = round((p_map.get("tether", {}).get("market_cap", 0) / total_mcap) * 100, 2)
     ethbtc = round(p_map.get("ethereum", {}).get("current_price", 0) / p_map.get("bitcoin", {}).get("current_price", 1), 4)
     fng_val = int(fng_data["data"][0]["value"]) if fng_data else 10
 
-    # 2. Date Monede & Portofoliu
+    # --- Calcule Portofoliu & Tabel ---
     total_usd = 0
-    pot_min_usd = 0
-    pot_max_usd = 0
     coins_list = []
-
     for cid, d in PORTFOLIO.items():
         c = p_map.get(cid, {})
         p = c.get("current_price", d["entry"])
-        
-        # SNX Logic
-        if cid == "synthetix-network-token" and (p > 0.8 or p == d["entry"]): p = 0.294
+        if cid == "synthetix-network-token" and (p > 0.8 or p == d["entry"]): p = 0.294 # SNX Fix
         
         total_usd += (p * d["q"])
-        pot_min_usd += (d["q"] * d["apr"])
-        pot_max_usd += (d["q"] * d["fib"])
-        
-        # Calcul progresie catre Final Target (FIB)
-        prog = min(100, max(0, ((p - d["entry"]) / (d["fib"] - d["entry"])) * 100))
-
         coins_list.append({
             "name": cid.split("-")[0].upper().replace("SYNTHETIX", "SNX"),
-            "q": d["q"],
-            "entry": d["entry"],
-            "price": p,
+            "q": d["q"], "entry": d["entry"], "price": p,
             "change": round(c.get("price_change_percentage_24h", 0) or 0, 2),
-            "apr": d["apr"],
-            "mai": d["mai"],
-            "fib": d["fib"],
-            "mult_apr": round(d["apr"] / d["entry"], 1),
-            "mult_mai": round(d["mai"] / d["entry"], 1),
-            "prog": round(prog, 1)
+            "apr": d["apr"], "mai": d["mai"], "fib": d["fib"]
         })
 
     port_eur = total_usd * 0.92
-    # Rotation Score spre 70%
+    # Scorul de rotatie urca spre 70% daca dominanta BTC scade sub 60%
     rot_score = round(max(0, min(100, (62 - btcd) * 5 + (fng_val / 3))), 0)
 
     output = {
         "port_eur": round(port_eur, 0),
         "invest_eur": INVEST_EUR,
-        "mult": round(port_eur / INVEST_EUR, 2),
+        "mult": round(port_eur / INVEST_EUR, 2), # Rezolva 'undefined'
         "rotation": int(rot_score),
         "btcd": btcd, "ethbtc": ethbtc, "usdtd": usdtd,
         "fng": f"{fng_val} ({fng_data['data'][0]['value_classification'] if fng_data else 'N/A'})",
-        "pot_min": round(pot_min_usd * 0.92, 0),
-        "pot_max": round(pot_max_usd * 0.92, 0),
         "coins": coins_list
     }
-
-    with open("data.json", "w") as f:
-        json.dump(output, f)
+    with open("data.json", "w") as f: json.dump(output, f)
 
 if __name__ == "__main__": main()
