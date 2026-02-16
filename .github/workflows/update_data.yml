@@ -11,20 +11,17 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.9'
-
       - name: Run Script
         run: python tracker.py
-
       - name: Commit and Push
         run: |
-          git config --global user.name "github-actions"
-          git config --global user.email "actions@github.com"
-          git add data.json
-          git commit -m "Update data" || exit 0
-          git pull --rebase origin main
-          git push origin main
+            git config --global user.name "github-actions"
+            git config --global user.email "actions@github.com"
+            git add data.json
+            git pull --rebase origin main
+            git commit -m "Update crypto data" || exit 0
+            git push origin main
