@@ -1,43 +1,106 @@
-<div class="card text-center">
-    <div class="text-gray-500 text-[10px]">Rotation Score</div>
-    <div id="rotation" class="text-2xl font-bold">--</div>
-</div>
-<div id="multiplier" class="text-3xl font-bold text-green-400">--</div>
-<tbody id="coin-list"></tbody>
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #0d1117; color: white; font-family: sans-serif; }
+        .card { background-color: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 15px; }
+        .banner { background: #064e3b; border: 1px solid #10b981; border-radius: 8px; padding: 10px; text-align: center; color: #10b981; font-weight: bold; margin-bottom: 20px; font-size: 13px; }
+    </style>
+</head>
+<body class="p-6">
 
-<script>
-async function update() {
-    try {
-        const r = await fetch('data.json');
-        const d = await r.json();
+    <div class="banner">
+        🎯 TARGETS: BTC.D: 46% | VIX: 13.8 | USDT.D: 5.1% | URPD: 86% | ETH/BTC: 0.085 | ROTATION SCORE: 70%
+    </div>
 
-        // 1. Rotation Score - Regula de 70% verde [cite: 2026-02-14]
-        const rot = document.getElementById('rotation');
-        rot.innerText = d.rotation + '%';
-        rot.style.color = d.rotation >= 70 ? '#00ff00' : '#ff4444';
+    <div class="grid grid-cols-4 gap-4 mb-6">
+        <div class="card text-center">
+            <div class="text-gray-500 text-[10px] uppercase mb-1">Rotation Score</div>
+            <div id="rotation" class="text-2xl font-bold">--</div>
+        </div>
+        <div class="card text-center">
+            <div class="text-gray-500 text-[10px] uppercase mb-1">BTC.D Live</div>
+            <div id="btcd" class="text-2xl font-bold">--</div>
+        </div>
+        <div class="card text-center">
+            <div class="text-gray-500 text-[10px] uppercase mb-1">ETH / BTC</div>
+            <div id="ethbtc" class="text-2xl font-bold text-purple-400">--</div>
+        </div>
+        <div class="card text-center">
+            <div class="text-gray-500 text-[10px] uppercase mb-1">USDT.D Live</div>
+            <div id="usdtd" class="text-2xl font-bold text-green-400">--</div>
+        </div>
+    </div>
 
-        // 2. Multiplier & Portofoliu (Investitie: €101,235)
-        document.getElementById('multiplier').innerText = d.mult + 'x';
-        document.getElementById('port_eur').innerText = '€' + d.port_eur.toLocaleString();
-        document.getElementById('btcd').innerText = d.btcd + '%';
+    <div class="grid grid-cols-2 gap-4 mb-6 text-center">
+        <div class="card">
+            <div class="text-gray-500 text-[10px] uppercase mb-1">Portofoliu Actual (EUR)</div>
+            <div id="port_eur" class="text-3xl font-bold text-green-400">--</div>
+        </div>
+        <div class="card">
+            <div class="text-gray-500 text-[10px] uppercase mb-1">Multiplier Actual</div>
+            <div id="multiplier" class="text-3xl font-bold text-green-400">--</div>
+            <div class="text-[9px] text-gray-500">(Investit: €101,235)</div>
+        </div>
+    </div>
 
-        // 3. Tabel monede automat
-        const list = document.getElementById('coin-list');
-        list.innerHTML = '';
-        d.coins.forEach(c => {
-            list.innerHTML += `
-                <tr class="border-b border-gray-900">
-                    <td class="py-3 font-bold">${c.symbol}</td>
-                    <td>${c.q.toLocaleString()}</td>
-                    <td>$${c.entry}</td>
-                    <td class="text-blue-400 font-bold">$${c.price}</td>
-                    <td class="text-yellow-500">$${c.apr}</td>
-                    <td class="text-yellow-500">$${c.mai}</td>
-                    <td class="text-purple-500">$${c.fib}</td>
-                </tr>`;
-        });
-    } catch (e) { console.error("Eroare:", e); }
-}
-update();
-setInterval(update, 30000);
-</script>
+    <div class="card overflow-x-auto">
+        <table class="w-full text-left text-xs">
+            <thead>
+                <tr class="text-gray-500 uppercase border-b border-gray-800">
+                    <th class="pb-3">Moneda</th>
+                    <th>Cantitate</th>
+                    <th>Entry</th>
+                    <th>Preț Live</th>
+                    <th class="text-yellow-500">Target APR</th>
+                    <th class="text-yellow-500">Target MAI</th>
+                    <th class="text-purple-500">Final Target</th>
+                </tr>
+            </thead>
+            <tbody id="coin-list">
+                </tbody>
+        </table>
+    </div>
+
+    <script>
+        async function updateData() {
+            try {
+                const response = await fetch('data.json');
+                const data = await response.json();
+
+                // 1. Casete
+                const rotEl = document.getElementById('rotation');
+                rotEl.innerText = data.rotation + '%';
+                rotEl.style.color = data.rotation >= 70 ? '#00ff00' : '#ff4444'; // Verde la 70%
+
+                document.getElementById('btcd').innerText = data.btcd + '%';
+                document.getElementById('ethbtc').innerText = data.ethbtc;
+                document.getElementById('usdtd').innerText = data.usdtd + '%';
+                document.getElementById('port_eur').innerText = '€' + data.port_eur.toLocaleString();
+                document.getElementById('multiplier').innerText = data.mult + 'x';
+
+                // 2. Tabel Automat
+                const list = document.getElementById('coin-list');
+                list.innerHTML = '';
+                data.coins.forEach(c => {
+                    const color = c.change >= 0 ? 'text-green-400' : 'text-red-400';
+                    list.innerHTML += `
+                        <tr class="border-b border-gray-900">
+                            <td class="py-4 font-bold uppercase">${c.symbol} <span class="${color} text-[9px] ml-1">${c.change}%</span></td>
+                            <td class="text-gray-400">${c.q.toLocaleString()}</td>
+                            <td class="text-gray-500">$${c.entry}</td>
+                            <td class="text-blue-400 font-bold">$${c.price.toFixed(4)}</td>
+                            <td class="text-yellow-500 font-bold">$${c.apr}</td>
+                            <td class="text-yellow-500 font-bold">$${c.mai}</td>
+                            <td class="text-purple-500 font-bold">$${c.fib}</td>
+                        </tr>`;
+                });
+            } catch (error) { console.error("Eroare incarcare JSON:", error); }
+        }
+        updateData();
+        setInterval(updateData, 30000);
+    </script>
+</body>
+</html>
