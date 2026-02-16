@@ -1,6 +1,6 @@
 import json, urllib.request
 
-# Investitia initiala conform screenshot-ului tau (aprox €93,358 in ultima versiune)
+# Investitia initiala din screenshot-ul tau (aprox €93,358)
 INVEST_EUR = 93358.0 
 
 PORTFOLIO = {
@@ -23,11 +23,13 @@ def fetch(url):
     except: return None
 
 def main():
-    ids = list(PORTFOLIO.keys()) + ["bitcoin", "ethereum"]
+    # Adaugat 'bitcoin-dominance' pentru a reflecta realitatea din TradingView
+    ids = list(PORTFOLIO.keys()) + ["bitcoin", "ethereum", "bitcoin-dominance"]
     prices = fetch(f"https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids={','.join(ids)}")
     p_map = {c["id"]: c for c in prices} if prices else {}
     
-    btc_p = p_map.get("bitcoin", {}).get("current_price", 1)
+    # BTC.D din API sau fallback la valoarea din TradingView (59.02)
+    btcd_val = p_map.get("bitcoin-dominance", {}).get("current_price", 59.02)
     
     total_usd = 0
     pot_min_usd = 0
@@ -36,12 +38,13 @@ def main():
     
     for cid, d in PORTFOLIO.items():
         c = p_map.get(cid, {})
-        # Fallback la entry daca API-ul SNX e limitat temporar
         p = c.get("current_price", d["entry"])
         ch_24h = c.get("price_change_percentage_24h", 0) or 0
         
         total_usd += (p * d["q"])
+        # Suma mica: Cantitate * Target APR
         pot_min_usd += (d["q"] * d["apr"])
+        # Suma mare: Cantitate * Final Target
         pot_max_usd += (d["q"] * d["fib"])
         
         prog = min(100, max(0, ((p - d["entry"]) / (d["fib"] - d["entry"])) * 100))
@@ -52,19 +55,16 @@ def main():
             "change": round(ch_24h, 2), "apr": d["apr"], "mai": d["mai"], "fib": d["fib"], "prog": round(prog, 1)
         })
 
-    # Conversie USD -> EUR (0.92 rata medie)
-    port_eur = total_usd * 0.92
-    
     with open("data.json", "w") as f:
         json.dump({
-            "port_eur": round(port_eur, 0),
+            "port_eur": round(total_usd * 0.92, 0),
             "invest_eur": INVEST_EUR,
-            "mult": round(port_eur / INVEST_EUR, 2),
+            "mult": round((total_usd * 0.92) / INVEST_EUR, 2),
             "pot_min_eur": round(pot_min_usd * 0.92, 0),
             "pot_max_eur": round(pot_max_usd * 0.92, 0),
             "rotation": 35, 
-            "btcd": 56.5, 
-            "ethbtc": round(p_map.get("ethereum", {}).get("current_price", 0) / btc_p, 4),
+            "btcd": btcd_val, 
+            "ethbtc": round(p_map.get("ethereum", {}).get("current_price", 0) / p_map.get("bitcoin", {}).get("current_price", 1), 4),
             "coins": coins_out, 
             "fng": "8 (Extreme Fear)", "usdtd": 7.44, "vix": 14.2, "dxy": 101.1, "m2": "21.2T", "urpd": "84.2%",
             "momentum": "STABLE", "exhaustion": "27.7%", "divergence": "NORMAL", "volatility": "LOW", "liquidity": "HIGH"
