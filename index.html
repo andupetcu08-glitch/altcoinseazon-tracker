@@ -6,28 +6,24 @@
         body { background: #0b0e14; color: #e1e1e1; font-family: sans-serif; padding: 20px; }
         .banner { background: #052e16; border: 1px solid #22c55e; padding: 10px; border-radius: 5px; text-align: center; font-weight: bold; margin-bottom: 20px; font-size: 13px; }
         
-        .grid-nav, .grid-stats, .grid-macro { display: grid; gap: 10px; margin-bottom: 20px; }
+        .grid-nav, .grid-stats, .grid-macro { display: grid; gap: 10px; margin-bottom: 15px; }
         .grid-nav { grid-template-columns: repeat(4, 1fr) 2.5fr; }
         .grid-stats { grid-template-columns: 1fr 1.5fr 1fr; }
         .grid-macro { grid-template-columns: repeat(6, 1fr); }
 
-        /* Magnify Glow & Hover Effect */
-        .card { 
-            background: #15171e; padding: 15px; border-radius: 8px; border: 1px solid #222; 
-            text-align: center; transition: all 0.3s ease; 
-        }
-        .card:hover { transform: scale(1.02); border-color: #00ff88; box-shadow: 0 0 15px rgba(0, 255, 136, 0.15); }
+        .card { background: #15171e; padding: 15px; border-radius: 8px; border: 1px solid #222; text-align: center; transition: 0.3s; }
+        .card:hover { transform: scale(1.02); border-color: #00ff88; }
 
-        .label { font-size: 9px; color: #555; text-transform: uppercase; margin-bottom: 5px; letter-spacing: 0.5px; }
+        .label { font-size: 9px; color: #555; text-transform: uppercase; margin-bottom: 5px; }
         .val { font-size: 18px; font-weight: bold; }
         .val-large { font-size: 30px; font-weight: bold; color: #00ff88; }
 
-        /* Butoane Status interactive */
         .status-grp { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; }
-        .btn { background: #111; border: 1px solid #222; border-radius: 4px; font-size: 9px; color: #333; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        .btn { background: #111; border: 1px solid #222; border-radius: 4px; font-size: 9px; color: #333; display: flex; align-items: center; justify-content: center; font-weight: bold; text-transform: uppercase; }
         .btn-active { border-color: #ef4444; color: #ef4444; box-shadow: 0 0 10px rgba(239, 68, 68, 0.1); }
 
-        /* Header Tabel 1.5x conform cerintei */
+        /* Tabel Design */
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         thead th { font-size: 16.5px; color: #444; text-align: left; padding: 15px 10px; border-bottom: 1px solid #222; }
         td { padding: 12px 10px; border-bottom: 1px solid #161920; font-weight: bold; }
         .up { color: #00ff88; } .down { color: #ef4444; }
@@ -51,12 +47,13 @@
     <div class="grid-stats">
         <div class="card"><div class="label">Portofoliu Actual (EUR)</div><div id="veur" class="val-large">--</div></div>
         <div class="card"><div class="label">Potential Profit Teoretic (FIB)</div><div id="pot" style="color:#fbbf24; font-size:24px; font-weight:bold; margin-top:5px">--</div></div>
-        <div class="card"><div class="label">Multiplier Actual</div><div id="mult" class="val-large">--</div></div>
+        <div class="card"><div class="label">Multiplier Actual</div><div id="mult" class="val-large">--</div><div style="font-size:10px; color:#333" id="invest_val"></div></div>
     </div>
 
-    <div class="grid-macro" id="m1"></div>
+    <div id="macros1" class="grid-macro"></div>
+    <div id="macros2" class="grid-macro"></div>
 
-    <table style="width:100%; border-collapse: collapse;">
+    <table>
         <thead>
             <tr><th>MONEDA</th><th>CANTITATE</th><th>ENTRY</th><th>TARGET APR</th><th>X</th><th>TARGET MAI</th><th>X</th><th style="color:#a855f7">FINAL</th></tr>
         </thead>
@@ -76,10 +73,14 @@
             document.getElementById('usdtd').innerHTML = d.usdtd + ' ' + up;
             document.getElementById('veur').innerHTML = '€' + d.port_eur.toLocaleString() + ' ' + down;
             document.getElementById('mult').textContent = d.mult + 'x';
+            document.getElementById('invest_val').textContent = '(Investit: €' + d.invest_eur.toLocaleString() + ')';
             document.getElementById('pot').textContent = '€' + d.pot_min_eur.toLocaleString() + ' - €' + d.pot_max_eur.toLocaleString();
 
-            const macros = [['TOTAL 3','0.98T',up],['SENTIMENT',d.fng,up],['VIX INDEX',d.vix,down],['URPD',d.urpd,up],['DXY',d.dxy,down],['M2',d.m2,up]];
-            document.getElementById('m1').innerHTML = macros.map(x => `<div class="card"><div class="label">${x[0]}</div><div class="val">${x[1]} ${x[2]}</div></div>`).join('');
+            const m1 = [['TOTAL 3','0.98T',up],['SENTIMENT',d.fng,up],['VIX INDEX',d.vix,down],['URPD PROFIT',d.urpd,up],['DXY INDEX',d.dxy,down],['M2 SUPPLY',d.m2,up]];
+            document.getElementById('macros1').innerHTML = m1.map(x => `<div class="card"><div class="label">${x[0]}</div><div class="val">${x[1]} ${x[2]}</div></div>`).join('');
+
+            const m2 = [['ML SELL PROB','18.9%',down],['MOMENTUM',d.momentum,up],['EXHAUSTION',d.exhaustion,down],['DIVERGENCE',d.divergence,up],['VOLATILITY',d.volatility,down],['LIQUIDITY',d.liquidity,up]];
+            document.getElementById('macros2').innerHTML = m2.map(x => `<div class="card"><div class="label">${x[0]}</div><div class="val">${x[1]} ${x[2]}</div></div>`).join('');
 
             document.getElementById('rows').innerHTML = d.coins.map(c => `
                 <tr>
