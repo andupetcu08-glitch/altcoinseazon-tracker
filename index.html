@@ -2,33 +2,27 @@
 <html lang="ro">
 <head>
     <meta charset="UTF-8">
-    <title>Altcoin Tracker</title>
+    <title>Altcoin Tracker Ultimate</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background: #0b0e14; color: #e1e1e1; font-family: sans-serif; padding: 15px; font-size: 11px; }
-        .target-panel { background: #064e3b; border: 1px solid #10b981; padding: 10px; border-radius: 8px; margin-bottom: 20px; text-align: center; color: #10b981; font-weight: bold; }
         .m-card { background: #161b22; padding: 15px; border-radius: 10px; border: 1px solid #30363d; text-align: center; }
         .m-label { font-size: 9px; color: #8b949e; text-transform: uppercase; margin-bottom: 5px; }
-        .m-val { font-weight: bold; font-size: 18px; }
-        .prog-bg { width: 100%; background: #21262d; height: 4px; border-radius: 2px; margin-top: 8px; }
-        .prog-fill { height: 100%; border-radius: 2px; transition: width 0.5s; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th { text-align: left; color: #8b949e; padding: 15px; border-bottom: 1px solid #30363d; }
-        td { padding: 15px; border-bottom: 1px solid #21262d; }
+        .target-panel { background: #064e3b; border: 1px solid #10b981; padding: 10px; border-radius: 8px; margin-bottom: 20px; text-align: center; color: #10b981; font-weight: bold; }
     </style>
 </head>
 <body>
-    <div class="target-panel">🎯 TARGETS: BTC.D: 46% | VIX: 13.8 | USDT.D: 5.1% | ETH/BTC: 0.085 | ROTATION SCORE: 70%</div>
+    <div class="target-panel">🎯 TARGETS: BTC.D: 46% | VIX: 13.8 | USDT.D: 5.1% | ROTATION SCORE: 70%</div>
 
     <div class="grid grid-cols-4 gap-4 mb-6">
-        <div class="m-card"><div class="m-label">Rotation Score</div><div id="score" class="m-val">--</div></div>
-        <div class="m-card"><div class="m-label">BTC.D LIVE</div><div id="btcd" class="m-val">--</div></div>
-        <div class="m-card"><div class="m-label">ETH / BTC</div><div id="ethbtc" class="m-val" style="color:#a855f7">--</div></div>
-        <div class="m-card"><div class="m-label">USDT.D LIVE</div><div id="usdtd" class="m-val" style="color:#4ade80">--</div></div>
+        <div class="m-card"><div class="m-label">Rotation Score</div><div id="score" class="text-xl font-bold">--</div></div>
+        <div class="m-card"><div class="m-label">BTC.D LIVE</div><div id="btcd" class="text-xl font-bold">--</div></div>
+        <div class="m-card"><div class="m-label">ETH / BTC</div><div id="ethbtc" class="text-xl font-bold" style="color:#a855f7">--</div></div>
+        <div class="m-card"><div class="m-label">USDT.D LIVE</div><div id="usdtd" class="text-xl font-bold" style="color:#4ade80">--</div></div>
     </div>
 
     <div class="grid grid-cols-2 gap-4 mb-6">
-        <div class="m-card"><div class="m-label">Portofoliu (EUR)</div><div id="v" class="text-3xl font-bold text-green-400">--</div></div>
+        <div class="m-card"><div class="m-label">Portofoliu Actual (EUR)</div><div id="v" class="text-3xl font-bold text-green-400">--</div></div>
         <div class="m-card">
             <div class="m-label">Multiplier Actual</div>
             <div id="m" class="text-3xl font-bold text-green-400">--</div>
@@ -36,17 +30,12 @@
         </div>
     </div>
 
-    <div class="grid grid-cols-4 gap-2 mb-6">
-        <div class="m-card p-2"><div class="m-label">VIX</div><div id="vix" class="text-sm font-bold">--</div></div>
-        <div class="m-card p-2"><div class="m-label">DXY</div><div id="dxy" class="text-sm font-bold">--</div></div>
-        <div class="m-card p-2"><div class="m-label">Fear/Greed</div><div id="fng" class="text-sm font-bold">--</div></div>
-        <div class="m-card p-2"><div class="m-label">URPD</div><div class="text-sm font-bold text-green-400">84.2%</div></div>
-    </div>
-
     <div class="bg-[#161b22] rounded-lg border border-[#30363d] overflow-hidden">
-        <table>
-            <thead>
-                <tr><th>MONEDA</th><th>CANTITATE</th><th>ENTRY</th><th>PRET LIVE</th><th>TARGET APR</th><th>TARGET MAI</th><th style="color:#a855f7">FINAL TARGET</th></tr>
+        <table class="w-full text-left">
+            <thead class="border-b border-[#30363d]">
+                <tr class="text-[#8b949e] text-[10px]">
+                    <th class="p-4">MONEDA</th><th class="p-4">CANTITATE</th><th class="p-4">ENTRY</th><th class="p-4">PRET LIVE</th><th class="p-4" style="color:#fbbf24">TARGET APR</th><th class="p-4" style="color:#a855f7">FINAL TARGET</th>
+                </tr>
             </thead>
             <tbody id="rows"></tbody>
         </table>
@@ -57,31 +46,26 @@
             const r = await fetch('data.json?t=' + Date.now());
             const d = await r.json();
 
-            // Regula 70% verde [cite: 2026-02-14]
-            const s = d.rotation_score;
+            // Setează culoarea scorului [cite: 2026-02-14]
             const sEl = document.getElementById('score');
-            sEl.textContent = s + '%';
-            sEl.style.color = s >= 70 ? '#4ade80' : '#f87171';
+            sEl.textContent = d.rotation_score + '%';
+            sEl.style.color = d.rotation_score >= 70 ? '#4ade80' : '#f87171';
 
             document.getElementById('v').textContent = '€' + d.portfolio_eur.toLocaleString();
             document.getElementById('m').textContent = d.multiplier + 'x';
             document.getElementById('btcd').textContent = d.btc_d + '%';
             document.getElementById('ethbtc').textContent = d.eth_btc;
             document.getElementById('usdtd').textContent = d.usdt_d + '%';
-            document.getElementById('vix').textContent = d.vix;
-            document.getElementById('dxy').textContent = d.dxy;
-            document.getElementById('fng').textContent = d.fng;
 
             let h = '';
             d.coins.forEach(c => {
-                h += `<tr>
-                    <td>
-                        <div class="flex justify-between mb-1"><span class="font-bold uppercase">${c.symbol}</span><span style="color:${c.change>=0?'#4ade80':'#f87171'}">${c.change}%</span></div>
-                        <div class="prog-bg"><div class="prog-fill" style="width:${c.progres}%; background:${c.progres>=80?'#4ade80':'#fbbf24'}"></div></div>
-                    </td>
-                    <td class="text-gray-400">${c.q.toLocaleString()}</td><td class="text-gray-500">$${c.entry}</td>
-                    <td class="text-blue-400 font-bold">$${c.price}</td><td class="text-yellow-500">$${c.apr}</td>
-                    <td class="text-yellow-500">$${c.mai}</td><td class="text-purple-500 font-bold">$${c.fib}</td>
+                h += `<tr class="border-b border-[#21262d]">
+                    <td class="p-4 font-bold uppercase">${c.symbol}</td>
+                    <td class="p-4 text-gray-400">${c.q.toLocaleString()}</td>
+                    <td class="p-4 text-gray-500">$${c.entry}</td>
+                    <td class="p-4 text-blue-400 font-bold">$${c.price}</td>
+                    <td class="p-4 text-yellow-500 font-bold">$${c.apr}</td>
+                    <td class="p-4 text-purple-500 font-bold">$${c.fib}</td>
                 </tr>`;
             });
             document.getElementById('rows').innerHTML = h;
