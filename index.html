@@ -1,18 +1,20 @@
-<table class="min-w-full">
-    <thead>
-        <tr class="text-gray-500 text-xs uppercase">
-            <th>Moneda</th>
-            <th>Cantitate</th>
-            <th>Entry</th>
-            <th>Preț Actual</th>
-            <th>Target APR</th>
-            <th>Target MAI</th>
-            <th>Final Target</th>
-        </tr>
-    </thead>
-    <tbody id="coin-table-body">
-        </tbody>
-</table>
+<div class="overflow-x-auto">
+    <table class="w-full text-left text-xs">
+        <thead class="text-gray-500 uppercase border-b border-gray-800">
+            <tr>
+                <th class="py-3">Moneda</th>
+                <th>Cantitate</th>
+                <th>Entry</th>
+                <th>Preț Actual</th>
+                <th>Target APR</th>
+                <th>Target MAI</th>
+                <th>Final Target</th>
+            </tr>
+        </thead>
+        <tbody id="coin-table-body">
+            </tbody>
+    </table>
+</div>
 
 <script>
 async function updateDashboard() {
@@ -20,35 +22,38 @@ async function updateDashboard() {
         const res = await fetch('data.json');
         const data = await res.json();
 
-        // 1. Casete (ca anterior)
+        // 1. Casete Superioare
+        document.getElementById('rotation').innerText = data.rotation + '%';
+        document.getElementById('rotation').style.color = data.rotation >= 70 ? '#00ff00' : '#ff4444';
+        document.getElementById('btcd').innerText = data.btcd + '%';
+        document.getElementById('ethbtc').innerText = data.ethbtc;
+        document.getElementById('usdtd').innerText = data.usdtd + '%';
+
+        // 2. Portofoliu & Multiplier (Investitie: €101,235)
         document.getElementById('port_eur').innerText = '€' + data.port_eur.toLocaleString();
         document.getElementById('multiplier').innerText = data.mult + 'x';
-        const rot = document.getElementById('rotation');
-        rot.innerText = data.rotation + '%';
-        rot.style.color = data.rotation >= 70 ? '#00ff00' : '#ff4444'; // Regula 70% verde
 
-        // 2. Populare Tabel Automat
+        // 3. Generare Tabel Monede
         const tbody = document.getElementById('coin-table-body');
-        tbody.innerHTML = ''; // Curățăm rândurile vechi
-
+        tbody.innerHTML = ''; 
         data.coins.forEach(coin => {
-            const color = coin.change >= 0 ? 'text-green-400' : 'text-red-400';
-            const row = `
-                <tr class="border-b border-gray-800 text-sm">
-                    <td class="py-3 font-bold">${coin.name} <span class="${color} text-xs">(${coin.change}%)</span></td>
-                    <td>${coin.q.toLocaleString()}</td>
-                    <td>$${coin.entry}</td>
-                    <td class="font-bold text-blue-400">$${coin.price}</td>
-                    <td class="text-yellow-500">$${coin.apr} (${coin.mult_apr}x)</td>
-                    <td class="text-yellow-500">$${coin.mai} (${coin.mult_mai}x)</td>
+            const chColor = coin.change >= 0 ? 'text-green-400' : 'text-red-400';
+            tbody.innerHTML += `
+                <tr class="border-b border-gray-900">
+                    <td class="py-4 font-bold">${coin.name} <span class="${chColor} ml-1 text-[10px]">${coin.change}%</span></td>
+                    <td class="text-gray-300">${coin.q.toLocaleString()}</td>
+                    <td class="text-gray-400">$${coin.entry}</td>
+                    <td class="text-blue-400 font-bold">$${coin.price}</td>
+                    <td class="text-yellow-500 font-semibold">$${coin.apr}</td>
+                    <td class="text-yellow-500 font-semibold">$${coin.mai}</td>
                     <td class="text-purple-500 font-bold">$${coin.fib}</td>
                 </tr>
             `;
-            tbody.innerHTML += row;
         });
-
-    } catch (e) { console.error(e); }
+    } catch (e) { console.error("Eroare la incarcarea datelor:", e); }
 }
-setInterval(updateDashboard, 30000);
+
+// Pornire si refresh la 30 secunde
 updateDashboard();
+setInterval(updateDashboard, 30000);
 </script>
