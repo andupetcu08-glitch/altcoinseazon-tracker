@@ -2,36 +2,34 @@
 <html lang="ro">
 <head>
     <meta charset="UTF-8">
-    <title>Altcoin Tracker Ultimate - Final</title>
+    <title>Altcoin Tracker Ultimate</title>
     <style>
         body { background: #0b0e14; color: #e1e1e1; font-family: sans-serif; padding: 15px; font-size: 11px; margin: 0; }
-        .target-panel { background: #052e16; border: 2px solid #22c55e; padding: 12px; border-radius: 12px; margin-bottom: 25px; text-align: center; font-size: 13px; font-weight: bold; color: #fff; }
-        .top-nav { display: grid; grid-template-columns: repeat(4, 1fr) 1.5fr; gap: 10px; margin-bottom: 20px; }
-        .m-card { background: #1a1c24; padding: 12px; border-radius: 8px; border: 1px solid #333; text-align: center; transition: 0.3s; }
-        .m-card:hover { transform: scale(1.05); border-color: #00ff88; box-shadow: 0 0 15px rgba(0, 255, 136, 0.1); }
-        .m-label { font-size: 8px; color: #888; text-transform: uppercase; margin-bottom: 6px; }
-        .m-val { font-weight: bold; font-size: 16px; }
+        /* MODIFICARE: Banner mai mare */
+        .target-panel { background: #052e16; border: 2px solid #22c55e; padding: 18px; border-radius: 12px; margin-bottom: 25px; text-align: center; font-size: 16px; font-weight: bold; color: #fff; }
         
-        /* MODIFICARE 1: Linia 6 Macro - Marita cu 1.5x (de la 16px la 24px) */
-        .line6-val { font-size: 24px !important; font-weight: bold; }
+        .top-nav { display: grid; grid-template-columns: repeat(4, 1fr) 1.5fr; gap: 10px; margin-bottom: 20px; }
+        .m-card { background: #1a1c24; padding: 12px; border-radius: 8px; border: 1px solid #333; text-align: center; }
+        .m-label { font-size: 8px; color: #888; text-transform: uppercase; margin-bottom: 6px; }
+        
+        /* MODIFICARE: Casete macro cu text uniform (18px) */
+        .m-val { font-weight: bold; font-size: 18px; }
         
         .status-box { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
         .st-btn { background: #111; border: 1px solid #222; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: #333; }
-        .active-h { border-color: #ef4444 !important; color: #ef4444 !important; box-shadow: 0 0 15px rgba(239, 68, 68, 0.3); }
-        .active-s { border-color: #00ff88 !important; color: #00ff88 !important; box-shadow: 0 0 15px rgba(0, 255, 136, 0.3); }
+        .active-h { border-color: #ef4444 !important; color: #ef4444 !important; }
+        .active-s { border-color: #00ff88 !important; color: #00ff88 !important; }
         
         .stats-main { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px; }
         .card-big { background: #1a1c24; padding: 25px; border-radius: 12px; border: 1px solid #444; text-align: center; }
         .val-big { font-size: 32px; font-weight: bold; color: #00ff88; }
-        
-        /* MODIFICARE 2: Multiplier Redus de la 48px la 24px */
         .multiplier-val { font-size: 24px !important; color: #00ff88; font-weight: bold; }
         
         .macro-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 15px; }
         
-        /* MODIFICARE 3: Tabel monede marit cu 1.5x (de la 11px la 16.5px) */
+        /* MODIFICARE: Tabel cu header marit la 16px si randuri la 16.5px */
         table { width: 100%; border-collapse: collapse; font-size: 16.5px; }
-        th { text-align: left; color: #555; font-size: 12px; padding: 15px; border-bottom: 2px solid #222; }
+        th { text-align: left; color: #555; font-size: 16px !important; padding: 15px; border-bottom: 2px solid #222; text-transform: uppercase; }
         td { padding: 15px; border-bottom: 1px solid #1a1c24; }
         
         tr:hover { background: rgba(0, 255, 136, 0.05); }
@@ -61,64 +59,56 @@
 
     <table>
         <thead>
-            <tr><th>MONEDA</th><th>CANTITATE</th><th>ENTRY</th><th>TARGET APR</th><th style="color:#00ff88">MULTIPLIER</th><th>TARGET MAI</th><th style="color:#00ff88">MULTIPLIER</th><th style="color:#a855f7">FINAL TARGET</th></tr>
+            <tr><th>Moneda</th><th>Cantitate</th><th>Entry</th><th>Target APR</th><th style="color:#00ff88">Multiplier</th><th>Target MAI</th><th style="color:#00ff88">Multiplier</th><th style="color:#a855f7">Final Target</th></tr>
         </thead>
         <tbody id="rows"></tbody>
     </table>
 
     <script>
         async function load() {
-            try {
-                const r = await fetch('data.json?v=' + Date.now());
-                const d = await r.json();
-                
-                const arrow = (val, target, inv = false) => {
-                    const v = parseFloat(val) || 0;
-                    return (inv ? v < target : v > target) ? '<span class="up">▲</span>' : '<span class="down">▼</span>';
-                };
+            const r = await fetch('data.json?v=' + Date.now());
+            const d = await r.json();
+            const arrow = (v, t, i = false) => (i ? parseFloat(v) < t : parseFloat(v) > t) ? '<span class="up">▲</span>' : '<span class="down">▼</span>';
 
-                const s = d.rotation_score;
-                document.getElementById('score').innerHTML = s + '%' + arrow(s, 70);
-                document.getElementById('score').style.color = s >= 70 ? '#00ff88' : '#ef4444';
-                document.getElementById('btcd').innerHTML = d.btc_d + '%' + arrow(d.btc_d, 46, true);
-                document.getElementById('ethbtc').innerHTML = d.eth_btc + arrow(d.eth_btc, 0.05);
-                document.getElementById('usdtd').innerHTML = d.usdt_d + '%' + arrow(d.usdt_d, 5.1, true);
+            document.getElementById('score').innerHTML = d.rotation_score + '%' + arrow(d.rotation_score, 70);
+            document.getElementById('score').style.color = d.rotation_score >= 70 ? '#00ff88' : '#ef4444';
+            document.getElementById('btcd').innerHTML = d.btc_d + '%' + arrow(d.btc_d, 46, true);
+            document.getElementById('ethbtc').innerHTML = d.eth_btc + arrow(d.eth_btc, 0.05);
+            document.getElementById('usdtd').innerHTML = d.usdt_d + '%' + arrow(d.usdt_d, 5.1, true);
 
-                document.getElementById('btn-h').className = 'st-btn' + (s < 70 ? ' active-h' : '');
-                document.getElementById('btn-s').className = 'st-btn' + (s >= 70 ? ' active-s' : '');
+            document.getElementById('btn-h').className = 'st-btn' + (d.rotation_score < 70 ? ' active-h' : '');
+            document.getElementById('btn-s').className = 'st-btn' + (d.rotation_score >= 70 ? ' active-s' : '');
 
-                const m1 = [['TOTAL 3', d.total3, 1.2], ['SENTIMENT', d.fng, 75], ['VIX INDEX', d.vix, 13.8], ['URPD PROFIT', d.urpd + '%', 86], ['DXY INDEX', d.dxy, 100], ['M2 SUPPLY', d.m2, 21]];
-                const m2 = [['ML SELL PROB', d.ml_prob + '%', 50], ['MOMENTUM', d.momentum, 0], ['EXHAUSTION', d.exhaustion + '%', 30], ['DIVERGENCE', 'NORMAL', 0], ['VOLATILITY', 'LOW', 0], ['LIQUIDITY', 'HIGH', 0]];
-                
-                document.getElementById('row-macro-1').innerHTML = m1.map(m => `<div class="m-card"><div class="m-label">${m[0]}</div><div class="m-val">${m[1]}${arrow(m[1], m[2], m[0].includes('VIX') || m[0].includes('DXY'))}</div></div>`).join('');
-                
-                // MODIFICARE 4: Săgeți pentru toată Linia 6 + Text Marit
-                document.getElementById('row-macro-2').innerHTML = m2.map(m => {
-                    let a = '';
-                    if(m[0]==='ML SELL PROB') a = arrow(m[1], 50);
-                    else if(m[0]==='MOMENTUM') a = '<span class="up">▲</span>'; 
-                    else if(m[0]==='EXHAUSTION') a = arrow(m[1], 30, true);
-                    else if(m[0]==='DIVERGENCE') a = '<span class="up">▲</span>';
-                    else if(m[0]==='VOLATILITY') a = '<span class="up">▲</span>';
-                    else if(m[0]==='LIQUIDITY') a = '<span class="down">▼</span>';
-                    return `<div class="m-card"><div class="m-label">${m[0]}</div><div class="m-val line6-val">${m[1]}${a}</div></div>`;
-                }).join('');
+            const m1 = [['TOTAL 3', d.total3, 1.2], ['SENTIMENT', d.fng, 75], ['VIX INDEX', d.vix, 13.8], ['URPD PROFIT', d.urpd + '%', 86], ['DXY INDEX', d.dxy, 100], ['M2 SUPPLY', d.m2, 21]];
+            const m2 = [['ML SELL PROB', d.ml_prob + '%', 50], ['MOMENTUM', d.momentum, 0], ['EXHAUSTION', d.exhaustion + '%', 30], ['DIVERGENCE', 'NORMAL', 0], ['VOLATILITY', 'LOW', 0], ['LIQUIDITY', 'HIGH', 0]];
+            
+            const render = (arr) => arr.map(m => {
+                let a = '';
+                if(m[0]==='ML SELL PROB') a = arrow(m[1], 50);
+                else if(['MOMENTUM','DIVERGENCE','VOLATILITY'].includes(m[0])) a = '<span class="up">▲</span>';
+                else if(m[0]==='EXHAUSTION') a = arrow(m[1], 30, true);
+                else if(m[0]==='LIQUIDITY') a = '<span class="down">▼</span>';
+                else if(m[2]!==0) a = arrow(m[1], m[2], m[0].includes('VIX')||m[0].includes('DXY'));
+                return `<div class="m-card"><div class="m-label">${m[0]}</div><div class="m-val">${m[1]}${a}</div></div>`;
+            }).join('');
+            
+            document.getElementById('row-macro-1').innerHTML = render(m1);
+            document.getElementById('row-macro-2').innerHTML = render(m2);
 
-                document.getElementById('v').textContent = '€' + d.portfolio_eur.toLocaleString();
-                document.getElementById('profit').textContent = d.profit_range;
-                document.getElementById('m').textContent = d.multiplier + 'x';
-                document.getElementById('investit').textContent = 'Investit: €' + d.investit_eur.toLocaleString();
+            document.getElementById('v').textContent = '€' + d.portfolio_eur.toLocaleString();
+            document.getElementById('profit').textContent = d.profit_range;
+            document.getElementById('m').textContent = d.multiplier + 'x';
+            document.getElementById('investit').textContent = 'Investit: €' + d.investit_eur.toLocaleString();
 
-                let h = '';
-                d.coins.forEach(c => {
-                    h += `<tr><td><b>${c.symbol}</b> <small style="color:${c.change >= 0 ? '#00ff88' : '#ef4444'}">(${c.change}%)</small><br>$${c.price}</td>
-                        <td>${c.q.toLocaleString()}</td><td>$${c.entry}</td>
-                        <td style="color:#fbbf24">$${c.apr}</td><td style="color:#00ff88">${c.x_apr}x</td>
-                        <td style="color:#fbbf24">$${c.mai}</td><td style="color:#00ff88">${c.x_mai}x</td>
-                        <td style="color:#a855f7; font-weight:bold">$${c.fib}</td></tr>`;
-                });
-                document.getElementById('rows').innerHTML = h;
-            } catch(e) { console.error("Data load error", e); }
+            let h = '';
+            d.coins.forEach(c => {
+                h += `<tr><td><b>${c.symbol}</b> <small style="color:${c.change >= 0 ? '#00ff88' : '#ef4444'}">(${c.change}%)</small><br>$${c.price}</td>
+                    <td>${c.q.toLocaleString()}</td><td>$${c.entry}</td>
+                    <td style="color:#fbbf24">$${c.apr}</td><td style="color:#00ff88">${c.x_apr}x</td>
+                    <td style="color:#fbbf24">$${c.mai}</td><td style="color:#00ff88">${c.x_mai}x</td>
+                    <td style="color:#a855f7; font-weight:bold">$${c.fib}</td></tr>`;
+            });
+            document.getElementById('rows').innerHTML = h;
         }
         load(); setInterval(load, 30000);
     </script>
