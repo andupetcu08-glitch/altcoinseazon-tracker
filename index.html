@@ -12,9 +12,9 @@
         .top-nav { display: grid; grid-template-columns: repeat(4, 1fr) 1.5fr; gap: 10px; margin-bottom: 20px; }
         .m-card { 
             background: #1a1c24; padding: 12px; border-radius: 8px; border: 1px solid #333; text-align: center;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .m-card:hover { transform: scale(1.05); border-color: #00ff88; box-shadow: 0 0 15px rgba(0, 255, 136, 0.2); }
+        .m-card:hover { transform: scale(1.05); border-color: #00ff88; box-shadow: 0 0 15px rgba(0, 255, 136, 0.2); z-index: 10; }
         .m-label { font-size: 8px; color: #888; text-transform: uppercase; margin-bottom: 6px; }
         .m-val { font-weight: bold; font-size: 16px; }
         .status-box { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
@@ -23,12 +23,13 @@
         .active-s { border-color: #00ff88 !important; color: #00ff88 !important; box-shadow: 0 0 15px rgba(0, 255, 136, 0.4); }
         .stats-main { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px; }
         .card-big { background: #1a1c24; padding: 25px; border-radius: 12px; border: 1px solid #444; text-align: center; transition: 0.3s; }
-        .card-big:hover { border-color: #00ff88; }
+        .card-big:hover { border-color: #00ff88; transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
         .val-big { font-size: 32px; font-weight: bold; color: #00ff88; }
         .multiplier-val { font-size: 48px !important; color: #00ff88; font-weight: bold; text-shadow: 0 0 15px rgba(0, 255, 136, 0.3); }
         .macro-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 15px; }
         table { width: 100%; border-collapse: collapse; }
-        tr:hover { background: rgba(255,255,255,0.03); }
+        tr { transition: 0.2s; }
+        tr:hover { background: rgba(0, 255, 136, 0.05); transform: scale(1.005); }
         th { text-align: left; color: #555; font-size: 9px; padding: 15px; border-bottom: 2px solid #222; }
         td { padding: 15px; border-bottom: 1px solid #1a1c24; }
         .up { color: #00ff88; margin-left: 4px; }
@@ -66,7 +67,10 @@
         async function load() {
             const r = await fetch('data.json?v=' + Date.now());
             const d = await r.json();
-            const arrow = (val, target, inv = false) => (inv ? val < target : val > target) ? '<span class="up">▲</span>' : '<span class="down">▼</span>';
+            const arrow = (val, target, inv = false) => {
+                const v = parseFloat(val);
+                return (inv ? v < target : v > target) ? '<span class="up">▲</span>' : '<span class="down">▼</span>';
+            };
 
             const s = d.rotation_score;
             document.getElementById('score').innerHTML = s + '%' + arrow(s, 70);
@@ -81,7 +85,12 @@
             const m1 = [['TOTAL 3', d.total3, 1.2], ['SENTIMENT', d.fng, 75], ['VIX INDEX', d.vix, 13.8], ['URPD PROFIT', d.urpd + '%', 86], ['DXY INDEX', d.dxy, 100], ['M2 SUPPLY', d.m2, 21]];
             const m2 = [['ML SELL PROB', d.ml_prob + '%', 50], ['MOMENTUM', d.momentum, 0], ['EXHAUSTION', d.exhaustion + '%', 30], ['DIVERGENCE', 'NORMAL', 0], ['VOLATILITY', 'LOW', 0], ['LIQUIDITY', 'HIGH', 0]];
             
-            const render = (arr) => arr.map(m => `<div class="m-card"><div class="m-label">${m[0]}</div><div class="m-val">${m[1]}${m[2]!==0 ? arrow(parseFloat(m[1]), m[2], m[0].includes('VIX')||m[0].includes('DXY')||m[0].includes('EXHAUSTION')) : ''}</div></div>`).join('');
+            const render = (arr) => arr.map(m => {
+                let valStr = m[1].toString();
+                let displayArrow = m[2] !== 0 ? arrow(valStr, m[2], m[0].includes('VIX') || m[0].includes('DXY') || m[0].includes('EXHAUSTION')) : '';
+                return `<div class="m-card"><div class="m-label">${m[0]}</div><div class="m-val">${m[1]}${displayArrow}</div></div>`;
+            }).join('');
+            
             document.getElementById('row-macro-1').innerHTML = render(m1);
             document.getElementById('row-macro-2').innerHTML = render(m2);
 
