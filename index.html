@@ -2,7 +2,7 @@
 <html lang="ro">
 <head>
     <meta charset="UTF-8">
-    <title>Altcoin Tracker Ultimate - FIXED</title>
+    <title>Altcoin Tracker Ultimate - FINAL STABLE</title>
     <style>
         body { background: #0b0e14; color: #e1e1e1; font-family: sans-serif; padding: 15px; font-size: 11px; margin: 0; }
         
@@ -12,7 +12,7 @@
             margin-bottom: 20px; text-align: center; font-size: 14px; font-weight: 900; color: #fff; 
             text-transform: uppercase; transition: all 0.2s ease;
         }
-        .target-panel:hover { transform: scale(1.02); box-shadow: 0 0 20px rgba(34, 197, 94, 0.4); }
+        .target-panel:hover { transform: scale(1.01); box-shadow: 0 0 20px rgba(34, 197, 94, 0.4); }
         
         .top-nav { display: grid; grid-template-columns: repeat(4, 1fr) 1.5fr; gap: 10px; margin-bottom: 20px; }
         
@@ -94,9 +94,10 @@
                 const r = await fetch('data.json?v=' + Date.now());
                 const d = await r.json();
                 
-                const arrow = (v, t, i = false) => {
-                    let val = parseFloat(v); if (isNaN(val)) return '';
-                    return (i ? val < t : val > t) ? '<span class="up">▲</span>' : '<span class="down">▼</span>';
+                const arrow = (v, t, invert = false) => {
+                    let val = parseFloat(v);
+                    if (isNaN(val) || t === undefined) return '';
+                    return (invert ? val < t : val > t) ? '<span class="up">▲</span>' : '<span class="down">▼</span>';
                 };
 
                 const rot = parseFloat(d.rotation_score);
@@ -112,12 +113,20 @@
                 document.getElementById('usdtd').innerHTML = d.usdt_d + '%' + arrow(d.usdt_d, 5.1, true);
 
                 const renderM = (arr) => arr.map(m => {
-                    let a = (m[2] !== undefined) ? arrow(m[1], m[2], m[3] || false) : '';
+                    let a = arrow(m[1], m[2], m[3] || false);
                     return `<div class="m-card"><span class="m-label">${m[0]}</span><div class="m-val">${m[1]}${a}</div></div>`;
                 }).join('');
 
                 document.getElementById('row-macro-1').innerHTML = renderM([['TOTAL 3', d.total3, 1.2], ['SENTIMENT', d.fng, 75], ['VIX INDEX', d.vix, 13.8, true], ['URPD PROFIT', d.urpd + '%', 86], ['DXY INDEX', d.dxy, 100, true], ['M2 SUPPLY', d.m2, 21]]);
-                document.getElementById('row-macro-2').innerHTML = renderM([['ML SELL PROB', d.ml_prob + '%', 50], ['MOMENTUM', d.momentum], ['EXHAUSTION', d.exhaustion + '%', 30, true], ['DIVERGENCE', d.divergence], ['VOLATILITY', d.volatility], ['LIQUIDITY', d.liquidity]]);
+                
+                // Rândul 2 (Momentum etc.) - Fără săgeți pe texte ca "STABLE" pentru a evita erorile
+                document.getElementById('row-macro-2').innerHTML = `
+                    <div class="m-card"><span class="m-label">ML SELL PROB</span><div class="m-val">${d.ml_prob}%${arrow(d.ml_prob, 50)}</div></div>
+                    <div class="m-card"><span class="m-label">MOMENTUM</span><div class="m-val">${d.momentum}</div></div>
+                    <div class="m-card"><span class="m-label">EXHAUSTION</span><div class="m-val">${d.exhaustion}%${arrow(d.exhaustion, 30, true)}</div></div>
+                    <div class="m-card"><span class="m-label">DIVERGENCE</span><div class="m-val">${d.divergence}</div></div>
+                    <div class="m-card"><span class="m-label">VOLATILITY</span><div class="m-val">${d.volatility}</div></div>
+                    <div class="m-card"><span class="m-label">LIQUIDITY</span><div class="m-val">${d.liquidity}</div></div>`;
 
                 document.getElementById('v').textContent = '€' + d.portfolio_eur.toLocaleString();
                 document.getElementById('profit').textContent = d.profit_range;
