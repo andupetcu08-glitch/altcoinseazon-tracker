@@ -2,78 +2,68 @@ import json, urllib.request
 
 INVEST_EUR = 101235.0 
 
+PORTFOLIO = {
+    "optimism": {"q": 6400, "entry": 0.773, "apr": 4.8, "mai": 5.2, "fib": 5.95},
+    "notcoin": {"q": 1297106.88, "entry": 0.001291, "apr": 0.028, "mai": 0.028, "fib": 0.034},
+    "arbitrum": {"q": 14326.44, "entry": 1.134, "apr": 3.0, "mai": 3.4, "fib": 3.82},
+    "celestia": {"q": 4504.47, "entry": 5.911, "apr": 12.0, "mai": 15.0, "fib": 18.5},
+    "jito-governance-token": {"q": 7366.42, "entry": 2.711, "apr": 8.0, "mai": 8.2, "fib": 9.2},
+    "lido-dao": {"q": 9296.65, "entry": 1.121, "apr": 5.6, "mai": 6.2, "fib": 6.9},
+    "cartesi": {"q": 49080, "entry": 0.19076, "apr": 0.2, "mai": 0.2, "fib": 0.24},
+    "immutable-x": {"q": 1551.82, "entry": 3.4205, "apr": 3.5, "mai": 4.3, "fib": 4.85},
+    "sonic-3": {"q": 13449.38, "entry": 0.81633, "apr": 1.05, "mai": 1.35, "fib": 1.55},
+    "synthetix-network-token": {"q": 20073.76, "entry": 0.8773, "apr": 7.8, "mai": 9.3, "fib": 10.2}
+}
+
 def fetch(url):
     try:
         req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
         with urllib.request.urlopen(req, timeout=15) as r: return json.loads(r.read().decode())
     except: return None
 
-def get_yahoo(ticker):
-    try:
-        url = f"https://query1.finance.yahoo.com/v8/finance/chart/{ticker}"
-        data = fetch(url)
-        return data['chart']['result'][0]['meta']['regularMarketPrice']
-    except: return 1.0
-
 def main():
-    # Surse Date
-    p_data = fetch("https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=bitcoin,ethereum,tether,optimism,notcoin,arbitrum,celestia,jito-governance-token,lido-dao,cartesi,immutable-x,sonic-3,synthetix-network-token")
-    g_data = fetch("https://api.coingecko.com/api/v3/global")
-    f_data = fetch("https://api.alternative.me/fng/")
+    p_api = "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=" + ",".join(list(PORTFOLIO.keys()) + ["bitcoin", "ethereum", "tether"])
+    prices = fetch(p_api)
+    global_data = fetch("https://api.coingecko.com/api/v3/global")
+    fng_data = fetch("https://api.alternative.me/fng/")
 
-    if not p_data or not g_data: return
+    if not prices or not global_data: return
+    p_map = {c["id"]: c for c in prices}
+    total_mcap = global_data["data"]["total_market_cap"]["usd"]
 
-    p_map = {c["id"]: c for c in p_data}
-    total_mcap = g_data["data"]["total_market_cap"]["usd"]
-
-    # --- Calcule Casete Live ---
-    # BTC.D
+    # 1. BTC.D & USDT.D Live
     btcd = round((p_map.get("bitcoin", {}).get("market_cap", 0) / total_mcap) * 100, 2)
-    
-    # ETH/BTC
-    btc_p = p_map.get("bitcoin", {}).get("current_price", 1)
-    eth_p = p_map.get("ethereum", {}).get("current_price", 0)
-    ethbtc = round(eth_p / btc_p, 4)
-
-    # USDT.D
     usdtd = round((p_map.get("tether", {}).get("market_cap", 0) / total_mcap) * 100, 2)
     
-    # Fear & Greed
-    fng_val = int(f_data["data"][0]["value"]) if f_data else 10
-    fng_txt = f_data["data"][0]["value_classification"] if f_data else "N/A"
+    # 2. ETH/BTC
+    ethbtc = round(p_map.get("ethereum", {}).get("current_price", 0) / p_map.get("bitcoin", {}).get("current_price", 1), 4)
 
-    # Macro Automatizat
-    vix = get_yahoo("^VIX")
-    dxy = get_yahoo("DX-Y.NYB")
-
-    # Rotation Score (Target 70%)
-    # Formula: daca BTCD scade spre 46%, rotatia urca spre 70%
-    rot_score = round(max(0, min(100, (63 - btcd) * 5 + (fng_val / 2))), 0)
-
-    # --- Portofoliu ---
+    # 3. Portofoliu & SNX Fix ($0.294)
     total_usd = 0
-    # Aici procesezi portofoliul tau (Optimism, Notcoin, etc.)
-    # SNX forțat la 0.294
-    
+    for cid, d in PORTFOLIO.items():
+        p = p_map.get(cid, {}).get("current_price", d["entry"])
+        if cid == "synthetix-network-token" and (p > 0.8 or p == d["entry"]): p = 0.294
+        total_usd += (p * d["q"])
+
     port_eur = total_usd * 0.92
-    multiplier = round(port_eur / INVEST_EUR, 2)
+    fng_val = int(fng_data["data"][0]["value"]) if fng_data else 10
+    
+    # 4. Rotation Score (Calculat pentru targetul de 70%)
+    rot_score = round(max(0, min(100, (62 - btcd) * 5 + (fng_val / 3))), 0)
 
     output = {
         "port_eur": round(port_eur, 0),
         "invest_eur": INVEST_EUR,
-        "mult": multiplier, # Doar numarul
+        "mult": round(port_eur / INVEST_EUR, 2),
         "rotation": int(rot_score),
         "btcd": btcd,
         "ethbtc": ethbtc,
         "usdtd": usdtd,
-        "fng": f"{fng_val} ({fng_txt})",
-        "vix": round(vix, 2),
-        "dxy": round(dxy, 2),
-        "m2": "22.4T" # M2 ramane momentan estimat
+        "fng": f"{fng_val} ({fng_data['data'][0]['value_classification'] if fng_data else 'N/A'})",
+        "vix": 14.2, "dxy": 101.1, "m2": "21.2T"
     }
 
     with open("data.json", "w") as f:
         json.dump(output, f)
 
-if __name__ == "__main__":
-    main()
+if __name__ == "__main__": main()
