@@ -33,11 +33,19 @@ def main():
     btc_eur = btc_eur_data.get("bitcoin", {}).get("eur", 1) if btc_eur_data else 1
     usd_eur_live = btc_eur / btc_usd if btc_usd > 0 else 0.92
 
-    btc_d = round(global_api["data"]["market_cap_percentage"]["btc"], 2) if global_api else 56.40
+    # Asigurăm date live pentru BTC.D
+    btc_d = 56.40 # Fallback sigur
+    if global_api and "data" in global_api:
+        btc_d = round(global_api["data"]["market_cap_percentage"].get("btc", 56.40), 2)
+    
     eth_p = p_map.get("ethereum", {}).get("current_price", 0)
     eth_btc = round(eth_p / btc_usd, 4) if btc_usd > 0 else 0.0292
-    fng_val = int(fng_api["data"][0]["value"]) if fng_api else 12
-    fng_class = fng_api["data"][0]["value_classification"] if fng_api else "N/A"
+    
+    fng_val = 12
+    fng_class = "N/A"
+    if fng_api and "data" in fng_api:
+        fng_val = int(fng_api["data"][0]["value"])
+        fng_class = fng_api["data"][0]["value_classification"]
     
     results = []
     total_val_usd = 0
@@ -45,9 +53,7 @@ def main():
     total_val_fib_usd = 0
 
     for cid, d in PORTFOLIO.items():
-        # MODIFICARE: Pret static SNX la 0.3, restul live
         p = 0.30 if cid == "synthetix-network-token" else p_map.get(cid, {}).get("current_price", d["entry"])
-        
         total_val_usd += (p * d["q"])
         total_val_apr_usd += (d["apr"] * d["q"])
         total_val_fib_usd += (d["fib"] * d["q"])
