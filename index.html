@@ -2,7 +2,7 @@
 <html lang="ro">
 <head>
     <meta charset="UTF-8">
-    <title>Altcoin Tracker Ultimate - GOLD VERSION FINAL</title>
+    <title>Altcoin Tracker Ultimate - GOLD VERSION PRECISE</title>
     <style>
         body { background: #0b0e14; color: #e1e1e1; font-family: sans-serif; padding: 15px; font-size: 11px; margin: 0; }
         
@@ -14,56 +14,55 @@
         
         .top-nav { display: grid; grid-template-columns: repeat(4, 1fr) 1.5fr; gap: 10px; margin-bottom: 20px; }
         
-        /* EFECTUL UNIC DE MAGNIFY SI GLOW - Aplicat peste tot */
-        .m-card, .st-btn, .card-big, tr { 
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
+        /* EFECTUL DE MAGNIFY SI GLOW PE TOATE ELEMENTELE INTERACTIVE */
+        .m-card, .st-btn, .card-big, tr { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid #333; }
         
         .m-card:hover, .st-btn:hover, .card-big:hover { 
             transform: scale(1.08); border-color: #00ff88 !important; 
-            box-shadow: 0 0 20px rgba(0, 255, 136, 0.25); z-index: 10; 
+            box-shadow: 0 0 25px rgba(0, 255, 136, 0.3); z-index: 10; 
         }
 
         .m-card { 
-            background: #1a1c24; padding: 15px; border-radius: 8px; border: 1px solid #333; 
-            text-align: center; display: flex; flex-direction: column; justify-content: center; min-height: 60px;
+            background: #1a1c24; padding: 15px; border-radius: 8px; 
+            text-align: center; display: flex; flex-direction: column; justify-content: center; min-height: 70px;
         }
 
-        .m-label { font-size: 11px; color: #aaa; text-transform: uppercase; margin-bottom: 8px; font-weight: bold; letter-spacing: 0.5px; }
-        .m-val { font-weight: bold; font-size: 18px; }
+        /* TITLURI MARITE SI BOLDATE CONFORM CERINTEI */
+        .m-label { font-size: 14px !important; color: #fff; text-transform: uppercase; margin-bottom: 10px; font-weight: 900; letter-spacing: 1px; }
+        .m-val { font-weight: bold; font-size: 20px; color: #e1e1e1; }
         
-        /* Stil Butoane cu Magnify */
+        /* BUTOANE UNIFORME SI MARITE */
         .status-box { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
         .st-btn { 
-            background: #1a1c24; border: 1px solid #333; border-radius: 8px; 
+            background: #1a1c24; border-radius: 8px; 
             display: flex; align-items: center; justify-content: center; 
-            font-size: 16px; font-weight: bold; color: #444; text-transform: uppercase; cursor: pointer;
+            font-size: 18px; font-weight: bold; color: #444; text-transform: uppercase;
         }
-        .active-h { border-color: #ef4444 !important; color: #ef4444 !important; box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.05); }
-        .active-s { border-color: #00ff88 !important; color: #00ff88 !important; box-shadow: 0 0 15px rgba(0, 255, 136, 0.4); background: rgba(0, 255, 136, 0.05); }
+        .active-h { border-color: #ef4444 !important; color: #ef4444 !important; box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.1); }
+        .active-s { border-color: #00ff88 !important; color: #00ff88 !important; box-shadow: 0 0 15px rgba(0, 255, 136, 0.4); background: rgba(0, 255, 136, 0.1); }
         
         .stats-main { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px; }
-        .card-big { background: #1a1c24; padding: 25px; border-radius: 12px; border: 1px solid #444; text-align: center; }
-        .val-big { font-size: 32px; font-weight: bold; color: #00ff88; }
+        .card-big { background: #1a1c24; padding: 25px; border-radius: 12px; text-align: center; }
+        .val-big { font-size: 34px; font-weight: bold; color: #00ff88; }
         
-        .progress-container { width: 100%; background: #333; height: 5px; border-radius: 3px; margin-top: 10px; overflow: hidden; }
-        .progress-bar { height: 100%; width: 0%; transition: width 1s ease-in-out; }
+        .progress-container { width: 100%; background: #333; height: 6px; border-radius: 3px; margin-top: 12px; overflow: hidden; }
+        .progress-bar { height: 100%; width: 0%; transition: width 1.5s ease-in-out; }
 
         .macro-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 15px; }
         
-        /* Tabel cu Magnify pe rânduri */
-        table { width: 100%; border-collapse: collapse; font-size: 16.5px; }
-        th { text-align: left; color: #555; font-size: 16px; padding: 15px; border-bottom: 2px solid #222; text-transform: uppercase; }
+        /* TABEL CU MAGNIFY SI MULTIPLIER SCRIS COMPLET */
+        table { width: 100%; border-collapse: collapse; font-size: 16.5px; margin-top: 10px; }
+        th { text-align: left; color: #777; font-size: 15px; padding: 15px; border-bottom: 2px solid #333; text-transform: uppercase; font-weight: bold; }
         tr:hover { 
-            background: rgba(0, 255, 136, 0.1) !important; 
-            transform: scale(1.02); 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            background: rgba(0, 255, 136, 0.08) !important; 
+            transform: scale(1.015); 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.6);
             outline: 1px solid #00ff88;
         }
-        td { padding: 15px; border-bottom: 1px solid #1a1c24; }
+        td { padding: 18px 15px; border-bottom: 1px solid #1a1c24; }
         
-        .up { color: #00ff88; margin-left: 6px; font-size: 14px; }
-        .down { color: #ef4444; margin-left: 6px; font-size: 14px; }
+        .up { color: #00ff88; margin-left: 6px; font-weight: bold; }
+        .down { color: #ef4444; margin-left: 6px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -79,8 +78,8 @@
 
     <div class="stats-main">
         <div class="card-big"><div class="m-label">PORTOFOLIU ACTUAL (EUR)</div><div id="v" class="val-big">--</div></div>
-        <div class="card-big"><div class="m-label">POTENȚIAL PROFIT TEORETIC</div><div id="profit" class="val-big" style="color:#fbbf24; font-size: 24px;">--</div></div>
-        <div class="card-big"><div class="m-label">MULTIPLIER ACTUAL</div><div id="m" class="val-big" style="font-size:24px">--</div><span id="investit" style="color:#888; font-size:10px">--</span></div>
+        <div class="card-big"><div class="m-label">POTENȚIAL PROFIT TEORETIC</div><div id="profit" class="val-big" style="color:#fbbf24; font-size: 26px;">--</div></div>
+        <div class="card-big"><div class="m-label">MULTIPLIER ACTUAL</div><div id="m" class="val-big" style="font-size:26px">--</div><span id="investit" style="color:#888; font-size:10px">--</span></div>
     </div>
 
     <div id="row-macro-1" class="macro-row"></div>
@@ -88,7 +87,12 @@
 
     <table>
         <thead>
-            <tr><th>MONEDA</th><th>CANTITATE</th><th>ENTRY</th><th>TARGET APR</th><th style="color:#00ff88">X</th><th>TARGET MAI</th><th style="color:#00ff88">X</th><th style="color:#a855f7">FINAL TARGET</th></tr>
+            <tr>
+                <th>MONEDA</th><th>CANTITATE</th><th>ENTRY</th>
+                <th style="color:#fbbf24">TARGET APR</th><th style="color:#00ff88">MULTIPLIER</th>
+                <th style="color:#fbbf24">TARGET MAI</th><th style="color:#00ff88">MULTIPLIER</th>
+                <th style="color:#a855f7">FINAL TARGET</th>
+            </tr>
         </thead>
         <tbody id="rows"></tbody>
     </table>
@@ -98,60 +102,68 @@
             try {
                 const r = await fetch('data.json?v=' + Date.now());
                 const d = await r.json();
-                const arrow = (v, t, i = false) => (i ? parseFloat(v) < t : parseFloat(v) > t) ? '<span class="up">▲</span>' : '<span class="down">▼</span>';
+                
+                // Functie universala de sageti (i = inversata pentru BTC.D, VIX, DXY, USDT.D)
+                const getArrow = (val, target, inverted = false) => {
+                    let v = parseFloat(val);
+                    if (isNaN(v)) return '';
+                    return (inverted ? v < target : v > target) ? '<span class="up">▲</span>' : '<span class="down">▼</span>';
+                };
 
-                document.getElementById('score').innerHTML = d.rotation_score + '%' + arrow(d.rotation_score, 70);
+                // Header - Titlurile sunt deja mari din CSS
+                document.getElementById('score').innerHTML = d.rotation_score + '%' + getArrow(d.rotation_score, 70);
                 document.getElementById('score').style.color = d.rotation_score >= 70 ? '#00ff88' : '#ef4444';
-                document.getElementById('btcd').innerHTML = d.btc_d + '%' + arrow(d.btc_d, 46, true);
-                document.getElementById('ethbtc').innerHTML = d.eth_btc + arrow(d.eth_btc, 0.05);
-                document.getElementById('usdtd').innerHTML = d.usdt_d + '%' + arrow(d.usdt_d, 5.1, true);
+                document.getElementById('btcd').innerHTML = d.btc_d + '%' + getArrow(d.btc_d, 46, true);
+                document.getElementById('ethbtc').innerHTML = d.eth_btc + getArrow(d.eth_btc, 0.05);
+                document.getElementById('usdtd').innerHTML = d.usdt_d + '%' + getArrow(d.usdt_d, 5.1, true);
 
+                // Status Butoane
                 document.getElementById('btn-h').className = 'st-btn' + (d.rotation_score < 70 ? ' active-h' : '');
                 document.getElementById('btn-s').className = 'st-btn' + (d.rotation_score >= 70 ? ' active-s' : '');
 
-                const m1 = [['TOTAL 3', d.total3, 1.2], ['SENTIMENT', d.fng, 75], ['VIX INDEX', d.vix, 13.8, true], ['URPD PROFIT', d.urpd + '%', 86], ['DXY INDEX', d.dxy, 100, true], ['M2 SUPPLY', d.m2, 21]];
-                const m2 = [['ML SELL PROB', d.ml_prob + '%', 50], ['MOMENTUM', d.momentum, 0], ['EXHAUSTION', d.exhaustion + '%', 30, true], ['DIVERGENCE', d.divergence || 'NORMAL', 0], ['VOLATILITY', d.volatility || 'LOW', 0], ['LIQUIDITY', d.liquidity || 'HIGH', 0]];
+                // Indicatori Macro cu Sageti (REINSTAURATE COMPLET)
+                const m1 = [
+                    ['TOTAL 3', d.total3, 1.2], ['SENTIMENT', d.fng, 75], 
+                    ['VIX INDEX', d.vix, 13.8, true], ['URPD PROFIT', d.urpd + '%', 86], 
+                    ['DXY INDEX', d.dxy, 100, true], ['M2 SUPPLY', d.m2, 21]
+                ];
+                const m2 = [
+                    ['ML SELL PROB', d.ml_prob + '%', 50], ['MOMENTUM', d.momentum, 0], 
+                    ['EXHAUSTION', d.exhaustion + '%', 30, true], ['DIVERGENCE', d.divergence || 'NORMAL', 0], 
+                    ['VOLATILITY', d.volatility || 'LOW', 0], ['LIQUIDITY', d.liquidity || 'HIGH', 0]
+                ];
                 
-                const renderMacro = (arr) => arr.map(m => {
-                    let a = '';
-                    if (m[2] !== 0) a = arrow(m[1], m[2], m[3] || false);
-                    else if (['MOMENTUM', 'DIVERGENCE', 'VOLATILITY'].includes(m[0])) a = '<span class="up">▲</span>';
-                    else if (m[0] === 'LIQUIDITY') a = '<span class="down">▼</span>';
-                    return `<div class="m-card"><div class="m-label">${m[0]}</div><div class="m-val">${m[1]}${a}</div></div>`;
+                const renderM = (arr) => arr.map(m => {
+                    let arrowIcon = '';
+                    if (m[2] !== 0) arrowIcon = getArrow(m[1], m[2], m[3] || false);
+                    else if (['MOMENTUM', 'DIVERGENCE', 'VOLATILITY'].includes(m[0])) arrowIcon = '<span class="up">▲</span>';
+                    else if (m[0] === 'LIQUIDITY') arrowIcon = '<span class="down">▼</span>';
+                    return `<div class="m-card"><div class="m-label">${m[0]}</div><div class="m-val">${m[1]}${arrowIcon}</div></div>`;
                 }).join('');
 
-                document.getElementById('row-macro-1').innerHTML = renderMacro(m1);
-                document.getElementById('row-macro-2').innerHTML = renderMacro(m2);
+                document.getElementById('row-macro-1').innerHTML = renderM(m1);
+                document.getElementById('row-macro-2').innerHTML = renderM(m2);
 
                 document.getElementById('v').textContent = '€' + d.portfolio_eur.toLocaleString();
                 document.getElementById('profit').textContent = d.profit_range;
                 document.getElementById('m').textContent = d.multiplier + 'x';
                 document.getElementById('investit').textContent = 'Investit: €' + d.investit_eur.toLocaleString();
 
-                let h = '';
+                // Tabel Monede cu Multiplier scris intreg si Bare de Progres
+                let rowsHtml = '';
                 d.coins.forEach(c => {
-                    const priceNum = parseFloat(c.price);
-                    const entryNum = parseFloat(c.entry);
-                    const finalNum = parseFloat(c.fib);
-                    let progress = ((priceNum - entryNum) / (finalNum - entryNum)) * 100;
-                    progress = Math.min(Math.max(progress, 0), 100);
-                    let color = progress > 70 ? '#00ff88' : (progress > 30 ? '#f97316' : '#ef4444');
+                    const cur = parseFloat(c.price);
+                    const ent = parseFloat(c.entry);
+                    const fib = parseFloat(c.fib);
+                    let prog = ((cur - ent) / (fib - ent)) * 100;
+                    prog = Math.min(Math.max(prog, 0), 100);
+                    let barCol = prog > 70 ? '#00ff88' : (prog > 30 ? '#f97316' : '#ef4444');
 
-                    h += `<tr>
-                        <td style="min-width:160px">
-                            <b>${c.symbol}</b> <small style="color:${c.change >= 0 ? '#00ff88' : '#ef4444'}">(${c.change}%)</small><br>$${c.price}
-                            <div class="progress-container"><div class="progress-bar" style="width: ${progress}%; background: ${color}; box-shadow: 0 0 10px ${color}88;"></div></div>
+                    rowsHtml += `<tr>
+                        <td style="min-width:180px">
+                            <b style="font-size:18px">${c.symbol}</b> <small style="color:${c.change >= 0 ? '#00ff88' : '#ef4444'}">(${c.change}%)</small><br>$${c.price}
+                            <div class="progress-container"><div class="progress-bar" style="width: ${prog}%; background: ${barCol}; box-shadow: 0 0 12px ${barCol}aa;"></div></div>
                         </td>
                         <td>${c.q.toLocaleString()}</td><td>$${c.entry}</td>
-                        <td style="color:#fbbf24">$${c.apr}</td><td style="color:#00ff88">${c.x_apr}x</td>
-                        <td style="color:#fbbf24">$${c.mai}</td><td style="color:#00ff88">${c.x_mai}x</td>
-                        <td style="color:#a855f7; font-weight:bold">$${c.fib}</td>
-                    </tr>`;
-                });
-                document.getElementById('rows').innerHTML = h;
-            } catch (e) { console.error(e); }
-        }
-        load(); setInterval(load, 30000);
-    </script>
-</body>
-</html>
+                        <td style="color:#fbbf24">$${c.apr}</td><td style="color:#00ff88; font-weight:bold">${c.x_apr}x</td>
+                        <td style="color:#fbbf24">$${c.mai}</td><td style="color:#00ff88
