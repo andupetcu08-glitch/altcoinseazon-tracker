@@ -5,67 +5,71 @@ INVEST_EUR = 101235.0
 def fetch(url):
     try:
         req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
-        with urllib.request.urlopen(req, timeout=15) as r:
-            return json.loads(r.read().decode())
-    except Exception as e:
-        print(f"Eroare API la {url}: {e}")
-        return None
+        with urllib.request.urlopen(req, timeout=15) as r: return json.loads(r.read().decode())
+    except: return None
+
+def get_yahoo(ticker):
+    try:
+        url = f"https://query1.finance.yahoo.com/v8/finance/chart/{ticker}"
+        data = fetch(url)
+        return data['chart']['result'][0]['meta']['regularMarketPrice']
+    except: return 1.0
 
 def main():
-    # Preluăm datele esențiale
+    # Surse Date
     p_data = fetch("https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=bitcoin,ethereum,tether,optimism,notcoin,arbitrum,celestia,jito-governance-token,lido-dao,cartesi,immutable-x,sonic-3,synthetix-network-token")
     g_data = fetch("https://api.coingecko.com/api/v3/global")
     f_data = fetch("https://api.alternative.me/fng/")
 
-    if not p_data or not g_data:
-        print("Eroare critică: Nu s-au putut prelua datele de piață.")
-        return
+    if not p_data or not g_data: return
 
     p_map = {c["id"]: c for c in p_data}
     total_mcap = g_data["data"]["total_market_cap"]["usd"]
 
-    # 1. BTC.D Live (Calculat manual pentru precizie)
-    btc_mcap = p_map.get("bitcoin", {}).get("market_cap", 0)
-    btcd = round((btc_mcap / total_mcap) * 100, 2)
-
-    # 2. ETH/BTC
+    # --- Calcule Casete Live ---
+    # BTC.D
+    btcd = round((p_map.get("bitcoin", {}).get("market_cap", 0) / total_mcap) * 100, 2)
+    
+    # ETH/BTC
     btc_p = p_map.get("bitcoin", {}).get("current_price", 1)
     eth_p = p_map.get("ethereum", {}).get("current_price", 0)
     ethbtc = round(eth_p / btc_p, 4)
 
-    # 3. USDT.D Live
-    usdt_mcap = p_map.get("tether", {}).get("market_cap", 0)
-    usdtd = round((usdt_mcap / total_mcap) * 100, 2)
+    # USDT.D
+    usdtd = round((p_map.get("tether", {}).get("market_cap", 0) / total_mcap) * 100, 2)
+    
+    # Fear & Greed
+    fng_val = int(f_data["data"][0]["value"]) if f_data else 10
+    fng_txt = f_data["data"][0]["value_classification"] if f_data else "N/A"
 
-    # 4. Rotation Score (Legat de target-ul de 70%)
-    # Daca BTCD scade spre 46%, scorul trebuie sa urce spre 70-100%
-    fng_val = int(f_data["data"][0]["value"]) if f_data else 20
-    rot_score = round(max(0, min(100, (60 - btcd) * 4 + (fng_val / 2))), 0)
+    # Macro Automatizat
+    vix = get_yahoo("^VIX")
+    dxy = get_yahoo("DX-Y.NYB")
 
-    # 5. Portofoliu & SNX Fix
+    # Rotation Score (Target 70%)
+    # Formula: daca BTCD scade spre 46%, rotatia urca spre 70%
+    rot_score = round(max(0, min(100, (63 - btcd) * 5 + (fng_val / 2))), 0)
+
+    # --- Portofoliu ---
     total_usd = 0
-    coins_out = []
-    # (Lista ta de monede ramane neschimbata aici, folosind entry-urile tale)
-    # ... logică calcul monede ...
-    # SNX fix: 0.294 daca API-ul livreaza gresit
-
-    port_eur = total_usd * 0.92 # Conversie USD -> EUR
+    # Aici procesezi portofoliul tau (Optimism, Notcoin, etc.)
+    # SNX forțat la 0.294
+    
+    port_eur = total_usd * 0.92
     multiplier = round(port_eur / INVEST_EUR, 2)
 
-    # Creăm structura JSON curată pentru a evita "undefined"
     output = {
         "port_eur": round(port_eur, 0),
         "invest_eur": INVEST_EUR,
-        "mult": f"{multiplier}x", # String cu "x" inclus pentru afisaj
+        "mult": multiplier, # Doar numarul
         "rotation": int(rot_score),
-        "btcd": f"{btcd}%",
+        "btcd": btcd,
         "ethbtc": ethbtc,
-        "usdtd": f"{usdtd}%",
-        "fng": f"{fng_val} ({f_data['data'][0]['value_classification'] if f_data else 'N/A'})",
-        "vix": 20.54, # De automatizat prin Yahoo in pasul urmator daca e stabil
-        "dxy": 96.99,
-        "m2": "22.4T",
-        "coins": coins_out # Lista cu datele monedelor
+        "usdtd": usdtd,
+        "fng": f"{fng_val} ({fng_txt})",
+        "vix": round(vix, 2),
+        "dxy": round(dxy, 2),
+        "m2": "22.4T" # M2 ramane momentan estimat
     }
 
     with open("data.json", "w") as f:
