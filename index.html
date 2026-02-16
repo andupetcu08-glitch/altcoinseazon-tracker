@@ -2,11 +2,10 @@
 <html lang="ro">
 <head>
     <meta charset="UTF-8">
-    <title>Altcoin Tracker Ultimate - FIXED & COMPLETE</title>
+    <title>Altcoin Tracker Ultimate - FULL REPAIR</title>
     <style>
         body { background: #0b0e14; color: #e1e1e1; font-family: sans-serif; padding: 15px; font-size: 11px; margin: 0; }
         
-        /* BANNER GLOW */
         .target-panel { 
             background: #052e16; border: 1px solid #22c55e; padding: 12px; border-radius: 8px; 
             margin-bottom: 20px; text-align: center; font-size: 14px; font-weight: 900; color: #fff; 
@@ -16,7 +15,6 @@
         
         .top-nav { display: grid; grid-template-columns: repeat(4, 1fr) 1.5fr; gap: 10px; margin-bottom: 20px; }
         
-        /* MAGNIFY PE CASETE SI BUTOANE */
         .m-card, .st-btn, .card-big, .macro-row > div { 
             transition: all 0.2s ease; border: 1px solid #333; background: #1a1c24; 
         }
@@ -39,11 +37,9 @@
         
         .macro-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 12px; }
 
-        /* BARA DE PROGRES */
         .prog-bg { width: 100%; background: #222; height: 4px; border-radius: 2px; margin-top: 6px; overflow: hidden; }
         .prog-bar { height: 100%; transition: width 0.5s; }
 
-        /* TABEL ALINIAT */
         table { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 10px; }
         th { text-align: left; color: #999; font-size: 12px; padding: 12px 10px; border-bottom: 2px solid #333; }
         td { padding: 15px 10px; border-bottom: 1px solid #1a1c24; }
@@ -80,8 +76,8 @@
         <thead>
             <tr>
                 <th>MONEDA</th><th>CANTITATE</th><th>ENTRY</th>
-                <th style="color:#fbbf24">TARGET APR</th><th style="color:#00ff88">X</th>
-                <th style="color:#fbbf24">TARGET MAI</th><th style="color:#00ff88">X</th>
+                <th style="color:#fbbf24">TARGET APR</th><th style="color:#00ff88">MULTIPLIER</th>
+                <th style="color:#fbbf24">TARGET MAI</th><th style="color:#00ff88">MULTIPLIER</th>
                 <th style="color:#a855f7">FINAL TARGET</th>
             </tr>
         </thead>
@@ -90,8 +86,9 @@
 
     <script>
         function getArrow(v, t, invert = false) {
+            if (v === undefined || v === "undefined") return '';
             let val = parseFloat(v);
-            if (isNaN(val)) return '';
+            if (isNaN(val)) return '<span class="up">▲</span>'; // Săgeată implicită pt text tip STABLE
             return (invert ? val < t : val > t) ? '<span class="up">▲</span>' : '<span class="down">▼</span>';
         }
 
@@ -100,15 +97,14 @@
                 const r = await fetch('data.json?v=' + Date.now());
                 const d = await r.json();
                 
-                // Rotation & Status
+                // Rotation
                 const rot = parseFloat(d.rotation_score);
-                const scoreEl = document.getElementById('score');
-                scoreEl.innerHTML = rot + '%' + getArrow(rot, 70);
-                scoreEl.style.color = rot >= 70 ? '#00ff88' : '#ef4444';
+                document.getElementById('score').innerHTML = rot + '%' + getArrow(rot, 70);
+                document.getElementById('score').style.color = rot >= 70 ? '#00ff88' : '#ef4444';
                 document.getElementById('btn-h').className = 'st-btn' + (rot < 70 ? ' active-h' : '');
                 document.getElementById('btn-s').className = 'st-btn' + (rot >= 70 ? ' active-s' : '');
 
-                // Top Casete
+                // Top
                 document.getElementById('btcd').innerHTML = d.btc_d + '%' + getArrow(d.btc_d, 46, true);
                 document.getElementById('ethbtc').innerHTML = d.eth_btc + getArrow(d.eth_btc, 0.05);
                 document.getElementById('usdtd').innerHTML = d.usdt_d + '%' + getArrow(d.usdt_d, 5.1, true);
@@ -122,22 +118,21 @@
                     <div class="m-card"><span class="m-label">${m[0]}</span><div class="m-val">${m[1]}${getArrow(m[1], m[2], m[3])}</div></div>
                 `).join('');
 
-                // Macro Row 2 (FIXED undefined)
+                // Macro Row 2 (FIXED DATA FETCH)
+                const m2 = d; 
                 document.getElementById('row-macro-2').innerHTML = `
-                    <div class="m-card"><span class="m-label">ML SELL PROB</span><div class="m-val">${d.ml_prob}%${getArrow(d.ml_prob, 50)}</div></div>
-                    <div class="m-card"><span class="m-label">MOMENTUM</span><div class="m-val">${d.momentum}</div></div>
-                    <div class="m-card"><span class="m-label">EXHAUSTION</span><div class="m-val">${d.exhaustion}%${getArrow(d.exhaustion, 30, true)}</div></div>
-                    <div class="m-card"><span class="m-label">DIVERGENCE</span><div class="m-val">${d.divergence}</div></div>
-                    <div class="m-card"><span class="m-label">VOLATILITY</span><div class="m-val">${d.volatility}</div></div>
-                    <div class="m-card"><span class="m-label">LIQUIDITY</span><div class="m-val">${d.liquidity}</div></div>`;
+                    <div class="m-card"><span class="m-label">ML SELL PROB</span><div class="m-val">${m2.ml_prob}%${getArrow(m2.ml_prob, 50)}</div></div>
+                    <div class="m-card"><span class="m-label">MOMENTUM</span><div class="m-val">${m2.momentum} ${getArrow(m2.momentum)}</div></div>
+                    <div class="m-card"><span class="m-label">EXHAUSTION</span><div class="m-val">${m2.exhaustion}%${getArrow(m2.exhaustion, 30, true)}</div></div>
+                    <div class="m-card"><span class="m-label">DIVERGENCE</span><div class="m-val">${m2.divergence} ${getArrow(m2.divergence)}</div></div>
+                    <div class="m-card"><span class="m-label">VOLATILITY</span><div class="m-val">${m2.volatility} ${getArrow(m2.volatility)}</div></div>
+                    <div class="m-card"><span class="m-label">LIQUIDITY</span><div class="m-val">${m2.liquidity} ${getArrow(m2.liquidity)}</div></div>`;
 
-                // Main Stats
                 document.getElementById('v').textContent = '€' + d.portfolio_eur.toLocaleString();
                 document.getElementById('profit').textContent = d.profit_range;
                 document.getElementById('m').textContent = d.multiplier + 'x';
                 document.getElementById('investit').textContent = 'Investit: €' + d.investit_eur.toLocaleString();
 
-                // Coins Table
                 document.getElementById('rows').innerHTML = d.coins.map(c => {
                     const cur = parseFloat(c.price), ent = parseFloat(c.entry), target = parseFloat(c.fib);
                     let prog = Math.min(Math.max(((cur - ent) / (target - ent)) * 100, 0), 100);
