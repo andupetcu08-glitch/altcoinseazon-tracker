@@ -12,21 +12,20 @@
         .grid-macro { grid-template-columns: repeat(6, 1fr); }
 
         .card { background: #15171e; padding: 15px; border-radius: 8px; border: 1px solid #222; text-align: center; transition: 0.3s; }
-        .card:hover { transform: scale(1.02); border-color: #00ff88; }
+        .card:hover { transform: scale(1.02); border-color: #00ff88; box-shadow: 0 0 15px rgba(0, 255, 136, 0.1); }
 
         .label { font-size: 9px; color: #555; text-transform: uppercase; margin-bottom: 5px; }
         .val { font-size: 18px; font-weight: bold; }
         .val-large { font-size: 30px; font-weight: bold; color: #00ff88; }
 
         .status-grp { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; }
-        .btn { background: #111; border: 1px solid #222; border-radius: 4px; font-size: 9px; color: #333; display: flex; align-items: center; justify-content: center; font-weight: bold; text-transform: uppercase; }
+        .btn { background: #111; border: 1px solid #222; border-radius: 4px; font-size: 9px; color: #333; display: flex; align-items: center; justify-content: center; font-weight: bold; }
         .btn-active { border-color: #ef4444; color: #ef4444; box-shadow: 0 0 10px rgba(239, 68, 68, 0.1); }
 
-        /* Tabel Design */
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        thead th { font-size: 16.5px; color: #444; text-align: left; padding: 15px 10px; border-bottom: 1px solid #222; }
-        td { padding: 12px 10px; border-bottom: 1px solid #161920; font-weight: bold; }
+        thead th { font-size: 11px; color: #444; text-align: left; padding: 15px 10px; border-bottom: 1px solid #222; text-transform: uppercase; }
+        td { padding: 12px 10px; border-bottom: 1px solid #161920; font-weight: bold; font-size: 14px; }
         .up { color: #00ff88; } .down { color: #ef4444; }
+        .mult-col { color: #00ff88; }
     </style>
 </head>
 <body>
@@ -47,15 +46,15 @@
     <div class="grid-stats">
         <div class="card"><div class="label">Portofoliu Actual (EUR)</div><div id="veur" class="val-large">--</div></div>
         <div class="card"><div class="label">Potential Profit Teoretic (FIB)</div><div id="pot" style="color:#fbbf24; font-size:24px; font-weight:bold; margin-top:5px">--</div></div>
-        <div class="card"><div class="label">Multiplier Actual</div><div id="mult" class="val-large">--</div><div style="font-size:10px; color:#333" id="invest_val"></div></div>
+        <div class="card"><div class="label">Multiplier Actual</div><div id="mult" class="val-large">--</div></div>
     </div>
 
-    <div id="macros1" class="grid-macro"></div>
-    <div id="macros2" class="grid-macro"></div>
+    <div id="m1" class="grid-macro"></div>
+    <div id="m2" class="grid-macro"></div>
 
-    <table>
+    <table style="width:100%; border-collapse: collapse;">
         <thead>
-            <tr><th>MONEDA</th><th>CANTITATE</th><th>ENTRY</th><th>TARGET APR</th><th>X</th><th>TARGET MAI</th><th>X</th><th style="color:#a855f7">FINAL</th></tr>
+            <tr><th>MONEDA</th><th>CANTITATE</th><th>ENTRY</th><th>TARGET APR</th><th class="mult-col">MULTIPLIER</th><th>TARGET MAI</th><th class="mult-col">MULTIPLIER</th><th style="color:#a855f7">FINAL TARGET</th></tr>
         </thead>
         <tbody id="rows"></tbody>
     </table>
@@ -73,21 +72,20 @@
             document.getElementById('usdtd').innerHTML = d.usdtd + ' ' + up;
             document.getElementById('veur').innerHTML = '€' + d.port_eur.toLocaleString() + ' ' + down;
             document.getElementById('mult').textContent = d.mult + 'x';
-            document.getElementById('invest_val').textContent = '(Investit: €' + d.invest_eur.toLocaleString() + ')';
             document.getElementById('pot').textContent = '€' + d.pot_min_eur.toLocaleString() + ' - €' + d.pot_max_eur.toLocaleString();
 
-            const m1 = [['TOTAL 3','0.98T',up],['SENTIMENT',d.fng,up],['VIX INDEX',d.vix,down],['URPD PROFIT',d.urpd,up],['DXY INDEX',d.dxy,down],['M2 SUPPLY',d.m2,up]];
-            document.getElementById('macros1').innerHTML = m1.map(x => `<div class="card"><div class="label">${x[0]}</div><div class="val">${x[1]} ${x[2]}</div></div>`).join('');
+            const m1_d = [['TOTAL 3','0.98T',up],['SENTIMENT',d.fng,up],['VIX',d.vix,down],['URPD',d.urpd,up],['DXY',d.dxy,down],['M2',d.m2,up]];
+            document.getElementById('m1').innerHTML = m1_d.map(x => `<div class="card"><div class="label">${x[0]}</div><div class="val">${x[1]} ${x[2]}</div></div>`).join('');
 
-            const m2 = [['ML SELL PROB','18.9%',down],['MOMENTUM',d.momentum,up],['EXHAUSTION',d.exhaustion,down],['DIVERGENCE',d.divergence,up],['VOLATILITY',d.volatility,down],['LIQUIDITY',d.liquidity,up]];
-            document.getElementById('macros2').innerHTML = m2.map(x => `<div class="card"><div class="label">${x[0]}</div><div class="val">${x[1]} ${x[2]}</div></div>`).join('');
+            const m2_d = [['ML SELL','18.9%',down],['MOMENTUM',d.momentum,up],['EXHAUSTION',d.exhaustion,down],['DIVERGENCE',d.divergence,up],['VOLATILITY',d.volatility,down],['LIQUIDITY',d.liquidity,up]];
+            document.getElementById('m2').innerHTML = m2_d.map(x => `<div class="card"><div class="label">${x[0]}</div><div class="val">${x[1]} ${x[2]}</div></div>`).join('');
 
             document.getElementById('rows').innerHTML = d.coins.map(c => `
                 <tr>
                     <td>${c.symbol} <span class="${c.change>=0?'up':'down'}" style="font-size:10px">(${c.change}%)</span></td>
                     <td>${c.q.toLocaleString()}</td><td>$${c.entry}</td>
-                    <td style="color:#fbbf24">$${c.apr}</td><td class="up">${(c.apr/c.entry).toFixed(1)}x</td>
-                    <td style="color:#fbbf24">$${c.mai}</td><td class="up">${(c.mai/c.entry).toFixed(1)}x</td>
+                    <td style="color:#fbbf24">$${c.apr}</td><td class="mult-col">${(c.apr/c.entry).toFixed(1)}x MULTIPLIER</td>
+                    <td style="color:#fbbf24">$${c.mai}</td><td class="mult-col">${(c.mai/c.entry).toFixed(1)}x MULTIPLIER</td>
                     <td style="color:#a855f7">$${c.fib}</td>
                 </tr>`).join('');
         }
