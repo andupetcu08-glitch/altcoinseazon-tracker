@@ -2,23 +2,23 @@
 <html lang="ro">
 <head>
     <meta charset="UTF-8">
-    <title>Altcoin Tracker Ultimate - STABLE TABLE VERSION</title>
+    <title>Altcoin Tracker Ultimate - FINAL GOLD REPAIRED</title>
     <style>
         body { background: #0b0e14; color: #e1e1e1; font-family: sans-serif; padding: 15px; font-size: 11px; margin: 0; }
         
+        /* BANNER MASIV */
         .target-panel { 
-            background: #052e16; border: 3px solid #22c55e; padding: 30px; border-radius: 12px; 
-            margin-bottom: 25px; text-align: center; font-size: 22px; font-weight: 900; color: #fff; 
-            box-shadow: 0 0 30px rgba(34, 197, 94, 0.3); text-transform: uppercase; letter-spacing: 1px;
+            background: #052e16; border: 3px solid #22c55e; padding: 35px; border-radius: 12px; 
+            margin-bottom: 25px; text-align: center; font-size: 24px; font-weight: 900; color: #fff; 
+            box-shadow: 0 0 35px rgba(34, 197, 94, 0.4); text-transform: uppercase; letter-spacing: 1px;
         }
         
         .top-nav { display: grid; grid-template-columns: repeat(4, 1fr) 1.5fr; gap: 10px; margin-bottom: 20px; }
         
-        /* MAGNIFY & GLOW - DOAR PENTRU CASETE */
+        /* MAGNIFY DOAR PE CASETE, NU PE TABEL */
         .m-card, .st-btn, .card-big, .macro-row > div { 
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid #333; 
         }
-        
         .m-card:hover, .st-btn:hover, .card-big:hover, .macro-row > div:hover { 
             transform: scale(1.08); border-color: #00ff88 !important; 
             box-shadow: 0 0 25px rgba(0, 255, 136, 0.5); z-index: 10; cursor: pointer;
@@ -26,9 +26,10 @@
 
         .m-card { 
             background: #1a1c24; padding: 15px; border-radius: 8px; 
-            text-align: center; display: flex; flex-direction: column; justify-content: center; min-height: 80px;
+            text-align: center; display: flex; flex-direction: column; justify-content: center; min-height: 85px;
         }
 
+        /* TITLURI CASETE MARI SI ALBE */
         .m-label { 
             font-size: 16px !important; color: #ffffff !important; 
             text-transform: uppercase; margin-bottom: 12px; 
@@ -37,8 +38,9 @@
         .m-val { font-weight: bold; font-size: 22px; }
         
         /* TEXT INVESTIT MARIT */
-        #investit { color: #ccc !important; font-size: 13px !important; font-weight: bold; margin-top: 5px; display: block; }
+        #investit { color: #ccc !important; font-size: 14px !important; font-weight: bold; margin-top: 8px; display: block; }
 
+        /* BUTOANE STATUS */
         .status-box { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
         .st-btn { 
             background: #1a1c24; border-radius: 8px; display: flex; align-items: center; 
@@ -49,7 +51,7 @@
         
         .stats-main { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px; }
         .card-big { background: #1a1c24; padding: 25px; border-radius: 12px; text-align: center; }
-        .val-big { font-size: 36px; font-weight: bold; color: #00ff88; }
+        .val-big { font-size: 38px; font-weight: bold; color: #00ff88; }
         
         .progress-container { width: 100%; background: #222; height: 10px; border-radius: 5px; margin-top: 12px; overflow: hidden; border: 1px solid #333; }
         .progress-bar { height: 100%; width: 0%; transition: width 1.5s ease-in-out, background 0.5s; }
@@ -59,12 +61,11 @@
         /* TABEL - DOAR GLOW, FARA MAGNIFY */
         table { width: 100%; border-collapse: collapse; font-size: 17px; margin-top: 10px; }
         th { text-align: left; color: #999; font-size: 16px; padding: 15px; border-bottom: 2px solid #333; text-transform: uppercase; font-weight: 900; }
-        tr { transition: background 0.3s, box-shadow 0.3s, outline 0.3s; }
+        tr { transition: background 0.3s, box-shadow 0.3s, border 0.3s; }
         tr:hover { 
-            background: rgba(0, 255, 136, 0.12) !important; 
-            box-shadow: inset 0 0 20px rgba(0, 255, 136, 0.2); 
-            outline: 1px solid #00ff88; 
-            z-index: 5; position: relative;
+            background: rgba(0, 255, 136, 0.1) !important; 
+            box-shadow: inset 0 0 15px rgba(0, 255, 136, 0.1);
+            outline: 1px solid #00ff88;
         }
         td { padding: 20px 15px; border-bottom: 1px solid #1a1c24; }
         
@@ -113,18 +114,16 @@
             try {
                 const r = await fetch('data.json?v=' + Date.now());
                 const d = await r.json();
-                
                 const getArrow = (val, target, inverted = false) => {
-                    let v = parseFloat(val);
-                    if (isNaN(v)) return '';
+                    let v = parseFloat(val); if (isNaN(v)) return '';
                     return (inverted ? v < target : v > target) ? '<span class="up">▲</span>' : '<span class="down">▼</span>';
                 };
 
+                // Sync Rotation Score cu Butonul HOLD/SELL
                 const rotScore = parseFloat(d.rotation_score);
                 const scoreEl = document.getElementById('score');
                 scoreEl.innerHTML = rotScore + '%' + getArrow(rotScore, 70);
                 
-                // Aplicăm regula de 70% conform instrucțiunilor salvate
                 if (rotScore >= 70) {
                     scoreEl.style.color = '#00ff88';
                     document.getElementById('btn-h').className = 'st-btn';
@@ -137,11 +136,22 @@
 
                 document.getElementById('btcd').innerHTML = d.btc_d + '%' + getArrow(d.btc_d, 46, true);
                 document.getElementById('ethbtc').innerHTML = d.eth_btc + getArrow(d.eth_btc, 0.05);
-                document.getElementById('usdtd').innerHTML = d.usdt_d + '%' + getArrow(d.usdtd, 5.1, true);
+                document.getElementById('usdtd').innerHTML = d.usdt_d + '%' + getArrow(d.usdt_d, 5.1, true);
 
                 const renderM = (arr) => arr.map(m => {
                     let a = (m[2] !== 0) ? getArrow(m[1], m[2], m[3] || false) : (['MOMENTUM', 'DIVERGENCE', 'VOLATILITY'].includes(m[0]) ? '<span class="up">▲</span>' : (m[0] === 'LIQUIDITY' ? '<span class="down">▼</span>' : ''));
                     return `<div class="m-card"><span class="m-label">${m[0]}</span><div class="m-val">${m[1]}${a}</div></div>`;
                 }).join('');
 
-                document.getElementById('row-macro-1').innerHTML = renderM([['TOTAL 3', d.total3, 1.2], ['SENTIMENT', d.fng, 75], ['VIX INDEX', d.vix, 13.
+                document.getElementById('row-macro-1').innerHTML = renderM([['TOTAL 3', d.total3, 1.2], ['SENTIMENT', d.fng, 75], ['VIX INDEX', d.vix, 13.8, true], ['URPD PROFIT', d.urpd + '%', 86], ['DXY INDEX', d.dxy, 100, true], ['M2 SUPPLY', d.m2, 21]]);
+                document.getElementById('row-macro-2').innerHTML = renderM([['ML SELL PROB', d.ml_prob + '%', 50], ['MOMENTUM', d.momentum, 0], ['EXHAUSTION', d.exhaustion + '%', 30, true], ['DIVERGENCE', d.divergence || 'NORMAL', 0], ['VOLATILITY', d.volatility || 'LOW', 0], ['LIQUIDITY', d.liquidity || 'HIGH', 0]]);
+
+                document.getElementById('v').textContent = '€' + d.portfolio_eur.toLocaleString();
+                document.getElementById('profit').textContent = d.profit_range;
+                document.getElementById('m').textContent = d.multiplier + 'x';
+                document.getElementById('investit').textContent = 'Investit: €' + d.investit_eur.toLocaleString();
+
+                let h = '';
+                d.coins.forEach(c => {
+                    const cur = parseFloat(c.price), ent = parseFloat(c.entry), fib = parseFloat(c.fib);
+                    let prog = Math.min(Math.max(((cur -
