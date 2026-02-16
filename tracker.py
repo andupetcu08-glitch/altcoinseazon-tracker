@@ -1,7 +1,9 @@
 import json, urllib.request
 
+# Investiția ta confirmată
 INVEST_EUR = 101235.0 
 
+# Portofoliul tău cu țintele FIB și APR
 PORTFOLIO = {
     "optimism": {"q": 6400, "entry": 0.773, "apr": 4.8, "mai": 5.2, "fib": 5.95},
     "notcoin": {"q": 1297106.88, "entry": 0.001291, "apr": 0.028, "mai": 0.028, "fib": 0.034},
@@ -22,8 +24,9 @@ def fetch(url):
     except: return None
 
 def main():
-    p_api = "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=" + ",".join(list(PORTFOLIO.keys()) + ["bitcoin", "ethereum", "tether"])
-    prices = fetch(p_api)
+    # Surse Date Live
+    ids = ",".join(list(PORTFOLIO.keys()) + ["bitcoin", "ethereum", "tether"])
+    prices = fetch(f"https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids={ids}")
     global_data = fetch("https://api.coingecko.com/api/v3/global")
     fng_data = fetch("https://api.alternative.me/fng/")
 
@@ -31,25 +34,39 @@ def main():
     p_map = {c["id"]: c for c in prices}
     total_mcap = global_data["data"]["total_market_cap"]["usd"]
 
-    # 1. BTC.D & USDT.D Live
+    # --- Calcule Casete ---
     btcd = round((p_map.get("bitcoin", {}).get("market_cap", 0) / total_mcap) * 100, 2)
     usdtd = round((p_map.get("tether", {}).get("market_cap", 0) / total_mcap) * 100, 2)
-    
-    # 2. ETH/BTC
     ethbtc = round(p_map.get("ethereum", {}).get("current_price", 0) / p_map.get("bitcoin", {}).get("current_price", 1), 4)
+    fng_val = int(fng_data["data"][0]["value"]) if fng_data else 10
 
-    # 3. Portofoliu & SNX Fix ($0.294)
+    # --- Calcule Portofoliu ---
     total_usd = 0
+    pot_min_usd = 0
+    pot_max_usd = 0
+    coins_out = []
+
     for cid, d in PORTFOLIO.items():
-        p = p_map.get(cid, {}).get("current_price", d["entry"])
+        c = p_map.get(cid, {})
+        p = c.get("current_price", d["entry"])
+        
+        # SNX Fix: 0.294 dacă API livrează preț de entry eronat
         if cid == "synthetix-network-token" and (p > 0.8 or p == d["entry"]): p = 0.294
+        
         total_usd += (p * d["q"])
+        pot_min_usd += (d["q"] * d["apr"])
+        pot_max_usd += (d["q"] * d["fib"])
+        
+        coins_out.append({
+            "name": cid.split("-")[0].upper(),
+            "price": p,
+            "change": round(c.get("price_change_percentage_24h", 0) or 0, 2),
+            "mult_apr": round(d["apr"] / d["entry"], 1),
+            "mult_mai": round(d["mai"] / d["entry"], 1)
+        })
 
     port_eur = total_usd * 0.92
-    fng_val = int(fng_data["data"][0]["value"]) if fng_data else 10
-    
-    # 4. Rotation Score (Calculat pentru targetul de 70%)
-    rot_score = round(max(0, min(100, (62 - btcd) * 5 + (fng_val / 3))), 0)
+    rot_score = round(max(0, min(100, (63 - btcd) * 5 + (fng_val / 3))), 0)
 
     output = {
         "port_eur": round(port_eur, 0),
@@ -60,7 +77,9 @@ def main():
         "ethbtc": ethbtc,
         "usdtd": usdtd,
         "fng": f"{fng_val} ({fng_data['data'][0]['value_classification'] if fng_data else 'N/A'})",
-        "vix": 14.2, "dxy": 101.1, "m2": "21.2T"
+        "pot_min": round(pot_min_usd * 0.92, 0),
+        "pot_max": round(pot_max_usd * 0.92, 0),
+        "coins": coins_out
     }
 
     with open("data.json", "w") as f:
