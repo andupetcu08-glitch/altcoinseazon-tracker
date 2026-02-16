@@ -6,7 +6,6 @@
     <style>
         body { background: #0b0e14; color: #e1e1e1; font-family: sans-serif; padding: 20px; margin: 0; }
         
-        /* Banner CURAT */
         .banner { 
             background: #052e16; border: 2px solid #22c55e; padding: 15px; border-radius: 10px; 
             text-align: center; font-weight: bold; margin-bottom: 25px; font-size: 16px; color: #fff;
@@ -15,7 +14,6 @@
 
         .top-nav { display: grid; grid-template-columns: repeat(4, 1fr) 2fr; gap: 10px; margin-bottom: 20px; }
         
-        /* MAGNIFY & GLOW EFFECT */
         .m-card, tr, .card-big, .st-btn { transition: all 0.2s ease-in-out; }
         .m-card:hover, .card-big:hover { transform: scale(1.04); border-color: #00ff88; box-shadow: 0 0 20px rgba(0, 255, 136, 0.3); z-index: 10; }
         tbody tr:hover { background: rgba(0, 255, 136, 0.08) !important; transform: scale(1.02); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5); cursor: pointer; }
@@ -34,10 +32,14 @@
         
         .macro-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 10px; }
 
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th { text-align: left; color: #444; padding: 12px; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid #222; }
-        td { padding: 18px 12px; border-bottom: 1px solid #15171e; font-size: 16px; font-weight: bold; }
+        /* LINIA 6: Header Tabel marit cu 1.5x */
+        thead th { 
+            text-align: left; color: #444; padding: 12px; 
+            font-size: 16.5px; /* 11px * 1.5 */
+            text-transform: uppercase; border-bottom: 1px solid #222; 
+        }
         
+        td { padding: 18px 12px; border-bottom: 1px solid #15171e; font-size: 16px; font-weight: bold; }
         .up { color: #00ff88; } .down { color: #ef4444; }
         .prog-bg { width: 120px; height: 5px; background: #222; border-radius: 3px; margin-top: 6px; }
         .prog-fill { height: 100%; background: #00ff88; border-radius: 3px; }
@@ -46,11 +48,11 @@
 <body>
 
 <div class="banner">
-    🎯 TARGETS: BTC.D: 46% | VIX: 13.8 | USDT.D: 5.1% | URPD: 86% | ETH/BTC: 0.085 | ROTATION SCORE: 70% | 15.02.2026
+    🎯 TARGETS: BTC.D: 46% | VIX: 13.8 | USDT.D: 5.1% | URPD: 86% | ETH/BTC: 0.085 | ML SELL Prob Target: 50% | ROTATION SCORE: 70%
 </div>
 
 <div class="top-nav">
-    <div class="m-card"><div class="m-label">Rotation Score</div><div id="rot" class="m-val" style="color:#ef4444">35%</div></div>
+    <div class="m-card"><div class="m-label">Rotation Score</div><div id="rot" class="m-val">--</div></div>
     <div class="m-card"><div class="m-label">BTC.D LIVE</div><div id="btcd" class="m-val">--</div></div>
     <div class="m-card"><div class="m-label">ETH / BTC</div><div id="ethbtc" class="m-val" style="color:#a855f7">--</div></div>
     <div class="m-card"><div class="m-label">USDT.D LIVE</div><div id="usdtd" class="m-val">--</div></div>
@@ -93,14 +95,12 @@ async function refresh() {
         const d = await res.json();
         const up = '<span class="up"> ▲</span>', down = '<span class="down"> ▼</span>';
 
-        document.getElementById('btcd').innerHTML = d.btcd + '%' + (d.btcd > 50 ? up : down);
+        document.getElementById('btcd').innerHTML = d.btcd + '%' + (d.btcd < 50 ? down : up);
         document.getElementById('ethbtc').textContent = d.ethbtc;
         document.getElementById('usdtd').innerHTML = d.usdtd + '%' + (d.usdtd > 5 ? up : down);
-        document.getElementById('veur').innerHTML = '€' + d.port_eur.toLocaleString() + (d.port_up ? up : down);
+        document.getElementById('veur').textContent = '€' + d.port_eur.toLocaleString();
         document.getElementById('mult').textContent = d.mult + 'x';
         document.getElementById('invest_label').textContent = '(Investit: €' + d.invest_eur.toLocaleString() + ')';
-        
-        // Potential Profit dinamic
         document.getElementById('pot_profit').textContent = '€' + d.pot_min_eur.toLocaleString() + ' - €' + d.pot_max_eur.toLocaleString();
         
         const rotElem = document.getElementById('rot');
@@ -108,14 +108,10 @@ async function refresh() {
         rotElem.style.color = d.rotation >= 70 ? '#00ff88' : '#ef4444';
 
         const r1 = [['TOTAL 3','0.98T',up],['SENTIMENT',d.fng,up],['VIX INDEX',d.vix,down],['URPD PROFIT',d.urpd,up],['DXY INDEX',d.dxy,down],['M2 SUPPLY',d.m2,up]];
-        document.getElementById('macro-row-1').innerHTML = r1.map(x => `
-            <div class="m-card"><div class="m-label">${x[0]}</div><div class="m-val">${x[1]}${x[2]}</div></div>
-        `).join('');
+        document.getElementById('macro-row-1').innerHTML = r1.map(x => `<div class="m-card"><div class="m-label">${x[0]}</div><div class="m-val">${x[1]}${x[2]}</div></div>`).join('');
 
         const r2 = [['ML SELL PROB','18.9%',down],['MOMENTUM',d.momentum,up],['EXHAUSTION',d.exhaustion,down],['DIVERGENCE',d.divergence,up],['VOLATILITY',d.volatility,down],['LIQUIDITY',d.liquidity,up]];
-        document.getElementById('macro-row-2').innerHTML = r2.map(x => `
-            <div class="m-card"><div class="m-label">${x[0]}</div><div class="m-val">${x[1]}${x[2]}</div></div>
-        `).join('');
+        document.getElementById('macro-row-2').innerHTML = r2.map(x => `<div class="m-card"><div class="m-label">${x[0]}</div><div class="m-val">${x[1]}${x[2]}</div></div>`).join('');
 
         document.getElementById('rows').innerHTML = d.coins.map(c => `
             <tr>
@@ -125,7 +121,7 @@ async function refresh() {
                 <td style="color:#fbbf24">$${c.mai}</td><td class="up">${(c.mai/c.entry).toFixed(1)}x</td>
                 <td style="color:#a855f7">$${c.fib}</td>
             </tr>`).join('');
-    } catch (e) { console.log("Waiting for data..."); }
+    } catch (e) { console.log("Refresh failed..."); }
 }
 refresh(); setInterval(refresh, 30000);
 </script>
