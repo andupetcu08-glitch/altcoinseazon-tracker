@@ -4,32 +4,38 @@ async function updateDashboard() {
         const response = await fetch('data.json');
         const data = await response.json();
 
-        // Fix Multiplier: Verificăm dacă există 'mult' pentru a evita 'undefinedx'
-        const multEl = document.getElementById('multiplier');
-        if (data.mult !== undefined) {
-            multEl.innerText = data.mult + 'x';
-        } else {
-            multEl.innerText = '0.00x';
-        }
-
-        // BTC.D Live
-        if (data.btcd) document.getElementById('btcd').innerText = data.btcd + '%';
-        
-        // ETH/BTC (0.0288 conform imaginii tale)
-        if (data.ethbtc) document.getElementById('ethbtc').innerText = data.ethbtc;
-
-        // Rotation Score & Culoare Verde
-        if (data.rotation) {
-            const rotEl = document.getElementById('rotation');
+        // 1. Rotation Score - Regula 70% Verde
+        const rotEl = document.getElementById('rotation');
+        if (rotEl && data.rotation) {
             rotEl.innerText = data.rotation + '%';
-            // Dacă atingem targetul de 70%, facem textul verde
             rotEl.style.color = data.rotation >= 70 ? '#00ff00' : '#ff4444';
         }
 
-    } catch (error) {
-        console.error("Datele nu au putut fi încărcate:", error);
-    }
+        // 2. Multiplier Actual - Fix 'undefinedx'
+        const multEl = document.getElementById('multiplier');
+        if (multEl && data.mult !== undefined) {
+            multEl.innerText = data.mult + 'x';
+        }
+
+        // 3. Portofoliu Actual (EUR)
+        const portEl = document.getElementById('port_eur');
+        if (portEl && data.port_eur) {
+            portEl.innerText = '€' + data.port_eur.toLocaleString();
+        }
+
+        // 4. BTC.D, ETH/BTC, USDT.D
+        if (document.getElementById('btcd')) document.getElementById('btcd').innerText = data.btcd + '%';
+        if (document.getElementById('ethbtc')) document.getElementById('ethbtc').innerText = data.ethbtc;
+        if (document.getElementById('usdtd')) document.getElementById('usdtd').innerText = data.usdtd + '%';
+        
+        // 5. Macro
+        if (document.getElementById('fng')) document.getElementById('fng').innerText = data.fng;
+        if (document.getElementById('vix')) document.getElementById('vix').innerText = data.vix;
+        if (document.getElementById('dxy')) document.getElementById('dxy').innerText = data.dxy;
+
+    } catch (e) { console.error("Eroare incarcare date:", e); }
 }
+// Update automat la 30 secunde
 setInterval(updateDashboard, 30000);
 updateDashboard();
 </script>
