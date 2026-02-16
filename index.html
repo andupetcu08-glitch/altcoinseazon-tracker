@@ -1,41 +1,30 @@
 <script>
 async function updateDashboard() {
-    try {
-        const response = await fetch('data.json');
-        const data = await response.json();
+    const res = await fetch('data.json');
+    const data = await res.json();
 
-        // 1. Rotation Score - Regula 70% Verde
-        const rotEl = document.getElementById('rotation');
-        if (rotEl && data.rotation) {
-            rotEl.innerText = data.rotation + '%';
-            rotEl.style.color = data.rotation >= 70 ? '#00ff00' : '#ff4444';
-        }
+    // Actualizare Casete Principale
+    document.getElementById('port_eur').innerText = '€' + data.port_eur.toLocaleString();
+    document.getElementById('multiplier').innerText = data.mult + 'x';
+    
+    // Rotation Score + Regula Verde (70%)
+    const rot = document.getElementById('rotation');
+    rot.innerText = data.rotation + '%';
+    rot.style.color = data.rotation >= 70 ? '#00ff00' : '#ff4444';
 
-        // 2. Multiplier Actual - Fix 'undefinedx'
-        const multEl = document.getElementById('multiplier');
-        if (multEl && data.mult !== undefined) {
-            multEl.innerText = data.mult + 'x';
-        }
+    // BTC.D, ETH/BTC, USDT.D
+    document.getElementById('btcd').innerText = data.btcd + '%';
+    document.getElementById('ethbtc').innerText = data.ethbtc;
+    document.getElementById('usdtd').innerText = data.usdtd + '%';
 
-        // 3. Portofoliu Actual (EUR)
-        const portEl = document.getElementById('port_eur');
-        if (portEl && data.port_eur) {
-            portEl.innerText = '€' + data.port_eur.toLocaleString();
-        }
+    // Profit Teoretic
+    document.getElementById('theoretical').innerText = '€' + data.pot_min.toLocaleString() + ' - €' + data.pot_max.toLocaleString();
 
-        // 4. BTC.D, ETH/BTC, USDT.D
-        if (document.getElementById('btcd')) document.getElementById('btcd').innerText = data.btcd + '%';
-        if (document.getElementById('ethbtc')) document.getElementById('ethbtc').innerText = data.ethbtc;
-        if (document.getElementById('usdtd')) document.getElementById('usdtd').innerText = data.usdtd + '%';
-        
-        // 5. Macro
-        if (document.getElementById('fng')) document.getElementById('fng').innerText = data.fng;
-        if (document.getElementById('vix')) document.getElementById('vix').innerText = data.vix;
-        if (document.getElementById('dxy')) document.getElementById('dxy').innerText = data.dxy;
-
-    } catch (e) { console.error("Eroare incarcare date:", e); }
+    // Actualizare Tabel Monede (Exemplu pentru prima linie)
+    data.coins.forEach((coin, index) => {
+        // Aici poți adăuga logica de populare a rândurilor din tabel
+    });
 }
-// Update automat la 30 secunde
-setInterval(updateDashboard, 30000);
 updateDashboard();
+setInterval(updateDashboard, 30000);
 </script>
