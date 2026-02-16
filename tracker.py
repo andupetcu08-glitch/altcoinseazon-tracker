@@ -23,7 +23,7 @@ def fetch(url):
 
 def main():
     ids = list(PORTFOLIO.keys()) + ["bitcoin", "ethereum"]
-    prices = fetch(f"https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids={','.join(ids)}&price_change_percentage=24h")
+    prices = fetch(f"https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids={','.join(ids)}")
     btc_eur_data = fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=eur")
     global_api = fetch("https://api.coingecko.com/api/v3/global")
     fng_api = fetch("https://api.alternative.me/fng/")
@@ -45,7 +45,9 @@ def main():
     total_val_fib_usd = 0
 
     for cid, d in PORTFOLIO.items():
-        p = p_map.get(cid, {}).get("current_price", d["entry"])
+        # MODIFICARE: Pret static SNX la 0.3, restul live
+        p = 0.30 if cid == "synthetix-network-token" else p_map.get(cid, {}).get("current_price", d["entry"])
+        
         total_val_usd += (p * d["q"])
         total_val_apr_usd += (d["apr"] * d["q"])
         total_val_fib_usd += (d["fib"] * d["q"])
