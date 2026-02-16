@@ -1,115 +1,43 @@
-<!DOCTYPE html>
-<html lang="ro">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Altcoin Season Tracker - Live</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body { background-color: #0d1117; color: white; font-family: ui-sans-serif, system-ui; }
-        .card { background-color: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 1.25rem; }
-        .banner { background: linear-gradient(90deg, #064e3b 0%, #065f46 100%); border: 1px solid #10b981; border-radius: 8px; padding: 12px; text-align: center; color: #34d399; font-weight: 700; font-size: 0.85rem; margin-bottom: 1.5rem; }
-    </style>
-</head>
-<body class="p-6 max-w-[1600px] mx-auto">
+<div class="card text-center">
+    <div class="text-gray-500 text-[10px]">Rotation Score</div>
+    <div id="rotation" class="text-2xl font-bold">--</div>
+</div>
+<div id="multiplier" class="text-3xl font-bold text-green-400">--</div>
+<tbody id="coin-list"></tbody>
 
-    <div class="banner">
-        🎯 TARGETS: BTC.D: 46% | VIX: 13.8 | USDT.D: 5.1% | URPD: 86% | ETH/BTC: 0.085 | ML SELL Prob Target: 50% | ROTATION SCORE: 70%
-    </div>
+<script>
+async function update() {
+    try {
+        const r = await fetch('data.json');
+        const d = await r.json();
 
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div class="card text-center">
-            <div class="text-gray-500 text-[10px] uppercase font-bold tracking-wider mb-2">Rotation Score</div>
-            <div id="rotation" class="text-3xl font-black">--</div>
-        </div>
-        <div class="card text-center">
-            <div class="text-gray-500 text-[10px] uppercase font-bold tracking-wider mb-2">BTC.D Live</div>
-            <div id="btcd" class="text-3xl font-black">--</div>
-        </div>
-        <div class="card text-center">
-            <div class="text-gray-500 text-[10px] uppercase font-bold tracking-wider mb-2">ETH / BTC</div>
-            <div id="ethbtc" class="text-3xl font-black text-purple-500">--</div>
-        </div>
-        <div class="card text-center text-red-400 border-red-900/30">
-            <div class="text-gray-500 text-[10px] uppercase font-bold tracking-wider mb-2">Action Status</div>
-            <div class="text-lg font-bold">HOLD / ACCUMULATE</div>
-        </div>
-    </div>
+        // 1. Rotation Score - Regula de 70% verde [cite: 2026-02-14]
+        const rot = document.getElementById('rotation');
+        rot.innerText = d.rotation + '%';
+        rot.style.color = d.rotation >= 70 ? '#00ff00' : '#ff4444';
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div class="card">
-            <div class="text-gray-500 text-[10px] uppercase font-bold tracking-wider mb-1">Portofoliu Actual (EUR)</div>
-            <div id="port_eur" class="text-4xl font-black text-green-400">--</div>
-        </div>
-        <div class="card text-center">
-            <div class="text-gray-500 text-[10px] uppercase font-bold tracking-wider mb-1">Potential Profit Teoretic (FIB)</div>
-            <div id="theoretical" class="text-xl font-bold text-yellow-500">--</div>
-        </div>
-        <div class="card text-right">
-            <div class="text-gray-500 text-[10px] uppercase font-bold tracking-wider mb-1">Multiplier Actual</div>
-            <div id="multiplier" class="text-4xl font-black text-green-400">--</div>
-            <div class="text-[10px] text-gray-500">(Investit: €101,235)</div>
-        </div>
-    </div>
+        // 2. Multiplier & Portofoliu (Investitie: €101,235)
+        document.getElementById('multiplier').innerText = d.mult + 'x';
+        document.getElementById('port_eur').innerText = '€' + d.port_eur.toLocaleString();
+        document.getElementById('btcd').innerText = d.btcd + '%';
 
-    <div class="grid grid-cols-2 md:grid-cols-6 gap-4 mb-8">
-        <div class="card text-center">
-            <div class="text-gray-500 text-[10px] mb-1">SENTIMENT</div>
-            <div id="fng" class="font-bold text-xs uppercase">--</div>
-        </div>
-        <div class="card text-center">
-            <div class="text-gray-500 text-[10px] mb-1">VIX INDEX</div>
-            <div id="vix" class="font-bold">--</div>
-        </div>
-        <div class="card text-center">
-            <div class="text-gray-500 text-[10px] mb-1">DXY INDEX</div>
-            <div id="dxy" class="font-bold">--</div>
-        </div>
-        <div class="card text-center font-bold">
-            <div class="text-gray-500 text-[10px] mb-1">USDT.D</div>
-            <div id="usdtd" class="text-green-400 text-xs">--</div>
-        </div>
-        <div class="card text-center">
-            <div class="text-gray-500 text-[10px] mb-1">M2 SUPPLY</div>
-            <div id="m2" class="font-bold text-green-400 text-xs">--</div>
-        </div>
-        <div class="card text-center">
-            <div class="text-gray-500 text-[10px] mb-1">URPD PROFIT</div>
-            <div class="font-bold text-green-400 text-xs">84.2%</div>
-        </div>
-    </div>
-
-    <div class="card overflow-x-auto">
-        <table class="w-full text-left">
-            <thead>
-                <tr class="text-gray-500 text-[10px] uppercase border-b border-gray-800">
-                    <th class="pb-4">Moneda</th>
-                    <th class="pb-4">Cantitate</th>
-                    <th class="pb-4">Entry</th>
-                    <th class="pb-4">Preț Live</th>
-                    <th class="pb-4 text-yellow-500">Target APR</th>
-                    <th class="pb-4 text-yellow-500">Target MAI</th>
-                    <th class="pb-4 text-purple-500">Final Target</th>
-                </tr>
-            </thead>
-            <tbody id="coin-list" class="text-xs">
-                </tbody>
-        </table>
-    </div>
-
-    <script>
-        async function refreshData() {
-            try {
-                const response = await fetch('data.json');
-                const data = await response.json();
-
-                // 1. Casete Superioare & Rotation Verde la 70%
-                const rot = document.getElementById('rotation');
-                rot.innerText = data.rotation + '%';
-                rot.style.color = data.rotation >= 70 ? '#4ade80' : '#f87171';
-
-                document.getElementById('btcd').innerText = data.btcd + '%';
-                document.getElementById('ethbtc').innerText = data.ethbtc;
-                document.getElementById('usdtd').innerText = data.usdtd;
-
-                // 2. Port
+        // 3. Tabel monede automat
+        const list = document.getElementById('coin-list');
+        list.innerHTML = '';
+        d.coins.forEach(c => {
+            list.innerHTML += `
+                <tr class="border-b border-gray-900">
+                    <td class="py-3 font-bold">${c.symbol}</td>
+                    <td>${c.q.toLocaleString()}</td>
+                    <td>$${c.entry}</td>
+                    <td class="text-blue-400 font-bold">$${c.price}</td>
+                    <td class="text-yellow-500">$${c.apr}</td>
+                    <td class="text-yellow-500">$${c.mai}</td>
+                    <td class="text-purple-500">$${c.fib}</td>
+                </tr>`;
+        });
+    } catch (e) { console.error("Eroare:", e); }
+}
+update();
+setInterval(update, 30000);
+</script>
