@@ -1,27 +1,37 @@
 name: Update Crypto Data
+
 on:
-  workflow_dispatch:
   schedule:
-    - cron: '*/30 * * * *'
+    - cron: '*/30 * * * *' # Rulează automat la fiecare 30 de minute
+  workflow_dispatch:      # Îți permite să îl pornești și manual de la Actions
+
+permissions:
+  contents: write         # NECESAR: Permite scriptului să modifice data.json în repo
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout Repository
+        uses: actions/checkout@v3
         with:
-          fetch-depth: 0
+          fetch-depth: 0  # Descarcă tot istoricul pentru a evita erorile de rebase
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.9'
+
       - name: Run Script
         run: python tracker.py
+
       - name: Commit and Push
         run: |
-            git config --global user.name "github-actions"
-            git config --global user.email "actions@github.com"
-            git add data.json
-            git pull --rebase origin main
-            git commit -m "Update crypto data" || exit 0
-            git push origin main
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+          git add data.json
+          # Pull cu rebase pentru a evita eroarea "cannot pull with rebase" din screenshot-ul tău
+          git pull --rebase origin main 
+          git commit -m "Update live data [skip ci]" || echo "No changes to commit"
+          git push origin main
