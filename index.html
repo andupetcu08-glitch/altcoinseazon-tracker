@@ -2,59 +2,60 @@
 <html lang="ro">
 <head>
     <meta charset="UTF-8">
-    <title>Altcoin Tracker Ultimate - REPARAT</title>
+    <title>Altcoin Tracker Ultimate - FINAL POLISH</title>
     <style>
         body { background: #0b0e14; color: #e1e1e1; font-family: sans-serif; padding: 15px; font-size: 11px; margin: 0; }
         
+        /* BANNER CU MAGNIFY SI GLOW */
         .target-panel { 
             background: #052e16; border: 1px solid #22c55e; padding: 12px; border-radius: 8px; 
             margin-bottom: 20px; text-align: center; font-size: 14px; font-weight: 900; color: #fff; 
-            text-transform: uppercase;
+            text-transform: uppercase; transition: all 0.3s ease;
+        }
+        .target-panel:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 20px rgba(34, 197, 94, 0.4);
+            border-color: #00ff88;
         }
         
         .top-nav { display: grid; grid-template-columns: repeat(4, 1fr) 1.5fr; gap: 10px; margin-bottom: 20px; }
         
-        /* MAGNIFY DOAR PE CASETE */
+        /* MAGNIFY PE CASETE SI BUTOANE */
         .m-card, .st-btn, .card-big, .macro-row > div { 
-            transition: transform 0.2s ease, border-color 0.2s ease; border: 1px solid #333; background: #1a1c24;
+            transition: all 0.3s ease; border: 1px solid #333; background: #1a1c24;
         }
-        .m-card:hover, .card-big:hover, .macro-row > div:hover { 
-            transform: scale(1.05); border-color: #00ff88 !important; z-index: 10;
+        .m-card:hover, .card-big:hover, .macro-row > div:hover, .st-btn:hover { 
+            transform: scale(1.05); border-color: #00ff88 !important; 
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.4); z-index: 10;
         }
 
         .m-card { padding: 10px; border-radius: 6px; text-align: center; min-height: 60px; display: flex; flex-direction: column; justify-content: center; }
         .m-label { font-size: 10px; color: #999; text-transform: uppercase; margin-bottom: 5px; }
         .m-val { font-weight: bold; font-size: 18px; }
         
-        /* TEXT INVESTIT MARIT */
-        #investit { color: #ccc !important; font-size: 13px !important; font-weight: bold; margin-top: 5px; display: block; }
+        #investit { color: #888; font-size: 9px; margin-top: 4px; display: block; }
 
         .status-box { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
-        .st-btn { border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 900; color: #333; text-transform: uppercase; }
-        .active-h { border-color: #ef4444 !important; color: #ef4444 !important; background: rgba(239, 68, 68, 0.1); }
-        .active-s { border-color: #00ff88 !important; color: #00ff88 !important; background: rgba(0, 255, 136, 0.1); }
+        .st-btn { border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 900; color: #333; text-transform: uppercase; cursor: pointer; }
+        
+        /* GLOW SPECIFIC PE BUTOANE ACTIVE */
+        .active-h { border-color: #ef4444 !important; color: #ef4444 !important; background: rgba(239, 68, 68, 0.1); box-shadow: 0 0 15px rgba(239, 68, 68, 0.3); }
+        .active-s { border-color: #00ff88 !important; color: #00ff88 !important; background: rgba(0, 255, 136, 0.1); box-shadow: 0 0 15px rgba(0, 255, 136, 0.3); }
         
         .stats-main { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px; }
         .card-big { padding: 15px; border-radius: 10px; text-align: center; }
         .val-big { font-size: 28px; font-weight: bold; color: #00ff88; }
         
-        .progress-container { width: 100%; background: #222; height: 6px; border-radius: 3px; margin-top: 8px; overflow: hidden; }
-        .progress-bar { height: 100%; width: 0%; transition: width 1s ease; }
-
         .macro-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 12px; }
 
-        /* TABEL - DOAR GLOW (FARA SCALE) */
+        /* TABEL STABIL - DOAR GLOW */
         table { width: 100%; border-collapse: collapse; font-size: 14px; }
         th { text-align: left; color: #999; font-size: 12px; padding: 12px 10px; border-bottom: 2px solid #333; }
-        tr { transition: background 0.3s; }
-        tr:hover { 
-            background: rgba(0, 255, 136, 0.08) !important; 
-            outline: 1px solid #00ff88; 
-        }
+        tr:hover { background: rgba(0, 255, 136, 0.05) !important; outline: 1px solid #00ff88; }
         td { padding: 15px 10px; border-bottom: 1px solid #1a1c24; }
         
-        .up { color: #00ff88; font-weight: bold; }
-        .down { color: #ef4444; font-weight: bold; }
+        .up { color: #00ff88; font-weight: bold; margin-left: 4px; }
+        .down { color: #ef4444; font-weight: bold; margin-left: 4px; }
     </style>
 </head>
 <body>
@@ -85,8 +86,8 @@
         <thead>
             <tr>
                 <th>MONEDA</th><th>CANTITATE</th><th>ENTRY</th>
-                <th style="color:#fbbf24">TARGET APR</th><th style="color:#00ff88">MULTIPLIER</th>
-                <th style="color:#fbbf24">TARGET MAI</th><th style="color:#00ff88">MULTIPLIER</th>
+                <th style="color:#fbbf24">TARGET APR</th><th style="color:#00ff88">X</th>
+                <th style="color:#fbbf24">TARGET MAI</th><th style="color:#00ff88">X</th>
                 <th style="color:#a855f7">FINAL TARGET</th>
             </tr>
         </thead>
@@ -99,15 +100,17 @@
                 const r = await fetch('data.json?v=' + Date.now());
                 const d = await r.json();
                 
-                const getArrow = (v, t, i = false) => {
+                // Săgeți pentru casete
+                const arrow = (v, t, i = false) => {
                     let val = parseFloat(v); if (isNaN(val)) return '';
-                    return (i ? val < t : val > t) ? ' <span class="up">▲</span>' : ' <span class="down">▼</span>';
+                    return (i ? val < t : val > t) ? '<span class="up">▲</span>' : '<span class="down">▼</span>';
                 };
 
                 const rot = parseFloat(d.rotation_score);
                 const scoreEl = document.getElementById('score');
-                scoreEl.innerHTML = rot + '%' + getArrow(rot, 70);
+                scoreEl.innerHTML = rot + '%' + arrow(rot, 70);
                 
+                // Logica de culoare conform regulii [cite: 2026-02-14]
                 if (rot >= 70) {
                     scoreEl.style.color = '#00ff88';
                     document.getElementById('btn-h').className = 'st-btn';
@@ -118,28 +121,31 @@
                     document.getElementById('btn-s').className = 'st-btn';
                 }
 
+                document.getElementById('btcd').innerHTML = d.btc_d + '%' + arrow(d.btc_d, 46, true);
+                document.getElementById('ethbtc').innerHTML = d.eth_btc + arrow(d.eth_btc, 0.05);
+                document.getElementById('usdtd').innerHTML = d.usdt_d + '%' + arrow(d.usdt_d, 5.1, true);
+
+                const renderM = (arr) => arr.map(m => {
+                    let a = (m[2] !== undefined) ? arrow(m[1], m[2], m[3] || false) : '';
+                    return `<div class="m-card"><span class="m-label">${m[0]}</span><div class="m-val">${m[1]}${a}</div></div>`;
+                }).join('');
+
+                document.getElementById('row-macro-1').innerHTML = renderM([['TOTAL 3', d.total3, 1.2], ['SENTIMENT', d.fng, 75], ['VIX INDEX', d.vix, 13.8, true], ['URPD PROFIT', d.urpd + '%', 86], ['DXY INDEX', d.dxy, 100, true], ['M2 SUPPLY', d.m2, 21]]);
+                document.getElementById('row-macro-2').innerHTML = renderM([['ML SELL PROB', d.ml_prob + '%', 50], ['MOMENTUM', d.momentum], ['EXHAUSTION', d.exhaustion + '%', 30, true], ['DIVERGENCE', d.divergence], ['VOLATILITY', d.volatility], ['LIQUIDITY', d.liquidity]]);
+
                 document.getElementById('v').textContent = '€' + d.portfolio_eur.toLocaleString();
                 document.getElementById('profit').textContent = d.profit_range;
                 document.getElementById('m').textContent = d.multiplier + 'x';
                 document.getElementById('investit').textContent = 'Investit: €' + d.investit_eur.toLocaleString();
 
-                const renderM = (arr) => arr.map(m => `<div class="m-card"><span class="m-label">${m[0]}</span><div class="m-val">${m[1]}</div></div>`).join('');
-                document.getElementById('row-macro-1').innerHTML = renderM([['TOTAL 3', d.total3], ['SENTIMENT', d.fng], ['VIX INDEX', d.vix], ['URPD PROFIT', d.urpd + '%'], ['DXY INDEX', d.dxy], ['M2 SUPPLY', d.m2]]);
-                
                 let h = '';
                 d.coins.forEach(c => {
-                    const cur = parseFloat(c.price), ent = parseFloat(c.entry), fib = parseFloat(c.fib);
-                    let prog = Math.min(Math.max(((cur - ent) / (fib - ent)) * 100, 0), 100);
-                    let barStyle = prog >= 85 ? '#00ff88' : (prog > 40 ? '#fbbf24' : '#f97316');
-
                     h += `<tr>
-                        <td><b>${c.symbol}</b> <small>(${c.change}%)</small><br>$${c.price}
-                            <div class="progress-container"><div class="progress-bar" style="width:${prog}%; background:${barStyle}"></div></div>
-                        </td>
+                        <td><b>${c.symbol}</b> <small style="color:${parseFloat(c.change) >= 0 ? '#00ff88' : '#ef4444'}">(${c.change}%)</small><br>$${c.price}</td>
                         <td>${c.q.toLocaleString()}</td><td>$${c.entry}</td>
                         <td style="color:#fbbf24">$${c.apr}</td><td style="color:#00ff88; font-weight:bold">${c.x_apr}x</td>
                         <td style="color:#fbbf24">$${c.mai}</td><td style="color:#00ff88; font-weight:bold">${c.x_mai}x</td>
-                        <td style="color:#a855f7; font-weight:bold">$${fib}</td>
+                        <td style="color:#a855f7; font-weight:bold">$${c.fib}</td>
                     </tr>`;
                 });
                 document.getElementById('rows').innerHTML = h;
