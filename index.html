@@ -2,11 +2,10 @@
 <html lang="ro">
 <head>
     <meta charset="UTF-8">
-    <title>Altcoin Tracker Ultimate - FINAL</title>
+    <title>Altcoin Tracker Ultimate - GOLD VERSION</title>
     <style>
         body { background: #0b0e14; color: #e1e1e1; font-family: sans-serif; padding: 15px; font-size: 11px; margin: 0; }
         
-        /* AJUSTARE: Banner mai mare */
         .target-panel { 
             background: #052e16; border: 2px solid #22c55e; padding: 22px; border-radius: 12px; 
             margin-bottom: 25px; text-align: center; font-size: 18px; font-weight: bold; color: #fff; 
@@ -15,7 +14,6 @@
         
         .top-nav { display: grid; grid-template-columns: repeat(4, 1fr) 1.5fr; gap: 10px; margin-bottom: 20px; }
         
-        /* AJUSTARE: Magnify & Glow pe casete */
         .m-card { 
             background: #1a1c24; padding: 12px; border-radius: 8px; border: 1px solid #333; 
             text-align: center; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -49,9 +47,8 @@
         
         .macro-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 15px; }
         
-        /* AJUSTARE: Magnify & Glow pe rânduri tabel */
         table { width: 100%; border-collapse: collapse; font-size: 16.5px; }
-        th { text-align: left; color: #555; font-size: 16px; padding: 15px; border-bottom: 2px solid #222; }
+        th { text-align: left; color: #555; font-size: 16px; padding: 15px; border-bottom: 2px solid #222; text-transform: uppercase; }
         tr { transition: 0.2s; }
         tr:hover { 
             background: rgba(0, 255, 136, 0.07); transform: scale(1.01); 
@@ -92,52 +89,54 @@
 
     <script>
         async function load() {
-            const r = await fetch('data.json?v=' + Date.now());
-            const d = await r.json();
-            const arrow = (v, t, i = false) => (i ? parseFloat(v) < t : parseFloat(v) > t) ? '<span class="up">▲</span>' : '<span class="down">▼</span>';
+            try {
+                const r = await fetch('data.json?v=' + Date.now());
+                const d = await r.json();
+                const arrow = (v, t, i = false) => (i ? parseFloat(v) < t : parseFloat(v) > t) ? '<span class="up">▲</span>' : '<span class="down">▼</span>';
 
-            document.getElementById('score').innerHTML = d.rotation_score + '%' + arrow(d.rotation_score, 70);
-            document.getElementById('score').style.color = d.rotation_score >= 70 ? '#00ff88' : '#ef4444';
-            
-            // BTC.D LIVE
-            document.getElementById('btcd').innerHTML = d.btc_d + '%' + arrow(d.btc_d, 46, true);
-            
-            document.getElementById('ethbtc').innerHTML = d.eth_btc + arrow(d.eth_btc, 0.05);
-            document.getElementById('usdtd').innerHTML = d.usdt_d + '%' + arrow(d.usdt_d, 5.1, true);
+                document.getElementById('score').innerHTML = d.rotation_score + '%' + arrow(d.rotation_score, 70);
+                document.getElementById('score').style.color = d.rotation_score >= 70 ? '#00ff88' : '#ef4444';
+                
+                // BTC.D AFISAT LIVE DIN API-UL CALIBRAT
+                document.getElementById('btcd').innerHTML = d.btc_d + '%' + arrow(d.btc_d, 46, true);
+                
+                document.getElementById('ethbtc').innerHTML = d.eth_btc + arrow(d.eth_btc, 0.05);
+                document.getElementById('usdtd').innerHTML = d.usdt_d + '%' + arrow(d.usdt_d, 5.1, true);
 
-            document.getElementById('btn-h').className = 'st-btn' + (d.rotation_score < 70 ? ' active-h' : '');
-            document.getElementById('btn-s').className = 'st-btn' + (d.rotation_score >= 70 ? ' active-s' : '');
+                document.getElementById('btn-h').className = 'st-btn' + (d.rotation_score < 70 ? ' active-h' : '');
+                document.getElementById('btn-s').className = 'st-btn' + (d.rotation_score >= 70 ? ' active-s' : '');
 
-            const m1 = [['TOTAL 3', d.total3, 1.2], ['SENTIMENT', d.fng, 75], ['VIX INDEX', d.vix, 13.8], ['URPD PROFIT', d.urpd + '%', 86], ['DXY INDEX', d.dxy, 100], ['M2 SUPPLY', d.m2, 21]];
-            const m2 = [['ML SELL PROB', d.ml_prob + '%', 50], ['MOMENTUM', d.momentum, 0], ['EXHAUSTION', d.exhaustion + '%', 30], ['DIVERGENCE', 'NORMAL', 0], ['VOLATILITY', 'LOW', 0], ['LIQUIDITY', 'HIGH', 0]];
-            
-            const render = (arr) => arr.map(m => {
-                let a = '';
-                if(m[0]==='ML SELL PROB') a = arrow(m[1], 50);
-                else if(['MOMENTUM','DIVERGENCE','VOLATILITY'].includes(m[0])) a = '<span class="up">▲</span>';
-                else if(m[0]==='EXHAUSTION') a = arrow(m[1], 30, true);
-                else if(m[0]==='LIQUIDITY') a = '<span class="down">▼</span>';
-                else if(m[2]!==0) a = arrow(m[1], m[2], m[0].includes('VIX')||m[0].includes('DXY'));
-                return `<div class="m-card"><div class="m-label">${m[0]}</div><div class="m-val">${m[1]}${a}</div></div>`;
-            }).join('');
-            
-            document.getElementById('row-macro-1').innerHTML = render(m1);
-            document.getElementById('row-macro-2').innerHTML = render(m2);
+                const m1 = [['TOTAL 3', d.total3, 1.2], ['SENTIMENT', d.fng, 75], ['VIX INDEX', d.vix, 13.8], ['URPD PROFIT', d.urpd + '%', 86], ['DXY INDEX', d.dxy, 100], ['M2 SUPPLY', d.m2, 21]];
+                const m2 = [['ML SELL PROB', d.ml_prob + '%', 50], ['MOMENTUM', d.momentum, 0], ['EXHAUSTION', d.exhaustion + '%', 30], ['DIVERGENCE', 'NORMAL', 0], ['VOLATILITY', 'LOW', 0], ['LIQUIDITY', 'HIGH', 0]];
+                
+                const render = (arr) => arr.map(m => {
+                    let a = '';
+                    if(m[0]==='ML SELL PROB') a = arrow(m[1], 50);
+                    else if(['MOMENTUM','DIVERGENCE','VOLATILITY'].includes(m[0])) a = '<span class="up">▲</span>';
+                    else if(m[0]==='EXHAUSTION') a = arrow(m[1], 30, true);
+                    else if(m[0]==='LIQUIDITY') a = '<span class="down">▼</span>';
+                    else if(m[2]!==0) a = arrow(m[1], m[2], m[0].includes('VIX')||m[0].includes('DXY'));
+                    return `<div class="m-card"><div class="m-label">${m[0]}</div><div class="m-val">${m[1]}${a}</div></div>`;
+                }).join('');
+                
+                document.getElementById('row-macro-1').innerHTML = render(m1);
+                document.getElementById('row-macro-2').innerHTML = render(m2);
 
-            document.getElementById('v').textContent = '€' + d.portfolio_eur.toLocaleString();
-            document.getElementById('profit').textContent = d.profit_range;
-            document.getElementById('m').textContent = d.multiplier + 'x';
-            document.getElementById('investit').textContent = 'Investit: €' + d.investit_eur.toLocaleString();
+                document.getElementById('v').textContent = '€' + d.portfolio_eur.toLocaleString();
+                document.getElementById('profit').textContent = d.profit_range;
+                document.getElementById('m').textContent = d.multiplier + 'x';
+                document.getElementById('investit').textContent = 'Investit: €' + d.investit_eur.toLocaleString();
 
-            let h = '';
-            d.coins.forEach(c => {
-                h += `<tr><td><b>${c.symbol}</b> <small style="color:${c.change >= 0 ? '#00ff88' : '#ef4444'}">(${c.change}%)</small><br>$${c.price}</td>
-                    <td>${c.q.toLocaleString()}</td><td>$${c.entry}</td>
-                    <td style="color:#fbbf24">$${c.apr}</td><td style="color:#00ff88">${c.x_apr}x</td>
-                    <td style="color:#fbbf24">$${c.mai}</td><td style="color:#00ff88">${c.x_mai}x</td>
-                    <td style="color:#a855f7; font-weight:bold">$${c.fib}</td></tr>`;
-            });
-            document.getElementById('rows').innerHTML = h;
+                let h = '';
+                d.coins.forEach(c => {
+                    h += `<tr><td><b>${c.symbol}</b> <small style="color:${c.change >= 0 ? '#00ff88' : '#ef4444'}">(${c.change}%)</small><br>$${c.price}</td>
+                        <td>${c.q.toLocaleString()}</td><td>$${c.entry}</td>
+                        <td style="color:#fbbf24">$${c.apr}</td><td style="color:#00ff88">${c.x_apr}x</td>
+                        <td style="color:#fbbf24">$${c.mai}</td><td style="color:#00ff88">${c.x_mai}x</td>
+                        <td style="color:#a855f7; font-weight:bold">$${c.fib}</td></tr>`;
+                });
+                document.getElementById('rows').innerHTML = h;
+            } catch (e) { console.error("Error loading GOLD data:", e); }
         }
         load(); setInterval(load, 30000);
     </script>
