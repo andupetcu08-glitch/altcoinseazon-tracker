@@ -1,44 +1,35 @@
+<script>
 async function updateDashboard() {
     try {
         const response = await fetch('data.json');
         const data = await response.json();
 
-        // Actualizare Casete Superioare
+        // Fix Multiplier: Verificăm dacă există 'mult' pentru a evita 'undefinedx'
+        const multEl = document.getElementById('multiplier');
+        if (data.mult !== undefined) {
+            multEl.innerText = data.mult + 'x';
+        } else {
+            multEl.innerText = '0.00x';
+        }
+
+        // BTC.D Live
+        if (data.btcd) document.getElementById('btcd').innerText = data.btcd + '%';
+        
+        // ETH/BTC (0.0288 conform imaginii tale)
+        if (data.ethbtc) document.getElementById('ethbtc').innerText = data.ethbtc;
+
+        // Rotation Score & Culoare Verde
         if (data.rotation) {
             const rotEl = document.getElementById('rotation');
             rotEl.innerText = data.rotation + '%';
-            // Regula de 70% pentru culoarea verde
-            if (data.rotation >= 70) {
-                rotEl.style.color = '#00ff00';
-            }
+            // Dacă atingem targetul de 70%, facem textul verde
+            rotEl.style.color = data.rotation >= 70 ? '#00ff00' : '#ff4444';
         }
-
-        if (data.btcd) document.getElementById('btcd').innerText = data.btcd + '%';
-        if (data.ethbtc) document.getElementById('ethbtc').innerText = data.ethbtc;
-        if (data.usdtd) document.getElementById('usdtd').innerText = data.usdtd + '%';
-
-        // Fix pentru Multiplier Actual
-        if (data.mult !== undefined) {
-            document.getElementById('multiplier').innerText = data.mult + 'x';
-        } else {
-            document.getElementById('multiplier').innerText = '0.00x';
-        }
-
-        // Portofoliu Actual (EUR)
-        if (data.port_eur) {
-            document.getElementById('port_eur').innerText = '€' + data.port_eur.toLocaleString();
-        }
-
-        // Casete Macro
-        if (data.vix) document.getElementById('vix').innerText = data.vix;
-        if (data.dxy) document.getElementById('dxy').innerText = data.dxy;
-        if (data.fng) document.getElementById('fng').innerText = data.fng;
 
     } catch (error) {
-        console.error("Eroare la incarcarea datelor:", error);
+        console.error("Datele nu au putut fi încărcate:", error);
     }
 }
-
-// Ruleaza la fiecare 30 secunde
 setInterval(updateDashboard, 30000);
 updateDashboard();
+</script>
