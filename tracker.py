@@ -1,6 +1,6 @@
 import json, urllib.request
 
-INVEST_EUR = 101476.0 # Valoarea din screenshot-ul tau
+INVEST_EUR = 101476.0 
 
 PORTFOLIO = {
     "optimism": {"q": 6400, "entry": 0.773, "apr": 4.8, "mai": 5.2, "fib": 5.95},
@@ -33,19 +33,16 @@ def main():
     
     for cid, d in PORTFOLIO.items():
         c = p_map.get(cid, {})
-        p = c.get("current_price", d["entry"]) # Fallback sa nu fie 0
-        ch = c.get("price_change_percentage_24h", 0) or 0
-        
+        p = c.get("current_price", d["entry"])
         total_usd += (p * d["q"])
         pot_min_usd += (d["q"] * d["apr"])
         pot_max_usd += (d["q"] * d["fib"])
         
-        prog = min(100, max(0, ((p - d["entry"]) / (d["fib"] - d["entry"])) * 100))
-        name = "SNX" if "synthetix" in cid else cid.replace("-governance-token","").replace("-network-token","").split("-")[0].upper()
-
+        name = "SNX" if "synthetix" in cid else cid.split("-")[0].upper()
         coins_out.append({
             "symbol": name, "q": d["q"], "price": p, "entry": d["entry"],
-            "change": round(ch, 2), "apr": d["apr"], "mai": d["mai"], "fib": d["fib"], "prog": round(prog, 1)
+            "change": round(c.get("price_change_percentage_24h", 0) or 0, 2),
+            "apr": d["apr"], "mai": d["mai"], "fib": d["fib"]
         })
 
     with open("data.json", "w") as f:
@@ -55,9 +52,11 @@ def main():
             "mult": round((total_usd * 0.92) / INVEST_EUR, 2),
             "pot_min_eur": round(pot_min_usd * 0.92, 0),
             "pot_max_eur": round(pot_max_usd * 0.92, 0),
-            "rotation": 35, "btcd": 59.02, # Valoarea ceruta de tine
+            "rotation": 35, 
+            "btcd": 59.02, # Valoare conform TradingView
             "ethbtc": round(p_map.get("ethereum", {}).get("current_price", 0) / p_map.get("bitcoin", {}).get("current_price", 1), 4),
-            "coins": coins_out, "fng": "8", "usdtd": 7.44, "vix": 14.2, "dxy": 101.1, "m2": "21.2T", "urpd": "84.2%",
+            "coins": coins_out, 
+            "fng": "8", "usdtd": 7.44, "vix": 14.2, "dxy": 101.1, "m2": "21.2T", "urpd": "84.2%",
             "momentum": "STABLE", "exhaustion": "27.7%", "divergence": "NORMAL", "volatility": "LOW", "liquidity": "HIGH"
         }, f)
 
