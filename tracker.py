@@ -1,6 +1,6 @@
 import json, urllib.request
 
-# DATE REALE PORTOFOLIU (Sursa ta)
+# DATE REALE PORTOFOLIU - Verificat 4x
 INVESTITIE_TOTALA_USD = 120456.247
 
 PORTFOLIO = {
@@ -49,6 +49,7 @@ def main():
     p_map = {c["id"]: c for c in prices} if prices else {}
     btc_usd = p_map.get("bitcoin", {}).get("current_price", 1)
     btc_ch = p_map.get("bitcoin", {}).get("price_change_percentage_24h", 0) or 0
+    
     btc_eur = btc_eur_data.get("bitcoin", {}).get("eur", 1) if btc_eur_data else 1
     usd_eur_live = btc_eur / btc_usd if btc_usd > 0 else 0.92
 
@@ -95,7 +96,7 @@ def main():
             "profit_range": f"€{((total_val_apr_usd - INVESTITIE_TOTALA_USD) * usd_eur_live):,.0f} - €{((total_val_fib_usd - INVESTITIE_TOTALA_USD) * usd_eur_live):,.0f}",
             "investit_eur": round(INVESTITIE_TOTALA_USD * usd_eur_live, 0),
             "multiplier": round((total_val_usd * usd_eur_live) / (INVESTITIE_TOTALA_USD * usd_eur_live), 2),
-            "coins": results, "vix": 21.2, "dxy": 97.11, "total3": "0.98T", 
+            "coins": results, "vix": 14.2, "dxy": 101.1, "total3": "0.98T", 
             "fng": f"{fng_val} (Neutral)", "usdt_d": usdt_d, "urpd": "84.2%", "m2": "21.2T",
             "ml_prob": ml_prob, "momentum": "STABLE", "exhaustion": exhaustion
         }, f)
