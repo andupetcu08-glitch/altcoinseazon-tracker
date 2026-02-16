@@ -2,33 +2,32 @@
 <html lang="ro">
 <head>
     <meta charset="UTF-8">
-    <title>Altcoin Tracker Dashboard</title>
+    <title>Altcoin Tracker</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background: #0b0e14; color: #e1e1e1; font-family: sans-serif; padding: 15px; font-size: 11px; }
         .target-panel { background: #064e3b; border: 1px solid #10b981; padding: 12px; border-radius: 8px; margin-bottom: 20px; text-align: center; color: #10b981; font-weight: bold; }
         .m-card { background: #161b22; padding: 20px; border-radius: 12px; border: 1px solid #30363d; text-align: center; }
-        .m-label { font-size: 8px; color: #8b949e; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px; }
-        .m-val { font-weight: bold; font-size: 20px; }
+        .m-label { font-size: 8px; color: #8b949e; text-transform: uppercase; margin-bottom: 8px; }
     </style>
 </head>
 <body>
     <div class="target-panel">🎯 TARGETS: BTC.D: 46% | VIX: 13.8 | USDT.D: 5.1% | URPD: 86% | ETH/BTC: 0.085 | ML SELL Prob Target: 50% | ROTATION SCORE: 70%</div>
 
-    <div class="grid grid-cols-4 gap-4 mb-6">
-        <div class="m-card"><div class="m-label">Rotation Score</div><div id="rot" class="m-val">--</div></div>
-        <div class="m-card"><div class="m-label">BTC.D LIVE</div><div id="btcd" class="m-val">--</div></div>
-        <div class="m-card"><div class="m-label">ETH / BTC</div><div id="ethbtc" class="m-val" style="color:#a855f7">--</div></div>
-        <div class="m-card"><div class="m-label">ACTION STATUS</div><div id="status" class="m-val text-red-500 text-sm">HOLD / ACCUMULATE</div></div>
+    <div class="grid grid-cols-4 gap-4 mb-6 text-center">
+        <div class="m-card"><div class="m-label">Rotation Score</div><div id="rot" class="text-xl font-bold">--</div></div>
+        <div class="m-card"><div class="m-label">BTC.D LIVE</div><div id="btcd" class="text-xl font-bold">--</div></div>
+        <div class="m-card"><div class="m-label">ETH / BTC</div><div id="ethbtc" class="text-xl font-bold text-purple-400">--</div></div>
+        <div class="m-card"><div class="m-label">ACTION STATUS</div><div class="text-xl font-bold text-orange-400">HOLD / ACCUMULATE</div></div>
     </div>
 
     <div class="grid grid-cols-3 gap-4 mb-8">
         <div class="m-card"><div class="m-label">Portofoliu Actual (EUR)</div><div id="eur" class="text-3xl font-bold text-green-400">--</div></div>
-        <div class="m-card"><div class="m-label">Potential Profit Teoretic (FIB)</div><div id="fib_total" class="text-xl font-bold text-yellow-500">--</div></div>
+        <div class="m-card"><div class="m-label">Potential Profit Teoretic (FIB)</div><div id="fib_total" class="text-3xl font-bold text-orange-400">--</div></div>
         <div class="m-card">
             <div class="m-label">Multiplier Actual</div>
             <div id="mult" class="text-3xl font-bold text-green-400">--</div>
-            <div class="text-[8px] text-gray-500 mt-1">(Investit: €101,235)</div>
+            <div class="text-[8px] text-gray-500 mt-1">(Investit: €101,235) [cite: 2026-02-14]</div>
         </div>
     </div>
 
@@ -38,7 +37,7 @@
         <table class="w-full text-left">
             <thead>
                 <tr class="text-[#8b949e] text-[9px] uppercase border-b border-[#30363d]">
-                    <th class="p-4">Moneda</th><th class="p-4">Cantitate</th><th class="p-4">Entry</th><th class="p-4">Preț Live</th><th class="p-4 text-yellow-500">Target APR</th><th class="p-4 text-yellow-500">Target MAI</th><th class="p-4 text-purple-500">Final Target</th>
+                    <th class="p-4">Moneda</th><th class="p-4 text-center">Cantitate</th><th class="p-4 text-center">Entry</th><th class="p-4 text-center">Preț Live</th><th class="p-4 text-orange-400 text-center">Target APR</th><th class="p-4 text-orange-400 text-center">Target MAI</th><th class="p-4 text-purple-400 text-center">Final Target</th>
                 </tr>
             </thead>
             <tbody id="rows"></tbody>
@@ -50,12 +49,10 @@
             const r = await fetch('data.json?t=' + Date.now());
             const d = await r.json();
 
-            // Rotation Score Logic [cite: 2026-02-14]
+            // Rotation Score: Verde la 70% [cite: 2026-02-14]
             const rotEl = document.getElementById('rot');
             rotEl.textContent = d.rotation + '%';
             rotEl.style.color = d.rotation >= 70 ? '#4ade80' : '#f87171';
-            
-            if(d.rotation >= 70) document.getElementById('status').innerHTML = '<span class="text-green-400">ALTSEASON / SELL</span>';
 
             document.getElementById('btcd').textContent = d.btcd + '%';
             document.getElementById('ethbtc').textContent = d.ethbtc;
@@ -63,26 +60,18 @@
             document.getElementById('mult').textContent = d.mult + 'x';
             document.getElementById('fib_total').textContent = '€' + (d.pot_max_eur - d.invest_eur).toLocaleString();
 
-            const macros = [
-                ['Sentiment', d.fng], ['VIX Index', d.vix], ['DXY Index', d.dxy], 
-                ['USDT.D', d.usdtd], ['M2 Supply', d.m2], ['URPD Profit', d.urpd]
-            ];
-            document.getElementById('macro').innerHTML = macros.map(m => `
-                <div class="m-card p-3"><div class="m-label">${m[0]}</div><div class="text-xs font-bold">${m[1]}</div></div>
-            `).join('');
+            const macros = [['Sentiment', d.fng], ['VIX Index', d.vix], ['DXY Index', d.dxy], ['USDT.D', d.usdtd], ['M2 Supply', d.m2], ['URPD Profit', d.urpd]];
+            document.getElementById('macro').innerHTML = macros.map(m => `<div class="m-card p-3"><div class="m-label">${m[0]}</div><div class="text-xs font-bold">${m[1]}</div></div>`).join('');
 
             document.getElementById('rows').innerHTML = d.coins.map(c => `
-                <tr class="border-b border-[#21262d]">
-                    <td class="p-4">
-                        <div class="flex justify-between items-center"><span class="font-bold">${c.symbol}</span><span class="text-[8px] ${c.change>=0?'text-green-400':'text-red-400'}">${c.change}%</span></div>
-                        <div class="w-full bg-[#21262d] h-1 rounded mt-2"><div class="h-full bg-yellow-500 rounded" style="width:${c.prog}%"></div></div>
-                    </td>
+                <tr class="border-b border-[#21262d] text-center">
+                    <td class="p-4 text-left font-bold uppercase">${c.symbol} <span class="text-[8px] ${c.change>=0?'text-green-400':'text-red-400'} ml-2">${c.change}%</span></td>
                     <td class="p-4 text-gray-400">${c.q.toLocaleString()}</td>
                     <td class="p-4 text-gray-500">$${c.entry}</td>
                     <td class="p-4 text-blue-400 font-bold">$${c.price.toFixed(4)}</td>
-                    <td class="p-4 text-yellow-500 font-bold">$${c.apr}</td>
-                    <td class="p-4 text-yellow-500 font-bold">$${c.mai}</td>
-                    <td class="p-4 text-purple-500 font-bold">$${c.fib}</td>
+                    <td class="p-4 text-orange-400 font-bold">$${c.apr}</td>
+                    <td class="p-4 text-orange-400 font-bold">$${c.mai}</td>
+                    <td class="p-4 text-purple-400 font-bold">$${c.fib}</td>
                 </tr>
             `).join('');
         }
