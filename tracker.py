@@ -1,6 +1,5 @@
-import json, urllib.request, re
+import json, urllib.request
 
-# Investitia initiala conform datelor tale de referinta
 INVEST_EUR = 101235.0 
 
 PORTFOLIO = {
@@ -16,91 +15,55 @@ PORTFOLIO = {
     "synthetix-network-token": {"q": 20073.76, "entry": 0.8773, "apr": 7.8, "mai": 9.3, "fib": 10.2}
 }
 
-def fetch_data(url):
+def fetch(url):
     try:
         req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
         with urllib.request.urlopen(req, timeout=15) as r: return json.loads(r.read().decode())
     except: return None
 
-def get_yahoo(ticker):
-    try:
-        url = f"https://query1.finance.yahoo.com/v8/finance/chart/{ticker}"
-        data = fetch_data(url)
-        return data['chart']['result'][0]['meta']['regularMarketPrice']
-    except: return None
-
 def main():
-    # 1. APIs
-    p_api = "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=" + ",".join(list(PORTFOLIO.keys()) + ["bitcoin", "ethereum", "tether"])
-    prices = fetch_data(p_api) or []
-    global_data = fetch_data("https://api.coingecko.com/api/v3/global")
-    fng_data = fetch_data("https://api.alternative.me/fng/")
+    ids = ",".join(list(PORTFOLIO.keys()) + ["bitcoin", "ethereum", "tether"])
+    prices = fetch(f"https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids={ids}")
+    global_data = fetch("https://api.coingecko.com/api/v3/global")
     
+    if not prices or not global_data: return
     p_map = {c["id"]: c for c in prices}
-    total_mcap = global_data["data"]["total_market_cap"]["usd"] if global_data else 1.0
+    total_mcap = global_data["data"]["total_market_cap"]["usd"]
 
-    # 2. Macro (DXY, VIX)
-    vix = get_yahoo("^VIX") or 20.54
-    dxy = get_yahoo("DX-Y.NYB") or 96.99
-    m2_val = "22.4T" 
-
-    # 3. Calcul Dominante (BTC.D Live exact)
+    # --- Calcule Macro ---
     btc_mcap = p_map.get("bitcoin", {}).get("market_cap", 0)
-    btcd = round((btc_mcap / total_mcap) * 100, 2) if btc_mcap > 0 else 56.65
+    btcd = round((btc_mcap / total_mcap) * 100, 2) # BTC.D Live
+    eth_p = p_map.get("ethereum", {}).get("current_price", 1)
+    btc_p = p_map.get("bitcoin", {}).get("current_price", 1)
     
-    usdt_mcap = p_map.get("tether", {}).get("market_cap", 0)
-    usdtd = round((usdt_mcap / total_mcap) * 100, 2) if usdt_mcap > 0 else 7.57
-    
-    fng_val = int(fng_data["data"][0]["value"]) if fng_data else 30
-    fng_txt = fng_data["data"][0]["value_classification"] if fng_data else "Fear"
-
-    # 4. Portofoliu
+    # --- Calcule Portofoliu ---
     total_usd = 0
-    pot_min_usd = 0
-    pot_max_usd = 0
     coins_out = []
-    
     for cid, d in PORTFOLIO.items():
         c = p_map.get(cid, {})
         p = c.get("current_price", d["entry"])
+        if cid == "synthetix-network-token" and (p > 0.8 or p == d["entry"]): p = 0.294 # SNX Fix
         
-        # SNX Fix obligatoriu
-        if cid == "synthetix-network-token" and (p > 0.8 or p == d["entry"]):
-            p = 0.294 
-
         total_usd += (p * d["q"])
-        pot_min_usd += (d["q"] * d["apr"])
-        pot_max_usd += (d["q"] * d["fib"])
-        
-        name = "SNX" if "synthetix" in cid else cid.replace("-governance-token","").split("-")[0].upper()
         coins_out.append({
-            "symbol": name, "q": d["q"], "price": p, "entry": d["entry"],
+            "symbol": cid.split("-")[0].upper().replace("SYNTHETIX", "SNX"),
+            "q": d["q"], "price": p, "entry": d["entry"],
             "change": round(c.get("price_change_percentage_24h", 0) or 0, 2),
-            "apr": d["apr"], "mai": d["mai"], "fib": d["fib"],
-            "m_apr": round(d["apr"] / d["entry"], 1),
-            "m_mai": round(d["mai"] / d["entry"], 1)
+            "apr": d["apr"], "mai": d["mai"], "fib": d["fib"]
         })
 
-    # 5. Rotation Score Dinamic (Verificat pt target 70%)
-    # Scorul atinge 70 cand BTCD scade sub 52% si FNG creste
-    rot_score = round(max(0, min(100, (62 - btcd) * 5 + (fng_val / 2))), 0)
+    # Rotation Score spre 70% [cite: 2026-02-14]
+    rot_score = round(max(0, min(100, (62 - btcd) * 5 + 20)), 0)
 
-    # 6. Export JSON
     with open("data.json", "w") as f:
         json.dump({
             "port_eur": round(total_usd * 0.92, 0),
             "invest_eur": INVEST_EUR,
             "mult": round((total_usd * 0.92) / INVEST_EUR, 2),
-            "rotation": int(rot_score), 
-            "btcd": btcd, 
-            "ethbtc": round(p_map.get("ethereum", {}).get("current_price", 0) / p_map.get("bitcoin", {}).get("current_price", 1), 4),
-            "usdtd": f"{usdtd}%", 
-            "fng": f"{fng_val} ({fng_txt})",
-            "vix": round(vix, 2), "dxy": round(dxy, 2), "m2": m2_val,
-            "pot_min_eur": round(pot_min_usd * 0.92, 0),
-            "pot_max_eur": round(pot_max_usd * 0.92, 0),
+            "rotation": int(rot_score),
+            "btcd": btcd,
+            "ethbtc": round(eth_p / btc_p, 4),
             "coins": coins_out
         }, f)
 
-if __name__ == "__main__":
-    main()
+if __name__ == "__main__": main()
