@@ -1,30 +1,54 @@
+<table class="min-w-full">
+    <thead>
+        <tr class="text-gray-500 text-xs uppercase">
+            <th>Moneda</th>
+            <th>Cantitate</th>
+            <th>Entry</th>
+            <th>Preț Actual</th>
+            <th>Target APR</th>
+            <th>Target MAI</th>
+            <th>Final Target</th>
+        </tr>
+    </thead>
+    <tbody id="coin-table-body">
+        </tbody>
+</table>
+
 <script>
 async function updateDashboard() {
-    const res = await fetch('data.json');
-    const data = await res.json();
+    try {
+        const res = await fetch('data.json');
+        const data = await res.json();
 
-    // Actualizare Casete Principale
-    document.getElementById('port_eur').innerText = '€' + data.port_eur.toLocaleString();
-    document.getElementById('multiplier').innerText = data.mult + 'x';
-    
-    // Rotation Score + Regula Verde (70%)
-    const rot = document.getElementById('rotation');
-    rot.innerText = data.rotation + '%';
-    rot.style.color = data.rotation >= 70 ? '#00ff00' : '#ff4444';
+        // 1. Casete (ca anterior)
+        document.getElementById('port_eur').innerText = '€' + data.port_eur.toLocaleString();
+        document.getElementById('multiplier').innerText = data.mult + 'x';
+        const rot = document.getElementById('rotation');
+        rot.innerText = data.rotation + '%';
+        rot.style.color = data.rotation >= 70 ? '#00ff00' : '#ff4444'; // Regula 70% verde
 
-    // BTC.D, ETH/BTC, USDT.D
-    document.getElementById('btcd').innerText = data.btcd + '%';
-    document.getElementById('ethbtc').innerText = data.ethbtc;
-    document.getElementById('usdtd').innerText = data.usdtd + '%';
+        // 2. Populare Tabel Automat
+        const tbody = document.getElementById('coin-table-body');
+        tbody.innerHTML = ''; // Curățăm rândurile vechi
 
-    // Profit Teoretic
-    document.getElementById('theoretical').innerText = '€' + data.pot_min.toLocaleString() + ' - €' + data.pot_max.toLocaleString();
+        data.coins.forEach(coin => {
+            const color = coin.change >= 0 ? 'text-green-400' : 'text-red-400';
+            const row = `
+                <tr class="border-b border-gray-800 text-sm">
+                    <td class="py-3 font-bold">${coin.name} <span class="${color} text-xs">(${coin.change}%)</span></td>
+                    <td>${coin.q.toLocaleString()}</td>
+                    <td>$${coin.entry}</td>
+                    <td class="font-bold text-blue-400">$${coin.price}</td>
+                    <td class="text-yellow-500">$${coin.apr} (${coin.mult_apr}x)</td>
+                    <td class="text-yellow-500">$${coin.mai} (${coin.mult_mai}x)</td>
+                    <td class="text-purple-500 font-bold">$${coin.fib}</td>
+                </tr>
+            `;
+            tbody.innerHTML += row;
+        });
 
-    // Actualizare Tabel Monede (Exemplu pentru prima linie)
-    data.coins.forEach((coin, index) => {
-        // Aici poți adăuga logica de populare a rândurilor din tabel
-    });
+    } catch (e) { console.error(e); }
 }
-updateDashboard();
 setInterval(updateDashboard, 30000);
+updateDashboard();
 </script>
