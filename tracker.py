@@ -63,7 +63,7 @@ def main():
             "pot_min_eur": round(pot_min_usd * 0.92, 0),
             "pot_max_eur": round(pot_max_usd * 0.92, 0),
             "rotation": 35, 
-            "btcd": 59.02, # Actualizat la valoarea Live solicitata
+            "btcd": 59.02, # Mentinem valoarea live ceruta anterior
             "ethbtc": round(p_map.get("ethereum", {}).get("current_price", 0) / btc_p, 4),
             "coins": coins_out, 
             "fng": "8 (Extreme Fear)", "usdtd": 7.44, "vix": 14.2, "dxy": 101.1, "m2": "21.2T", "urpd": "84.2%",
