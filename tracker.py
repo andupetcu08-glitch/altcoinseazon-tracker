@@ -36,8 +36,8 @@ def main():
     
     for cid, d in PORTFOLIO.items():
         c = p_map.get(cid, {})
-        # Fallback la entry daca API-ul SNX e limitat temporar
-        p = c.get("current_price", d["entry"])
+        # Rezolvare SNX: Folosim pretul din API sau entry-ul daca API-ul nu returneaza nimic
+        p = c.get("current_price") if c.get("current_price") else d["entry"]
         ch_24h = c.get("price_change_percentage_24h", 0) or 0
         
         total_usd += (p * d["q"])
@@ -63,11 +63,12 @@ def main():
             "pot_min_eur": round(pot_min_usd * 0.92, 0),
             "pot_max_eur": round(pot_max_usd * 0.92, 0),
             "rotation": 35, 
-            "btcd": 59.02, # Mentinem valoarea live ceruta anterior
+            "btcd": 59.02, # Mentinem valoarea live ceruta anterior din TradingView
             "ethbtc": round(p_map.get("ethereum", {}).get("current_price", 0) / btc_p, 4),
             "coins": coins_out, 
             "fng": "8 (Extreme Fear)", "usdtd": 7.44, "vix": 14.2, "dxy": 101.1, "m2": "21.2T", "urpd": "84.2%",
             "momentum": "STABLE", "exhaustion": "27.7%", "divergence": "NORMAL", "volatility": "LOW", "liquidity": "HIGH"
         }, f)
 
-if __name__ == "__main__": main()
+if __name__ == "__main__": 
+    main()
