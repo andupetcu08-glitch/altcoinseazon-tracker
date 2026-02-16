@@ -5,23 +5,18 @@
     <style>
         body { background: #0b0e14; color: #e1e1e1; font-family: sans-serif; padding: 20px; }
         .banner { background: #052e16; border: 1px solid #22c55e; padding: 10px; border-radius: 5px; text-align: center; font-weight: bold; margin-bottom: 20px; font-size: 13px; }
-        
         .grid-nav, .grid-stats, .grid-macro { display: grid; gap: 10px; margin-bottom: 15px; }
         .grid-nav { grid-template-columns: repeat(4, 1fr) 2.5fr; }
         .grid-stats { grid-template-columns: 1fr 1.5fr 1fr; }
         .grid-macro { grid-template-columns: repeat(6, 1fr); }
-
         .card { background: #15171e; padding: 15px; border-radius: 8px; border: 1px solid #222; text-align: center; transition: 0.3s; }
-        .card:hover { transform: scale(1.02); border-color: #00ff88; box-shadow: 0 0 15px rgba(0, 255, 136, 0.1); }
-
+        .card:hover { transform: scale(1.02); border-color: #00ff88; }
         .label { font-size: 9px; color: #555; text-transform: uppercase; margin-bottom: 5px; }
         .val { font-size: 18px; font-weight: bold; }
         .val-large { font-size: 30px; font-weight: bold; color: #00ff88; }
-
         .status-grp { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; }
         .btn { background: #111; border: 1px solid #222; border-radius: 4px; font-size: 9px; color: #333; display: flex; align-items: center; justify-content: center; font-weight: bold; }
         .btn-active { border-color: #ef4444; color: #ef4444; box-shadow: 0 0 10px rgba(239, 68, 68, 0.1); }
-
         thead th { font-size: 11px; color: #444; text-align: left; padding: 15px 10px; border-bottom: 1px solid #222; text-transform: uppercase; }
         td { padding: 12px 10px; border-bottom: 1px solid #161920; font-weight: bold; font-size: 14px; }
         .up { color: #00ff88; } .down { color: #ef4444; }
@@ -30,7 +25,6 @@
 </head>
 <body>
     <div class="banner">🎯 TARGETS: BTC.D: 46% | VIX: 13.8 | USDT.D: 5.1% | URPD: 86% | ML SELL Prob Target: 50% | ROTATION SCORE: 70%</div>
-
     <div class="grid-nav">
         <div class="card"><div class="label">Rotation Score</div><div id="rot" class="val">--</div></div>
         <div class="card"><div class="label">BTC.D LIVE</div><div id="btcd" class="val">--</div></div>
@@ -42,29 +36,24 @@
             <div class="btn">SELL / TAKE PROFIT</div>
         </div>
     </div>
-
     <div class="grid-stats">
         <div class="card"><div class="label">Portofoliu Actual (EUR)</div><div id="veur" class="val-large">--</div></div>
         <div class="card"><div class="label">Potential Profit Teoretic (FIB)</div><div id="pot" style="color:#fbbf24; font-size:24px; font-weight:bold; margin-top:5px">--</div></div>
         <div class="card"><div class="label">Multiplier Actual</div><div id="mult" class="val-large">--</div></div>
     </div>
-
     <div id="m1" class="grid-macro"></div>
     <div id="m2" class="grid-macro"></div>
-
     <table style="width:100%; border-collapse: collapse;">
         <thead>
             <tr><th>MONEDA</th><th>CANTITATE</th><th>ENTRY</th><th>TARGET APR</th><th class="mult-col">MULTIPLIER</th><th>TARGET MAI</th><th class="mult-col">MULTIPLIER</th><th style="color:#a855f7">FINAL TARGET</th></tr>
         </thead>
         <tbody id="rows"></tbody>
     </table>
-
     <script>
         async function refresh() {
             const res = await fetch('data.json?v=' + Date.now());
             const d = await res.json();
             const up = '<span class="up">▲</span>', down = '<span class="down">▼</span>';
-
             document.getElementById('rot').textContent = d.rotation + '%';
             document.getElementById('rot').style.color = d.rotation >= 70 ? '#00ff88' : '#ef4444';
             document.getElementById('btcd').innerHTML = d.btcd + '% ' + up;
@@ -73,13 +62,10 @@
             document.getElementById('veur').innerHTML = '€' + d.port_eur.toLocaleString() + ' ' + down;
             document.getElementById('mult').textContent = d.mult + 'x';
             document.getElementById('pot').textContent = '€' + d.pot_min_eur.toLocaleString() + ' - €' + d.pot_max_eur.toLocaleString();
-
             const m1_d = [['TOTAL 3','0.98T',up],['SENTIMENT',d.fng,up],['VIX',d.vix,down],['URPD',d.urpd,up],['DXY',d.dxy,down],['M2',d.m2,up]];
             document.getElementById('m1').innerHTML = m1_d.map(x => `<div class="card"><div class="label">${x[0]}</div><div class="val">${x[1]} ${x[2]}</div></div>`).join('');
-
             const m2_d = [['ML SELL','18.9%',down],['MOMENTUM',d.momentum,up],['EXHAUSTION',d.exhaustion,down],['DIVERGENCE',d.divergence,up],['VOLATILITY',d.volatility,down],['LIQUIDITY',d.liquidity,up]];
             document.getElementById('m2').innerHTML = m2_d.map(x => `<div class="card"><div class="label">${x[0]}</div><div class="val">${x[1]} ${x[2]}</div></div>`).join('');
-
             document.getElementById('rows').innerHTML = d.coins.map(c => `
                 <tr>
                     <td>${c.symbol} <span class="${c.change>=0?'up':'down'}" style="font-size:10px">(${c.change}%)</span></td>
