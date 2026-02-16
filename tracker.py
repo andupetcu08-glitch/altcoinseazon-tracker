@@ -1,7 +1,6 @@
 import json, urllib.request
 
-# Investitia initiala din screenshot-ul tau (aprox €93,358)
-INVEST_EUR = 93358.0 
+INVEST_EUR = 101476.0 # Valoarea din screenshot-ul tau
 
 PORTFOLIO = {
     "optimism": {"q": 6400, "entry": 0.773, "apr": 4.8, "mai": 5.2, "fib": 5.95},
@@ -19,17 +18,13 @@ PORTFOLIO = {
 def fetch(url):
     try:
         req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
-        with urllib.request.urlopen(req, timeout=10) as r: return json.loads(r.read().decode())
+        with urllib.request.urlopen(req, timeout=15) as r: return json.loads(r.read().decode())
     except: return None
 
 def main():
-    # Adaugat 'bitcoin-dominance' pentru a reflecta realitatea din TradingView
-    ids = list(PORTFOLIO.keys()) + ["bitcoin", "ethereum", "bitcoin-dominance"]
+    ids = list(PORTFOLIO.keys()) + ["bitcoin", "ethereum"]
     prices = fetch(f"https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids={','.join(ids)}")
     p_map = {c["id"]: c for c in prices} if prices else {}
-    
-    # BTC.D din API sau fallback la valoarea din TradingView (59.02)
-    btcd_val = p_map.get("bitcoin-dominance", {}).get("current_price", 59.02)
     
     total_usd = 0
     pot_min_usd = 0
@@ -38,13 +33,11 @@ def main():
     
     for cid, d in PORTFOLIO.items():
         c = p_map.get(cid, {})
-        p = c.get("current_price", d["entry"])
-        ch_24h = c.get("price_change_percentage_24h", 0) or 0
+        p = c.get("current_price", d["entry"]) # Fallback sa nu fie 0
+        ch = c.get("price_change_percentage_24h", 0) or 0
         
         total_usd += (p * d["q"])
-        # Suma mica: Cantitate * Target APR
         pot_min_usd += (d["q"] * d["apr"])
-        # Suma mare: Cantitate * Final Target
         pot_max_usd += (d["q"] * d["fib"])
         
         prog = min(100, max(0, ((p - d["entry"]) / (d["fib"] - d["entry"])) * 100))
@@ -52,7 +45,7 @@ def main():
 
         coins_out.append({
             "symbol": name, "q": d["q"], "price": p, "entry": d["entry"],
-            "change": round(ch_24h, 2), "apr": d["apr"], "mai": d["mai"], "fib": d["fib"], "prog": round(prog, 1)
+            "change": round(ch, 2), "apr": d["apr"], "mai": d["mai"], "fib": d["fib"], "prog": round(prog, 1)
         })
 
     with open("data.json", "w") as f:
@@ -62,11 +55,9 @@ def main():
             "mult": round((total_usd * 0.92) / INVEST_EUR, 2),
             "pot_min_eur": round(pot_min_usd * 0.92, 0),
             "pot_max_eur": round(pot_max_usd * 0.92, 0),
-            "rotation": 35, 
-            "btcd": btcd_val, 
+            "rotation": 35, "btcd": 59.02, # Valoarea ceruta de tine
             "ethbtc": round(p_map.get("ethereum", {}).get("current_price", 0) / p_map.get("bitcoin", {}).get("current_price", 1), 4),
-            "coins": coins_out, 
-            "fng": "8 (Extreme Fear)", "usdtd": 7.44, "vix": 14.2, "dxy": 101.1, "m2": "21.2T", "urpd": "84.2%",
+            "coins": coins_out, "fng": "8", "usdtd": 7.44, "vix": 14.2, "dxy": 101.1, "m2": "21.2T", "urpd": "84.2%",
             "momentum": "STABLE", "exhaustion": "27.7%", "divergence": "NORMAL", "volatility": "LOW", "liquidity": "HIGH"
         }, f)
 
