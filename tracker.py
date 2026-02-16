@@ -1,6 +1,7 @@
 import json, urllib.request
 
-INVEST_EUR = 101432.0 
+# Investitia totala actualizata
+INVEST_EUR = 93358.0 
 
 PORTFOLIO = {
     "optimism": {"q": 6400, "entry": 0.773, "apr": 4.8, "mai": 5.2, "fib": 5.95},
@@ -33,8 +34,10 @@ def main():
     
     for cid, d in PORTFOLIO.items():
         c = p_map.get(cid, {})
+        # Rezolvare SNX (daca pretul lipseste, folosim entry-ul ca sa nu dea 0%)
         p = c.get("current_price") if c.get("current_price") else d["entry"]
         ch = c.get("price_change_percentage_24h", 0) or 0
+        
         total_usd += (p * d["q"])
         pot_min_usd += (d["q"] * d["apr"])
         pot_max_usd += (d["q"] * d["fib"])
@@ -52,7 +55,8 @@ def main():
             "mult": round((total_usd * 0.92) / INVEST_EUR, 2),
             "pot_min_eur": round(pot_min_usd * 0.92, 0),
             "pot_max_eur": round(pot_max_usd * 0.92, 0),
-            "rotation": 35, "btcd": 59.02, # Valoarea cerută
+            "rotation": 35, 
+            "btcd": 59.02, # Valoare fixa ceruta conform TradingView
             "ethbtc": round(p_map.get("ethereum", {}).get("current_price", 0) / p_map.get("bitcoin", {}).get("current_price", 1), 4),
             "coins": coins_out, "fng": "8", "usdtd": "7.44%", "vix": "14.2", "urpd": "84.2%", "dxy": "101.1", "m2": "21.2T",
             "momentum": "STABLE", "exhaustion": "27.7%", "divergence": "NORMAL", "volatility": "LOW", "liquidity": "HIGH"
