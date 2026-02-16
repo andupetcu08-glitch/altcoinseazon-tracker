@@ -2,7 +2,7 @@
 <html lang="ro">
 <head>
     <meta charset="UTF-8">
-    <title>Altcoin Tracker Ultimate - GRADIENT VERSION</title>
+    <title>Altcoin Tracker Ultimate - STABLE TABLE VERSION</title>
     <style>
         body { background: #0b0e14; color: #e1e1e1; font-family: sans-serif; padding: 15px; font-size: 11px; margin: 0; }
         
@@ -14,7 +14,8 @@
         
         .top-nav { display: grid; grid-template-columns: repeat(4, 1fr) 1.5fr; gap: 10px; margin-bottom: 20px; }
         
-        .m-card, .st-btn, .card-big, tr, .macro-row > div { 
+        /* MAGNIFY & GLOW - DOAR PENTRU CASETE */
+        .m-card, .st-btn, .card-big, .macro-row > div { 
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid #333; 
         }
         
@@ -35,6 +36,9 @@
         }
         .m-val { font-weight: bold; font-size: 22px; }
         
+        /* TEXT INVESTIT MARIT */
+        #investit { color: #ccc !important; font-size: 13px !important; font-weight: bold; margin-top: 5px; display: block; }
+
         .status-box { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
         .st-btn { 
             background: #1a1c24; border-radius: 8px; display: flex; align-items: center; 
@@ -47,17 +51,20 @@
         .card-big { background: #1a1c24; padding: 25px; border-radius: 12px; text-align: center; }
         .val-big { font-size: 36px; font-weight: bold; color: #00ff88; }
         
-        /* BARA DE PROGRES CU DEGRADE */
         .progress-container { width: 100%; background: #222; height: 10px; border-radius: 5px; margin-top: 12px; overflow: hidden; border: 1px solid #333; }
         .progress-bar { height: 100%; width: 0%; transition: width 1.5s ease-in-out, background 0.5s; }
 
         .macro-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 15px; }
 
+        /* TABEL - DOAR GLOW, FARA MAGNIFY */
         table { width: 100%; border-collapse: collapse; font-size: 17px; margin-top: 10px; }
         th { text-align: left; color: #999; font-size: 16px; padding: 15px; border-bottom: 2px solid #333; text-transform: uppercase; font-weight: 900; }
+        tr { transition: background 0.3s, box-shadow 0.3s, outline 0.3s; }
         tr:hover { 
-            background: rgba(0, 255, 136, 0.12) !important; transform: scale(1.02); 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8); outline: 1px solid #00ff88; z-index: 5; position: relative;
+            background: rgba(0, 255, 136, 0.12) !important; 
+            box-shadow: inset 0 0 20px rgba(0, 255, 136, 0.2); 
+            outline: 1px solid #00ff88; 
+            z-index: 5; position: relative;
         }
         td { padding: 20px 15px; border-bottom: 1px solid #1a1c24; }
         
@@ -73,17 +80,17 @@
         <div class="m-card"><span class="m-label">BTC.D LIVE</span><div id="btcd" class="m-val">--</div></div>
         <div class="m-card"><span class="m-label">ETH / BTC</span><div id="ethbtc" class="m-val">--</div></div>
         <div class="m-card"><span class="m-label">USDT.D LIVE</span><div id="usdtd" class="m-val">--</div></div>
-        <div class="status-box">
-            <div id="btn-h" class="st-btn">HOLD</div>
-            <div class="st-btn">PREPARE</div>
-            <div id="btn-s" class="st-btn">SELL</div>
-        </div>
+        <div class="status-box"><div id="btn-h" class="st-btn">HOLD</div><div class="st-btn">PREPARE</div><div id="btn-s" class="st-btn">SELL</div></div>
     </div>
 
     <div class="stats-main">
         <div class="card-big"><span class="m-label">PORTOFOLIU ACTUAL (EUR)</span><div id="v" class="val-big">--</div></div>
         <div class="card-big"><span class="m-label">POTENȚIAL PROFIT TEORETIC</span><div id="profit" class="val-big" style="color:#fbbf24; font-size: 28px;">--</div></div>
-        <div class="card-big"><span class="m-label">MULTIPLIER ACTUAL</span><div id="m" class="val-big" style="font-size:28px">--</div><span id="investit" style="color:#888; font-size:10px">--</span></div>
+        <div class="card-big">
+            <span class="m-label">MULTIPLIER ACTUAL</span>
+            <div id="m" class="val-big" style="font-size:28px">--</div>
+            <span id="investit">--</span>
+        </div>
     </div>
 
     <div id="row-macro-1" class="macro-row"></div>
@@ -117,6 +124,7 @@
                 const scoreEl = document.getElementById('score');
                 scoreEl.innerHTML = rotScore + '%' + getArrow(rotScore, 70);
                 
+                // Aplicăm regula de 70% conform instrucțiunilor salvate
                 if (rotScore >= 70) {
                     scoreEl.style.color = '#00ff88';
                     document.getElementById('btn-h').className = 'st-btn';
@@ -129,61 +137,11 @@
 
                 document.getElementById('btcd').innerHTML = d.btc_d + '%' + getArrow(d.btc_d, 46, true);
                 document.getElementById('ethbtc').innerHTML = d.eth_btc + getArrow(d.eth_btc, 0.05);
-                document.getElementById('usdtd').innerHTML = d.usdt_d + '%' + getArrow(d.usdt_d, 5.1, true);
+                document.getElementById('usdtd').innerHTML = d.usdt_d + '%' + getArrow(d.usdtd, 5.1, true);
 
-                const m1 = [['TOTAL 3', d.total3, 1.2], ['SENTIMENT', d.fng, 75], ['VIX INDEX', d.vix, 13.8, true], ['URPD PROFIT', d.urpd + '%', 86], ['DXY INDEX', d.dxy, 100, true], ['M2 SUPPLY', d.m2, 21]];
-                const m2 = [['ML SELL PROB', d.ml_prob + '%', 50], ['MOMENTUM', d.momentum, 0], ['EXHAUSTION', d.exhaustion + '%', 30, true], ['DIVERGENCE', d.divergence || 'NORMAL', 0], ['VOLATILITY', d.volatility || 'LOW', 0], ['LIQUIDITY', d.liquidity || 'HIGH', 0]];
-                
                 const renderM = (arr) => arr.map(m => {
-                    let a = '';
-                    if (m[2] !== 0) a = getArrow(m[1], m[2], m[3] || false);
-                    else if (['MOMENTUM', 'DIVERGENCE', 'VOLATILITY'].includes(m[0])) a = '<span class="up">▲</span>';
-                    else if (m[0] === 'LIQUIDITY') a = '<span class="down">▼</span>';
+                    let a = (m[2] !== 0) ? getArrow(m[1], m[2], m[3] || false) : (['MOMENTUM', 'DIVERGENCE', 'VOLATILITY'].includes(m[0]) ? '<span class="up">▲</span>' : (m[0] === 'LIQUIDITY' ? '<span class="down">▼</span>' : ''));
                     return `<div class="m-card"><span class="m-label">${m[0]}</span><div class="m-val">${m[1]}${a}</div></div>`;
                 }).join('');
 
-                document.getElementById('row-macro-1').innerHTML = renderM(m1);
-                document.getElementById('row-macro-2').innerHTML = renderM(m2);
-
-                document.getElementById('v').textContent = '€' + d.portfolio_eur.toLocaleString();
-                document.getElementById('profit').textContent = d.profit_range;
-                document.getElementById('m').textContent = d.multiplier + 'x';
-                document.getElementById('investit').textContent = 'Investit: €' + d.investit_eur.toLocaleString();
-
-                let h = '';
-                d.coins.forEach(c => {
-                    const cur = parseFloat(c.price), ent = parseFloat(c.entry), fib = parseFloat(c.fib);
-                    let prog = Math.min(Math.max(((cur - ent) / (fib - ent)) * 100, 0), 100);
-                    
-                    // Logica de culoare in degrade
-                    let barStyle = '';
-                    let shadow = '';
-                    if (prog >= 85) {
-                        barStyle = 'linear-gradient(90deg, #f97316 0%, #fbbf24 50%, #00ff88 100%)';
-                        shadow = '0 0 15px #00ff88aa';
-                    } else if (prog > 40) {
-                        barStyle = 'linear-gradient(90deg, #f97316 0%, #fbbf24 100%)';
-                        shadow = '0 0 10px #fbbf2488';
-                    } else {
-                        barStyle = '#f97316'; // Portocaliu la baza
-                        shadow = '0 0 8px #f9731666';
-                    }
-
-                    h += `<tr>
-                        <td style="min-width:180px">
-                            <b style="font-size:19px">${c.symbol}</b> <small style="color:${c.change >= 0 ? '#00ff88' : '#ef4444'}">(${c.change}%)</small><br>$${c.price}
-                            <div class="progress-container"><div class="progress-bar" style="width: ${prog}%; background: ${barStyle}; box-shadow: ${shadow};"></div></div>
-                        </td>
-                        <td>${c.q.toLocaleString()}</td><td>$${c.entry}</td>
-                        <td style="color:#fbbf24">$${c.apr}</td><td style="color:#00ff88; font-weight:bold">${c.x_apr}x</td>
-                        <td style="color:#fbbf24">$${c.mai}</td><td style="color:#00ff88; font-weight:bold">${c.x_mai}x</td>
-                        <td style="color:#a855f7; font-weight:bold">$${fib}</td>
-                    </tr>`;
-                });
-                document.getElementById('rows').innerHTML = h;
-            } catch (e) { console.error(e); }
-        }
-        load(); setInterval(load, 30000);
-    </script>
-</body>
-</html>
+                document.getElementById('row-macro-1').innerHTML = renderM([['TOTAL 3', d.total3, 1.2], ['SENTIMENT', d.fng, 75], ['VIX INDEX', d.vix, 13.
