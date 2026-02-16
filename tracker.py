@@ -36,7 +36,6 @@ def main():
     btc_d = round(global_api["data"]["market_cap_percentage"]["btc"], 2) if global_api else 56.40
     eth_p = p_map.get("ethereum", {}).get("current_price", 0)
     eth_btc = round(eth_p / btc_usd, 4) if btc_usd > 0 else 0.0292
-    
     fng_val = int(fng_api["data"][0]["value"]) if fng_api else 12
     fng_class = fng_api["data"][0]["value_classification"] if fng_api else "N/A"
     
@@ -46,9 +45,7 @@ def main():
     total_val_fib_usd = 0
 
     for cid, d in PORTFOLIO.items():
-        p = p_map.get(cid, {}).get("current_price", 0)
-        if p <= 0: p = d["entry"] 
-        
+        p = p_map.get(cid, {}).get("current_price", d["entry"])
         total_val_usd += (p * d["q"])
         total_val_apr_usd += (d["apr"] * d["q"])
         total_val_fib_usd += (d["fib"] * d["q"])
