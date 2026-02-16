@@ -1,6 +1,6 @@
 import json, urllib.request
 
-# Investitia totala actualizata
+# Investitia initiala conform screenshot-ului tau (aprox €93,358 in ultima versiune)
 INVEST_EUR = 93358.0 
 
 PORTFOLIO = {
@@ -19,13 +19,15 @@ PORTFOLIO = {
 def fetch(url):
     try:
         req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
-        with urllib.request.urlopen(req, timeout=15) as r: return json.loads(r.read().decode())
+        with urllib.request.urlopen(req, timeout=10) as r: return json.loads(r.read().decode())
     except: return None
 
 def main():
     ids = list(PORTFOLIO.keys()) + ["bitcoin", "ethereum"]
     prices = fetch(f"https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids={','.join(ids)}")
     p_map = {c["id"]: c for c in prices} if prices else {}
+    
+    btc_p = p_map.get("bitcoin", {}).get("current_price", 1)
     
     total_usd = 0
     pot_min_usd = 0
@@ -34,31 +36,37 @@ def main():
     
     for cid, d in PORTFOLIO.items():
         c = p_map.get(cid, {})
-        # Rezolvare SNX (daca pretul lipseste, folosim entry-ul ca sa nu dea 0%)
-        p = c.get("current_price") if c.get("current_price") else d["entry"]
-        ch = c.get("price_change_percentage_24h", 0) or 0
+        # Fallback la entry daca API-ul SNX e limitat temporar
+        p = c.get("current_price", d["entry"])
+        ch_24h = c.get("price_change_percentage_24h", 0) or 0
         
         total_usd += (p * d["q"])
         pot_min_usd += (d["q"] * d["apr"])
         pot_max_usd += (d["q"] * d["fib"])
         
-        name = "SNX" if "synthetix" in cid else cid.split("-")[0].upper()
+        prog = min(100, max(0, ((p - d["entry"]) / (d["fib"] - d["entry"])) * 100))
+        name = "SNX" if "synthetix" in cid else cid.replace("-governance-token","").replace("-network-token","").split("-")[0].upper()
+
         coins_out.append({
             "symbol": name, "q": d["q"], "price": p, "entry": d["entry"],
-            "change": round(ch, 2), "apr": d["apr"], "mai": d["mai"], "fib": d["fib"]
+            "change": round(ch_24h, 2), "apr": d["apr"], "mai": d["mai"], "fib": d["fib"], "prog": round(prog, 1)
         })
 
+    # Conversie USD -> EUR (0.92 rata medie)
+    port_eur = total_usd * 0.92
+    
     with open("data.json", "w") as f:
         json.dump({
-            "port_eur": round(total_usd * 0.92, 0),
+            "port_eur": round(port_eur, 0),
             "invest_eur": INVEST_EUR,
-            "mult": round((total_usd * 0.92) / INVEST_EUR, 2),
+            "mult": round(port_eur / INVEST_EUR, 2),
             "pot_min_eur": round(pot_min_usd * 0.92, 0),
             "pot_max_eur": round(pot_max_usd * 0.92, 0),
             "rotation": 35, 
-            "btcd": 59.02, # Valoare fixa ceruta conform TradingView
-            "ethbtc": round(p_map.get("ethereum", {}).get("current_price", 0) / p_map.get("bitcoin", {}).get("current_price", 1), 4),
-            "coins": coins_out, "fng": "8", "usdtd": "7.44%", "vix": "14.2", "urpd": "84.2%", "dxy": "101.1", "m2": "21.2T",
+            "btcd": 56.5, 
+            "ethbtc": round(p_map.get("ethereum", {}).get("current_price", 0) / btc_p, 4),
+            "coins": coins_out, 
+            "fng": "8 (Extreme Fear)", "usdtd": 7.44, "vix": 14.2, "dxy": 101.1, "m2": "21.2T", "urpd": "84.2%",
             "momentum": "STABLE", "exhaustion": "27.7%", "divergence": "NORMAL", "volatility": "LOW", "liquidity": "HIGH"
         }, f)
 
