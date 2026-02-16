@@ -46,7 +46,9 @@ def main():
     total_val_fib_usd = 0
 
     for cid, d in PORTFOLIO.items():
-        p = p_map.get(cid, {}).get("current_price", d["entry"])
+        p = p_map.get(cid, {}).get("current_price", 0)
+        if p <= 0: p = d["entry"] 
+        
         total_val_usd += (p * d["q"])
         total_val_apr_usd += (d["apr"] * d["q"])
         total_val_fib_usd += (d["fib"] * d["q"])
