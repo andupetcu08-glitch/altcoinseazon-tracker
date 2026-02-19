@@ -19,12 +19,10 @@
         .down { color: #f85149; text-shadow: 0 0 10px rgba(248, 81, 73, 0.5); }
         
         table { width: 100%; border-collapse: collapse; margin-top: 30px; background: #0d1117; border-radius: 15px; overflow: hidden; }
-        /* Egalizare TH cu butoanele (16.5px) */
         th { text-align: left; color: #8b949e; padding: 22px; border-bottom: 3px solid #30363d; font-size: 16.5px; text-transform: uppercase; font-weight: 900; }
         td { padding: 22px; border-bottom: 1px solid #21262d; font-size: 18px; }
 
         .btn-group { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; height: 115px; }
-        /* Butoane marite (16.5px) */
         .st-btn { background: #0d1117; border: 1px solid #30363d; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 16.5px; color: #484f58; text-transform: uppercase; }
         .active-hold { border-color: #f85149 !important; color: #f85149 !important; box-shadow: 0 0 15px rgba(248, 81, 73, 0.4); }
         .active-sell { border-color: #39d353 !important; color: #39d353 !important; box-shadow: 0 0 15px rgba(57, 211, 83, 0.4); }
@@ -36,7 +34,7 @@
     <div class="grid-3">
         <div class="card" style="border-left: 5px solid #39d353; height: 115px;"><div class="label">Portofoliu Actual</div><div id="v-eur" class="val up">0 €</div></div>
         <div class="card" style="border-bottom: 2px solid #e3b341; height: 115px;"><div class="label">Potential Profit NET (APR - FINAL)</div><div id="v-range" class="val" style="color:#e3b341">0 € - 0 €</div></div>
-        <div class="card" style="height: 115px;"><div class="label">Multiplier Total</div><div id="v-mult" class="val up" style="font-size: 28px;">0.00x</div><div id="v-inv" style="font-size:14px; color:#8b949e; font-weight:bold;">INVEST 101,235 €</div></div>
+        <div class="card" style="height: 115px;"><div class="label">Multiplier Total</div><div id="v-mult" class="val up" style="font-size: 28px;">0.00x</div><div style="font-size:12px;color:#8b949e">INVEST 101,235 €</div></div>
     </div>
     <div id="m-r1" class="grid-6"></div>
     <div id="m-r2" class="grid-6"></div>
@@ -52,7 +50,7 @@
                 const arrow = (v, t, rev=false) => (parseFloat(v) > t && !rev) || (parseFloat(v) < t && rev) ? '<span class="up">▲</span>' : '<span class="down">▼</span>';
                 
                 document.getElementById('v-eur').innerText = d.portfolio_eur.toLocaleString() + ' €';
-                document.getElementById('v-range').innerText = `${d.p_apr} - ${d.p_fib}`;
+                document.getElementById('v-range').innerText = d.p_apr + " - " + d.p_fib;
                 document.getElementById('v-mult').innerText = (d.portfolio_eur / d.investitie_eur).toFixed(2) + 'x';
 
                 const rotVal = parseFloat(d.rotation_score);
@@ -60,12 +58,17 @@
                 document.getElementById('top-nav').innerHTML = top.map(i => `<div class="card" style="${i[0]==='Rotation Score' && rotVal < 70 ? 'border-color:#f85149' : ''}"><div class="label">${i[0]}</div><div class="val" style="${i[0]==='Rotation Score' ? (rotVal >= 70 ? 'color:#39d353' : 'color:#f85149') : ''}">${i[1]} ${arrow(i[1], i[2], i[3])}</div></div>`).join('') + 
                 `<div class="btn-group"><div class="st-btn ${rotVal < 70 ? 'active-hold' : ''}">HOLD</div><div class="st-btn">PREPARE</div><div class="st-btn ${rotVal >= 70 ? 'active-sell' : ''}">SELL</div></div>`;
                 
-                const r1 = [['TOTAL 3', d.total3, 1.2],['F&G', d.fng, 70],['STRENGTH', d.momentum],['VIX', d.vix, 14, true],['URPD', d.urpd, 85],['DXY', d.dxy, 100, true]];
-                document.getElementById('m-r1').innerHTML = r1.map(m => `<div class="card"><div class="label">${m[0]}</div><div class="val">${m[1]} ${m[2]?arrow(m[1],m[2],m[3]):''}</div></div>`).join('');
-                
-                const r2 = [['ML PROB', d.ml_prob+'%', 50],['BREADTH', d.breadth, 50],['M2 SUPPLY', d.m2, 20],['EXHAUSTION', d.exhaustion, 40, true],['VOLAT', d.volat, 50],['LIQUIDITY', d.liq, 50]];
-                document.getElementById('m-r2').innerHTML = r2.map(m => `<div class="card"><div class="label">${m[0]}</div><div class="val">${m[1]} ${m[2]?arrow(m[1],m[2],m[3]):''}</div></div>`).join('');
+                document.getElementById('m-r1').innerHTML = [['TOTAL 3', d.total3, 1.2],['F&G', d.fng, 70],['STRENGTH', d.momentum],['VIX', d.vix, 14, true],['URPD', d.urpd, 85],['DXY', d.dxy, 100, true]].map(m => `<div class="card"><div class="label">${m[0]}</div><div class="val">${m[1]} ${m[2]?arrow(m[1],m[2],m[3]):''}</div></div>`).join('');
+                document.getElementById('m-r2').innerHTML = [['ML PROB', d.ml_prob+'%', 50],['BREADTH', d.breadth, 50],['M2 SUPPLY', d.m2, 20],['EXHAUSTION', d.exhaustion, 40, true],['VOLAT', d.volat, 50],['LIQUIDITY', d.liq, 50]].map(m => `<div class="card"><div class="label">${m[0]}</div><div class="val">${m[1]} ${m[2]?arrow(m[1],m[2],m[3]):''}</div></div>`).join('');
 
                 document.getElementById('rows').innerHTML = d.coins.map(c => `<tr>
                     <td><b>${c.symbol}</b><br><span class="${c.change >= 0 ? 'up' : 'down'}">$${c.price.toFixed(c.price < 1 ? 4 : 2)}</span></td>
-                    <td>${c.q.toLocaleString()}</td><td>$${c.entry}</td><td style="color:#e3b341">$${c.apr}</td><td class="up"><b>${(
+                    <td>${c.q.toLocaleString()}</td><td>$${c.entry}</td><td style="color:#e3b341">$${c.apr}</td><td class="up"><b>${(c.apr/c.entry).toFixed(1)}x</b></td>
+                    <td style="color:#e3b341">$${c.mai}</td><td class="up"><b>${(c.mai/c.entry).toFixed(1)}x</b></td><td style="color:#bc8cff"><b>$${c.fib}</b></td>
+                </tr>`).join('');
+            } catch (e) { console.error(e); }
+        }
+        load(); setInterval(load, 5000);
+    </script>
+</body>
+</html>
