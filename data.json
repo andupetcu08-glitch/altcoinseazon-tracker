@@ -1,50 +1,52 @@
 {
-  "btc_d": 56.28,
-  "ethbtc": 0.02948,
-  "usdt_d": 5.8,
-  "dxy": 102.4,
-  "vix": 16.5,
-  "liquidity_score": 59.3,
-  "leverage_score": 33.6,
-  "rotation_score": 25.34,
-  "smri": 35.0,
+  "btc_d": 56.29067123629085,
+  "ethbtc": 0.0295,
+  "usdt_d": 7.61,
+  "dxy": 101.1,
+  "vix": 14.2,
+  "m2": 21.2,
+  "total3": 0.98,
+  "liquidity_score": 45.71,
+  "leverage_score": 0,
+  "rotation_score": 4.93,
+  "smri": 3.25,
   "exhaustion_score": 0,
-  "probability_top": 4.9,
+  "probability_top": 0,
   "regime": "HOLD",
-  "portfolio_value": 29277.11,
+  "portfolio_value": 29277.56,
   "coins": [
     {
       "symbol": "OPTIMISM",
-      "price": 0.1447,
-      "change": -23.42,
+      "price": 0.1451,
+      "change": -23.23,
       "progress": 0,
       "exhaustion": 0.0
     },
     {
       "symbol": "NOTCOIN",
       "price": 0.0004,
-      "change": -4.79,
+      "change": -4.57,
       "progress": 0,
       "exhaustion": 0.0
     },
     {
       "symbol": "ARBITRUM",
       "price": 0.1055,
-      "change": -7.44,
+      "change": -7.39,
       "progress": 0,
       "exhaustion": 0.0
     },
     {
       "symbol": "CELESTIA",
-      "price": 0.325,
-      "change": -6.0,
+      "price": 0.3245,
+      "change": -6.16,
       "progress": 0,
       "exhaustion": 0.0
     },
     {
       "symbol": "JITO",
-      "price": 0.2913,
-      "change": -4.01,
+      "price": 0.2912,
+      "change": -4.33,
       "progress": 0,
       "exhaustion": 0.0
     },
@@ -58,21 +60,21 @@
     {
       "symbol": "CARTESI",
       "price": 0.0251,
-      "change": -6.84,
+      "change": -6.79,
       "progress": 0,
       "exhaustion": 0.0
     },
     {
       "symbol": "IMMUTABLE",
-      "price": 0.1608,
-      "change": -6.76,
+      "price": 0.1606,
+      "change": -6.9,
       "progress": 0,
       "exhaustion": 0.0
     },
     {
       "symbol": "SONIC",
-      "price": 0.044,
-      "change": -9.89,
+      "price": 0.0439,
+      "change": -9.95,
       "progress": 0,
       "exhaustion": 0.0
     },
@@ -84,5 +86,5 @@
       "exhaustion": 0.0
     }
   ],
-  "updated": "08:16:36"
+  "updated": "08:21:13"
 }
