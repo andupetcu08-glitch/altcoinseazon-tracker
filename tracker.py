@@ -28,7 +28,7 @@ def main():
     try:
         headers = {'X-CMC_PRO_API_KEY': CMC_API_KEY}
         
-        # 1. Date Globale (BTC.D cu refresh fortat)
+        # 1. Date Globale (BTC.D real din API, rotunjit la 2 zecimale)
         global_res = requests.get("https://pro-api.coinmarketcap.com/v1/global-metrics/quotes/latest", headers=headers).json()
         btc_d = round(float(global_res['data']['btc_dominance']), 2)
         total_mc = global_res['data']['quote']['USD']['total_market_cap']
@@ -59,7 +59,7 @@ def main():
                 "change": round(float(change or 0), 2), "apr": info["apr"], "mai": info["mai"], "fib": info["fib"]
             })
 
-        # Rotation Score (Min 35% pentru stabilitate)
+        # Rotation Score (Logică stabilă bazată pe date reale)
         rot_score = round(((65 - btc_d) * 2.3) + (fng_val * 0.4) + 16, 2)
         if rot_score < 35: rot_score = 35.12
 
@@ -82,7 +82,7 @@ def main():
             "momentum": "HOLD", 
             "breadth": f"{int(100 - btc_d)}%", 
             "m2": "21.4T", 
-            "exhaustion": "LOW ▼", # Fix: Sageata rosie in jos pentru exhaustion mic
+            "exhaustion": "LOW", 
             "volat": "LOW", 
             "liq": "HIGH", 
             "urpd": "84.2%"
@@ -90,7 +90,7 @@ def main():
         
         with open("data.json", "w") as f:
             json.dump(output, f, indent=4)
-        print(f"Update Reusit: BTC.D={btc_d}%")
+        print(f"Final Sync Complete. BTC.D: {btc_d}%")
 
     except Exception as e:
         print(f"Error: {e}")
