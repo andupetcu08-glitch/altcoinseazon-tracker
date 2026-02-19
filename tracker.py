@@ -2,7 +2,7 @@ import json
 import requests
 import time
 
-# Mapping-ul corect pentru CoinGecko
+# Mapping exact pentru CoinGecko API
 COINS_MAP = {
     "OP": "optimism",
     "NOT": "notcoin",
@@ -16,6 +16,7 @@ COINS_MAP = {
     "SNX": "synthetix-network-token"
 }
 
+# Date Portofoliu - Media SNX ramane 0.722 conform cerintei
 PORTFOLIO_DATA = {
     "OP": {"q": 6400, "entry": 0.773, "apr": 4.8, "mai": 5.2, "fib": 6.86},
     "NOT": {"q": 1297106.88, "entry": 0.001291, "apr": 0.028, "mai": 0.028, "fib": 0.034},
@@ -33,13 +34,15 @@ def main():
     try:
         ids = ",".join(COINS_MAP.values()) + ",bitcoin,ethereum"
         url = f"https://api.coingecko.com/api/v3/simple/price?ids={ids}&vs_currencies=usd&include_24hr_change=true"
-        data = requests.get(url, timeout=20).json()
+        response = requests.get(url, timeout=20)
+        data = response.json()
         
         results = []
         total_val_usd = 0
         total_mai_usd = 0
         
         for sym, m_id in COINS_MAP.items():
+            # Pretul actual SNX este forțat la 0.32 dacă API-ul nu raspunde corect
             p_actual = data.get(m_id, {}).get("usd", 0.32 if sym == "SNX" else 0)
             p_info = PORTFOLIO_DATA[sym]
             total_val_usd += (p_actual * p_info["q"])
@@ -52,18 +55,17 @@ def main():
             })
 
         output = {
-            "rotation_score": 30.18, "btc_d": 56.32, "eth_btc": 0.0294, "usdt_d": 7.74, "smri": 24.14,
-            "portfolio_eur": round(total_val_usd * 0.92, 0),
-            "investitie_eur": 101235,
-            "profit_mai_eur": round(total_mai_usd * 0.92, 0),
-            "coins": results,
-            "total3": "0.98T", "fng": "9 (FnG)", "momentum": "STABLE", "vix": 14.2, "dxy": 101.1, "ml_prob": 10.1,
-            "breadth": "36.33%", "urpd": 84.2, "m2": "21.2T", "exhaustion": 12.1, "volat": "HIGH", "liq": "HIGH", "div": "NORMAL"
+            "rotation_score": 30.18, "btc_d": 56.32, "eth_btc": round(data["ethereum"]["usd"]/data["bitcoin"]["usd"], 5),
+            "usdt_d": 7.73, "smri": 24.14, "portfolio_eur": round(total_val_usd * 0.92, 0),
+            "investitie_eur": 101235, "profit_mai_eur": round(total_mai_usd * 0.92, 0),
+            "coins": results, "total3": "0.98T", "fng": "9 (FnG)", "momentum": "STABLE",
+            "vix": 14.2, "dxy": 101.1, "ml_prob": 10.1, "breadth": "0%", "urpd": 84.2,
+            "m2": "21.2T", "exhaustion": 12.1, "volat": "HIGH", "liq": "HIGH", "div": "NORMAL"
         }
         
         with open("data.json", "w") as f:
             json.dump(output, f, indent=4)
-        print("Update OK")
+        print("Update executat cu succes.")
     except Exception as e:
         print(f"Eroare: {e}")
 
