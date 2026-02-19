@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <style>
         body { background: #0b0e14; color: #e1e1e1; font-family: 'Inter', sans-serif; padding: 25px; margin: 0; }
-        /* Banner Mare 18px */
         .target-banner { 
             background: linear-gradient(90deg, #052e16 0%, #064e3b 100%); 
             border: 2px solid #22c55e; padding: 20px; border-radius: 12px; 
@@ -15,22 +14,22 @@
         .grid-3 { display: grid; grid-template-columns: 1fr 1.5fr 1fr; gap: 15px; margin-bottom: 20px; }
         .card { background: #161b22; padding: 20px; border-radius: 12px; border: 1px solid #30363d; text-align: center; transition: all 0.3s; }
         .card:hover { transform: translateY(-3px); border-color: #444; }
-        /* Label 12px Bold 800 */
         .label { font-size: 12px; color: #8b949e; text-transform: uppercase; font-weight: 800; margin-bottom: 8px; }
         .val { font-weight: bold; font-size: 24px; color: #f0f6fc; }
         .up { color: #39d353; } .down { color: #f85149; }
         
+        /* Tabel Marit cu 1.5x */
+        table { width: 100%; border-collapse: collapse; margin-top: 30px; background: #0d1117; border-radius: 15px; overflow: hidden; font-size: 18px; /* 12px * 1.5 */ }
+        th { text-align: left; color: #8b949e; padding: 22px; border-bottom: 3px solid #30363d; font-size: 14px; }
+        td { padding: 22px; border-bottom: 1px solid #21262d; }
+        
         /* Glow & Magnify pe Tabel */
-        tr { transition: all 0.2s; border-bottom: 1px solid #21262d; }
+        tr { transition: all 0.2s; }
         tr:hover { 
             background: rgba(57, 211, 83, 0.08) !important; 
             transform: scale(1.005);
-            box-shadow: 0 0 25px rgba(57, 211, 83, 0.1);
+            box-shadow: 0 0 30px rgba(57, 211, 83, 0.15);
         }
-        
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #0d1117; border-radius: 12px; overflow: hidden; }
-        th { text-align: left; color: #8b949e; padding: 18px; border-bottom: 2px solid #30363d; font-size: 10px; }
-        td { padding: 18px; font-size: 14px; }
 
         .btn-group { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; height: 100%; align-items: center; }
         .st-btn { background: #0d1117; border: 1px solid #30363d; border-radius: 8px; padding: 10px 5px; font-weight: 900; font-size: 11px; color: #484f58; }
@@ -62,7 +61,7 @@
             try {
                 const r = await fetch('data.json?v=' + Date.now());
                 const d = await r.json();
-                /* Logica de Sageti Dinamice ▲ ▼ */
+                /* Săgeți ▲ ▼ */
                 const arrow = (v, t, rev=false) => (rev ? v < t : v > t) ? '<span class="up">▲</span>' : '<span class="down">▼</span>';
 
                 document.getElementById('v-eur').innerText = '€' + d.portfolio_eur.toLocaleString();
@@ -84,7 +83,7 @@
                 const r2 = [['ML PROB', d.ml_prob+'%', 50],['BREADTH', d.breadth, 50],['M2', d.m2],['EXHAUSTION', d.exhaustion+'%', 40, true],['VOLAT', d.volat],['LIQ', d.liq]];
                 
                 document.getElementById('m-r1').innerHTML = r1.map(m => `<div class="card"><div class="label">${m[0]}</div><div class="val">${m[1]} ${m[2]?arrow(parseFloat(m[1]),m[2],m[3]):''}</div></div>`).join('');
-                document.getElementById('m-r2').innerHTML = r2.map(m => `<div class="card"><div class="label">${m[0]}</div><div class="val">${m[1]}</div></div>`).join('');
+                document.getElementById('m-r2').innerHTML = r2.map(m => `<div class="card"><div class="label">${m[0]}</div><div class="val">${m[1]} ${m[2]?arrow(parseFloat(m[1]),m[2],m[3]):''}</div></div>`).join('');
 
                 document.getElementById('rows').innerHTML = d.coins.map(c => `<tr><td><b>${c.symbol}</b> <small class="${c.change >= 0 ? 'up':'down'}">(${c.change}%)</small><br><span style="color:#8b949e">$${c.price.toFixed(c.price < 1 ? 4 : 2)}</span></td><td>${c.q.toLocaleString()}</td><td>$${c.entry}</td><td style="color:#e3b341">$${c.apr}</td><td class="up"><b>${(c.apr/c.entry).toFixed(1)}x</b></td><td style="color:#e3b341">$${c.mai}</td><td class="up"><b>${(c.mai/c.entry).toFixed(1)}x</b></td><td style="color:#bc8cff"><b>$${c.fib}</b></td></tr>`).join('');
             } catch (e) { console.error(e); }
