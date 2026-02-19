@@ -2,40 +2,82 @@
 <html lang="ro">
 <head>
     <meta charset="UTF-8">
-    <title>Altcoin Tracker PRO</title>
+    <title>Altcoin Tracker ULTRA</title>
     <style>
-        body { background: #0b0e14; color: #e1e1e1; font-family: 'Inter', sans-serif; padding: 20px; font-size: 11px; margin: 0; }
-        .target-panel { background: #052e16; border: 2px solid #22c55e; padding: 15px; border-radius: 12px; margin-bottom: 20px; text-align: center; font-size: 14px; font-weight: bold; color: #fff; }
-        .m-label { font-size: 10px; color: #888; text-transform: uppercase; font-weight: 800; margin-bottom: 5px; }
-        .m-val { font-weight: bold; font-size: 20px; }
-        .macro-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 12px; }
-        .m-card { background: #1a1c24; padding: 18px; border-radius: 10px; border: 1px solid #333; text-align: center; }
-        .up { color: #00ff88; } .down { color: #ef4444; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #0f1218; border-radius: 10px; overflow: hidden; }
-        th { text-align: left; color: #555; padding: 15px; border-bottom: 2px solid #222; text-transform: uppercase; font-size: 9px; }
-        td { padding: 15px; border-bottom: 1px solid #1a1c24; font-size: 12px; }
-        tr:hover { background: rgba(0, 255, 136, 0.05); }
-        .st-btn { background: #111; border: 1px solid #333; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 9px; }
-        .active-h { border-color: #ef4444 !important; color: #ef4444; box-shadow: 0 0 10px rgba(239, 68, 68, 0.2); }
-        .active-s { border-color: #00ff88 !important; color: #00ff88; }
+        body { background: #0b0e14; color: #e1e1e1; font-family: 'Inter', sans-serif; padding: 25px; margin: 0; }
+        /* 1. Banner Mare & Impunator */
+        .target-banner { 
+            background: linear-gradient(90deg, #052e16 0%, #064e3b 100%); 
+            border: 2px solid #22c55e; padding: 20px; border-radius: 12px; 
+            margin-bottom: 25px; text-align: center; font-size: 18px; font-weight: 900; 
+            color: #fff; box-shadow: 0 0 20px rgba(34, 197, 94, 0.2); letter-spacing: 1px;
+        }
+        
+        .grid-6 { display: grid; grid-template-columns: repeat(6, 1fr); gap: 15px; margin-bottom: 15px; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1.5fr 1fr; gap: 15px; margin-bottom: 20px; }
+        
+        .card { 
+            background: #161b22; padding: 20px; border-radius: 12px; border: 1px solid #30363d; 
+            text-align: center; transition: all 0.3s ease; 
+        }
+        .card:hover { transform: translateY(-3px); border-color: #444; }
+        
+        /* 2. Text Label 12px Bold 800 */
+        .label { font-size: 12px; color: #8b949e; text-transform: uppercase; font-weight: 800; margin-bottom: 8px; letter-spacing: 0.5px; }
+        .val { font-weight: bold; font-size: 24px; color: #f0f6fc; }
+        
+        .up { color: #39d353; } .down { color: #f85149; }
+        
+        /* 3. Glow & Magnify pe Tabel */
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #0d1117; border-radius: 12px; overflow: hidden; }
+        th { text-align: left; color: #8b949e; padding: 18px; border-bottom: 2px solid #30363d; font-size: 10px; text-transform: uppercase; }
+        tr { transition: all 0.2s; border-bottom: 1px solid #21262d; }
+        tr:hover { 
+            background: rgba(57, 211, 83, 0.08) !important; 
+            transform: scale(1.005);
+            box-shadow: 0 0 25px rgba(57, 211, 83, 0.1);
+            cursor: pointer;
+        }
+        td { padding: 18px; font-size: 14px; }
+
+        /* 4. Butoane Status Corecte */
+        .btn-group { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; height: 100%; align-items: center; }
+        .st-btn { 
+            background: #0d1117; border: 1px solid #30363d; border-radius: 8px; 
+            padding: 10px 5px; font-weight: 900; font-size: 11px; color: #484f58;
+        }
+        .active-hold { border-color: #f85149 !important; color: #f85149 !important; box-shadow: 0 0 12px rgba(248, 81, 73, 0.3); }
+        .active-sell { border-color: #39d353 !important; color: #39d353 !important; box-shadow: 0 0 12px rgba(57, 211, 83, 0.3); }
     </style>
 </head>
 <body>
-    <div class="target-panel">🎯 TARGETS: BTC.D: 48-50% | ROTATION: 70% | USDTD: 5.5% | ETH/BTC: 0.055+ | ML SELL PROB: 50%</div>
+    <div class="target-banner">🎯 TARGETS: BTC.D: 48-50% | ROTATION: 70% | USDTD: 5.5% | ETH/BTC: 0.055+ | ML SELL PROB: 50%</div>
     
-    <div class="macro-grid" id="top-nav"></div>
+    <div class="grid-6" id="top-nav"></div>
 
-    <div class="macro-grid" style="grid-template-columns: 1fr 1.5fr 1fr; margin-bottom: 15px;">
-        <div class="m-card" style="border-color: #00ff88;"><div class="m-label">Portofoliu Actual</div><div id="val-eur" class="m-val up">€0</div></div>
-        <div class="m-card" style="border-color: #fbbf24;"><div class="m-label">Potential Profit (MAI-FIB)</div><div id="prof-range" class="m-val" style="color:#fbbf24">€0</div></div>
-        <div class="m-card"><div class="m-label">Multiplier Total</div><div id="mult-total" class="m-val">0.00x</div><div id="inv-total" style="color:#666; font-size: 9px; margin-top: 4px;"></div></div>
+    <div class="grid-3">
+        <div class="card" style="border-left: 5px solid #39d353;">
+            <div class="label">Portofoliu Actual</div>
+            <div id="v-eur" class="val up">€0</div>
+        </div>
+        <div class="card" style="border-bottom: 2px solid #e3b341;">
+            <div class="label">Potential Profit (MAI - FIB)</div>
+            <div id="v-range" class="val" style="color:#e3b341">€0 - €0</div>
+        </div>
+        <div class="card">
+            <div class="label">Multiplier Total</div>
+            <div id="v-mult" class="val">0.00x</div>
+            <div id="v-inv" style="font-size: 10px; color: #666; margin-top: 5px;"></div>
+        </div>
     </div>
 
-    <div class="macro-grid" id="macro-r1"></div>
-    <div class="macro-grid" id="macro-r2"></div>
+    <div class="grid-6" id="m-r1"></div>
+    <div class="grid-6" id="m-r2"></div>
 
     <table>
-        <thead><tr><th>MONEDA</th><th>CANTITATE</th><th>ENTRY</th><th>TARGET APR</th><th>MULT</th><th>TARGET MAI</th><th>MULT</th><th>FINAL</th></tr></thead>
+        <thead>
+            <tr><th>MONEDA</th><th>CANTITATE</th><th>ENTRY</th><th style="color:#e3b341">TARGET APR</th><th style="color:#39d353">MULT</th><th style="color:#e3b341">TARGET MAI</th><th style="color:#39d353">MULT</th><th style="color:#bc8cff">FINAL</th></tr>
+        </thead>
         <tbody id="rows"></tbody>
     </table>
 
@@ -46,37 +88,40 @@
                 const d = await r.json();
                 const arrow = (v, t, rev=false) => (rev ? v < t : v > t) ? '<span class="up">▲</span>' : '<span class="down">▼</span>';
 
-                document.getElementById('val-eur').innerText = '€' + d.portfolio_eur.toLocaleString();
-                document.getElementById('prof-range').innerText = d.profit_range;
-                document.getElementById('mult-total').innerText = (d.portfolio_eur / d.investitie_eur).toFixed(2) + 'x';
-                document.getElementById('inv-total').innerText = 'Investit: €' + d.investitie_eur.toLocaleString();
+                // Profit
+                document.getElementById('v-eur').innerText = '€' + d.portfolio_eur.toLocaleString();
+                document.getElementById('v-range').innerText = `${d.p_mai} - ${d.p_fib}`;
+                document.getElementById('v-mult').innerText = (d.portfolio_eur / d.investitie_eur).toFixed(2) + 'x';
+                document.getElementById('v-inv').innerText = 'INVESTIT: €' + d.investitie_eur.toLocaleString();
 
+                // Top Nav
                 const top = [['Rotation Score', d.rotation_score+'%', 70], ['BTC.D LIVE', d.btc_d+'%', 48, true], ['ETH / BTC', d.eth_btc, 0.055], ['USDT.D LIVE', d.usdt_d+'%', 5.5, true], ['S.M.R.I', d.smri+'%', 75]];
                 document.getElementById('top-nav').innerHTML = top.map(i => `
-                    <div class="m-card"><div class="m-label">${i[0]}</div><div class="m-val" style="${i[0]==='Rotation Score' && parseFloat(i[1])>=70?'color:#00ff88':''}">${i[1]} ${arrow(parseFloat(i[1]), i[2], i[3])}</div></div>
+                    <div class="card"><div class="label">${i[0]}</div><div class="val" style="${i[0]==='Rotation Score'&&parseFloat(i[1])>=70?'color:#39d353':''}">${i[1]} ${arrow(parseFloat(i[1]),i[2],i[3])}</div></div>
                 `).join('') + `
-                    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:5px;">
-                        <div class="st-btn ${parseFloat(d.rotation_score)<70?'active-h':''}">HOLD</div>
+                    <div class="btn-group">
+                        <div class="st-btn ${parseFloat(d.rotation_score)<70?'active-hold':''}">HOLD</div>
                         <div class="st-btn">PREPARE</div>
-                        <div class="st-btn ${parseFloat(d.rotation_score)>=70?'active-s':''}">SELL</div>
+                        <div class="st-btn ${parseFloat(d.rotation_score)>=70?'active-sell':''}">SELL</div>
                     </div>`;
 
-                const r1 = [['TOTAL 3', d.total3, 1.2], ['SENTIMENT', d.fng, 70], ['STRENGTH', d.momentum, 0], ['VIX INDEX', d.vix, 14, true], ['URPD PROFIT', d.urpd+'%', 85]];
-                const r2 = [['ML PROB', d.ml_prob+'%', 50], ['BREADTH', d.breadth, 50], ['M2 SUPPLY', d.m2, 21], ['EXHAUSTION', d.exhaustion+'%', 40, true], ['LIQUIDITY', d.liq, 0]];
+                // Macro
+                const r1 = [['TOTAL 3', d.total3, 1.2],['F&G', d.fng, 70],['STRENGTH', d.momentum],['VIX', d.vix, 14, true],['URPD', d.urpd+'%', 85],['DXY', d.dxy, 100, true]];
+                const r2 = [['ML PROB', d.ml_prob+'%', 50],['BREADTH', d.breadth, 50],['M2', d.m2],['EXHAUSTION', d.exhaustion+'%', 40, true],['VOLAT', d.volat],['LIQ', d.liq]];
                 
-                document.getElementById('macro-r1').innerHTML = r1.map(m => `<div class="m-card"><div class="m-label">${m[0]}</div><div class="m-val">${m[1]} ${m[2]?arrow(parseFloat(m[1]),m[2],m[3]):''}</div></div>`).join('');
-                document.getElementById('macro-r2').innerHTML = r2.map(m => `<div class="m-card"><div class="m-label">${m[0]}</div><div class="m-val">${m[1]} ${m[2]?arrow(parseFloat(m[1]),m[2],m[3]):''}</div></div>`).join('');
+                document.getElementById('m-r1').innerHTML = r1.map(m => `<div class="card"><div class="label">${m[0]}</div><div class="val">${m[1]} ${m[2]?arrow(parseFloat(m[1]),m[2],m[3]):''}</div></div>`).join('');
+                document.getElementById('m-r2').innerHTML = r2.map(m => `<div class="card"><div class="label">${m[0]}</div><div class="val">${m[1]}</div></div>`).join('');
 
+                // Table Rows
                 document.getElementById('rows').innerHTML = d.coins.map(c => `
                     <tr>
-                        <td><b>${c.symbol}</b> <small class="${c.change >= 0 ? 'up':'down'}">(${c.change}%)</small><br><span style="color:#666">$${c.price.toFixed(c.price < 1 ? 4 : 2)}</span></td>
+                        <td><b>${c.symbol}</b> <small class="${c.change >= 0 ? 'up':'down'}">(${c.change}%)</small><br><span style="color:#8b949e">$${c.price.toFixed(c.price < 1 ? 4 : 2)}</span></td>
                         <td>${c.q.toLocaleString()}</td><td>$${c.entry}</td>
-                        <td style="color:#fbbf24">$${c.apr}</td><td class="up">${(c.apr/c.entry).toFixed(1)}x</td>
-                        <td style="color:#fbbf24">$${c.mai}</td><td class="up">${(c.mai/c.entry).toFixed(1)}x</td>
-                        <td style="color:#a855f7"><b>$${c.fib}</b></td>
-                    </tr>
-                `).join('');
-            } catch (e) { console.log("Waiting for data..."); }
+                        <td style="color:#e3b341">$${c.apr}</td><td class="up"><b>${(c.apr/c.entry).toFixed(1)}x</b></td>
+                        <td style="color:#e3b341">$${c.mai}</td><td class="up"><b>${(c.mai/c.entry).toFixed(1)}x</b></td>
+                        <td style="color:#bc8cff"><b>$${c.fib}</b></td>
+                    </tr>`).join('');
+            } catch (e) { console.error("Sync..."); }
         }
         load(); setInterval(load, 30000);
     </script>
