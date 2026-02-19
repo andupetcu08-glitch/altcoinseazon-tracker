@@ -1,5 +1,8 @@
-import json, urllib.request
+import json
+import urllib.request
+import time
 
+# Constante Portofoliu
 INVESTITIE_TOTALA_EUR = 101235
 
 PORTFOLIO = {
@@ -18,46 +21,81 @@ PORTFOLIO = {
 def fetch(url):
     try:
         req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
-        with urllib.request.urlopen(req, timeout=15) as r: return json.loads(r.read().decode())
-    except: return None
+        with urllib.request.urlopen(req, timeout=15) as r:
+            return json.loads(r.read().decode())
+    except Exception as e:
+        print(f"Eroare Fetch: {e}")
+        return None
 
 def main():
+    # 1. Colectare Date (CoinGecko + Alternative.me)
     ids = list(PORTFOLIO.keys()) + ["bitcoin", "ethereum"]
     prices = fetch(f"https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids={','.join(ids)}")
-    global_api = fetch("https://api.coingecko.com/api/v3/global")
-    fng_api = fetch("https://api.alternative.me/fng/")
+    global_data = fetch("https://api.coingecko.com/api/v3/global")
+    fng_data = fetch("https://api.alternative.me/fng/")
 
-    p_map = {c["id"]: c for c in prices} if prices else {}
+    if not prices: return
+
+    p_map = {c["id"]: c for c in prices}
     
-    # 1. BTC.D Live Fix (TradingView are ~58.2% acum)
-    btc_d = round(global_api["data"]["market_cap_percentage"].get("btc", 58.21), 2) if global_api else 58.21
-    usdt_d = round(global_api["data"]["market_cap_percentage"].get("usdt", 7.62), 2) if global_api else 7.62
-    
+    # 2. Modul 1: Rotation Engine (BTC.D Fix la ~58% pentru TradingView)
+    btc_d = round(global_data["data"]["market_cap_percentage"].get("btc", 58.32), 2) if global_data else 58.32
+    usdt_d = round(global_data["data"]["market_cap_percentage"].get("usdt", 7.65), 2) if global_data else 7.65
     btc_p = p_map.get("bitcoin", {}).get("current_price", 1)
     eth_p = p_map.get("ethereum", {}).get("current_price", 0)
-    eth_btc = round(eth_p / btc_p, 4) if btc_p > 0 else 0.0295
-    fng_val = fng_api["data"][0]["value"] if fng_api else "12"
+    eth_btc = round(eth_p / btc_p, 5) if btc_p > 0 else 0.0294
+    
+    # Calcul Rotation Score (Simulat dinamic bazat pe targetele tale)
+    # Scorul creste cand BTC.D scade sub 60 si ETH/BTC creste peste 0.03
+    rot_score = round(((60 - btc_d) * 5) + (eth_btc * 400), 2)
+    rot_score = max(5, min(95, rot_score)) # Clamp intre 5 si 95%
 
+    # 3. Modulele 2-6 (Logica Dinamica)
+    fng_val = fng_data["data"][0]["value"] if fng_data else "50"
+    btc_change = p_map.get("bitcoin", {}).get("price_change_percentage_24h", 0)
+    
+    strength = "BULLISH" if btc_change > 2 else ("BEARISH" if btc_change < -2 else "STABLE")
+    volat = "LOW" if abs(btc_change) < 1.5 else "HIGH"
+    liq = "HIGH" if usdt_d > 7 else "MODERATE"
+    breadth = sum(1 for c in prices if (c.get("price_change_percentage_24h") or 0) > 0) / len(prices) * 100
+    
+    # ML Probability (bazat pe Fng si Volatilitate)
+    ml_prob = round((int(fng_val) * 0.2) + (abs(btc_change) * 5), 1)
+
+    # 4. Procesare Monede
     results = []
     total_val_usd = 0
     for cid, d in PORTFOLIO.items():
-        p = p_map.get(cid, {}).get("current_price", d["entry"])
-        total_val_usd += (p * d["q"])
+        # Punctul 7: Pret fix SNX sau din API
+        current_p = p_map.get(cid, {}).get("current_price", d["entry"])
+        if "synthetix" in cid: current_p = 0.32 # Fortare pret TradingView SNX
+        
+        total_val_usd += (current_p * d["q"])
         sym = cid.upper().replace("-NETWORK-TOKEN","").replace("-GOVERNANCE-TOKEN","").replace("-3","")
         if "SYNTHETIX" in sym: sym = "SNX"
+        
         results.append({
-            "symbol": sym, "q": d["q"], "entry": d["entry"], "price": p,
+            "symbol": sym,
+            "q": d["q"],
+            "entry": d["entry"],
+            "price": current_p,
             "change": round(p_map.get(cid, {}).get("price_change_percentage_24h", 0) or 0, 2),
-            "apr": d["apr"], "mai": d["mai"], "fib": d["fib"]
+            "apr": d["apr"],
+            "mai": d["mai"],
+            "fib": d["fib"]
         })
 
-    with open("data.json", "w") as f:
-        json.dump({
-            "btc_d": btc_d, "eth_btc": eth_btc, "rotation_score": 19.84, # Scorul tau actual
-            "portfolio_eur": round(total_val_usd * 0.92, 0), "usdt_d": usdt_d,
-            "fng": fng_val, "investit": INVESTITIE_TOTALA_EUR,
-            "coins": results, "vix": 14.2, "dxy": 101.1, "total3": "0.98T",
-            "ml_prob": 18.9, "momentum": "STABLE", "exhaustion": 36.33, "urpd": 84.2, "m2": "21.2T"
-        }, f)
-
-if __name__ == "__main__": main()
+    # 5. Export JSON Final
+    output = {
+        "btc_d": btc_d,
+        "eth_btc": eth_btc,
+        "rotation_score": rot_score, # Verde la 70% conform instructiunilor
+        "usdt_d": usdt_d,
+        "fng": fng_val,
+        "portfolio_eur": round(total_val_usd * 0.92, 0),
+        "coins": results,
+        "vix": 14.2,
+        "dxy": 101.1,
+        "total3": "0.98T",
+        "ml_prob": ml_prob,
+        "momentum":
