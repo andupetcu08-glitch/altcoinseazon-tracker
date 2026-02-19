@@ -1,5 +1,6 @@
 import json
 import requests
+import time
 
 # --- CONFIGURARE ---
 CMC_API_KEY = "46b755eda86e436d87dd4d6c6192ac03"
@@ -27,13 +28,13 @@ def main():
     try:
         headers = {'X-CMC_PRO_API_KEY': CMC_API_KEY}
         
-        # 1. Fetch SNX, BTC, ETH si USDT (ID 2582 este cel corect pentru Synthetix Mainnet)
-        cmc_url = "https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?id=1,1027,2582,825&convert=USD"
+        # 1. Fetch preturi de la CMC folosind simboluri (mai sigur decat ID-uri)
+        cmc_url = "https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?symbol=BTC,ETH,SNX,USDT&convert=USD"
         cmc_res = requests.get(cmc_url, headers=headers).json()
         
-        # Verificare pret SNX (folosim ID 2582 care este cel lichid)
-        snx_p = cmc_res['data']['2582']['quote']['USD']['price']
-        usdt_mc = cmc_res['data']['825']['quote']['USD']['market_cap']
+        # Extragem pretul SNX corect din structura CMC
+        snx_p = cmc_res['data']['SNX']['quote']['USD']['price']
+        usdt_mc = cmc_res['data']['USDT']['quote']['USD']['market_cap']
         
         # 2. Global Metrics (CMC)
         global_res = requests.get("https://pro-api.coinmarketcap.com/v1/global-metrics/quotes/latest", headers=headers).json()
@@ -67,7 +68,7 @@ def main():
                 "change": round(change, 2), "apr": info["apr"], "mai": info["mai"], "fib": info["fib"]
             })
 
-        # --- LOGICA DINAMICA PENTRU TOATE CASETRELE ---
+        # --- LOGICA DINAMICA TARGETS (Hold -> Prepare -> Sell) ---
         rot_score = round(((100 - btc_d) * 0.5) + (fng_val * 0.5), 2)
         ml_prob = round((rot_score / 70) * 48, 1)
 
@@ -84,24 +85,25 @@ def main():
             "total3": f"{round(total_mc/1e12, 2)}T", 
             "fng": f"{fng_val} ({fng_res['data'][0]['value_classification']})",
             "ml_prob": ml_prob, 
-            "vix": 14.5, # VIX/DXY raman statice fara librarii externe grele
-            "dxy": 101.2, 
-            "smri": round(fng_val * 0.9, 2),
-            "momentum": "STABLE" if fng_val < 60 else "BULLISH",
+            "vix": 14.8, "dxy": 101.4, 
+            "smri": round(fng_val * 0.85, 2),
+            "momentum": "BULLISH" if rot_score > 40 else "STABLE",
             "breadth": f"{int(100 - btc_d)}%", 
             "m2": "21.4T", 
             "exhaustion": f"{round(ml_prob * 0.4, 1)}%", 
-            "volat": "HIGH" if fng_val < 30 else "LOW",
-            "liq": "HIGH" if usdt_d > 5 else "LOW",
-            "urpd": "84.2%" 
+            "volat": "LOW", "liq": "HIGH", "urpd": "84.2%" 
         }
         
         with open("data.json", "w") as f:
             json.dump(output, f, indent=4)
-        print(f"Update Reusit - SNX: {snx_p:.2f} - BTC.D: {btc_d}%")
+        
+        print(f"[{time.strftime('%H:%M:%S')}] Update OK! SNX: {snx_p:.4f} | BTC.D: {btc_d}% | Score: {rot_score}%")
 
     except Exception as e:
-        print(f"Eroare: {e}")
+        print(f"Eroare la update: {e}")
 
 if __name__ == "__main__":
-    main()
+    print("Tracker pornit. Update la fiecare 5 minute.")
+    while True:
+        main()
+        time.sleep(300) # 300 secunde = 5 minute
