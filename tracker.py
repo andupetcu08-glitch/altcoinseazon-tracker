@@ -24,38 +24,35 @@ def main():
     try:
         url = f"https://api.coingecko.com/api/v3/simple/price?ids={','.join(COINS_MAP.values())},bitcoin,ethereum&vs_currencies=usd&include_24hr_change=true"
         data = requests.get(url, timeout=20).json()
-        val_usd, mai_usd, fib_usd, results = 0, 0, 0, []
+        val_usd, apr_usd, fib_usd, results = 0, 0, 0, []
         
         for sym, m_id in COINS_MAP.items():
-            # Corectie SNX: Daca API returneaza 0, folosim pretul real 0.34
             p = data.get(m_id, {}).get("usd", 0)
-            if sym == "SNX" and p == 0: p = 0.34
+            if sym == "SNX" and (p == 0 or p is None): p = 0.34
             
             info = PORTFOLIO_DATA[sym]
             val_usd += (p * info["q"])
-            mai_usd += (info["mai"] * info["q"])
+            apr_usd += (info["apr"] * info["q"])
             fib_usd += (info["fib"] * info["q"])
+            
             results.append({
                 "symbol": sym, "price": p, "entry": info["entry"], "q": info["q"], 
                 "change": round(data.get(m_id, {}).get("usd_24h_change", 0), 2),
                 "apr": info["apr"], "mai": info["mai"], "fib": info["fib"]
             })
 
+        fng_val = 9 
+        fng_txt = "Extreme Fear" if fng_val <= 25 else "Fear" if fng_val <= 45 else "Neutral" if fng_val <= 55 else "Greed" if fng_val <= 75 else "Extreme Greed"
+
         output = {
-            "rotation_score": 30.18, 
-            "btc_d": 58.82, # Actualizat conform TradingView
+            "rotation_score": 30.18, "btc_d": 58.82, 
             "eth_btc": round(data["ethereum"]["usd"]/data["bitcoin"]["usd"], 5),
-            "usdt_d": 7.73, 
-            "smri": 24.14, 
-            "portfolio_eur": round(val_usd * 0.92, 0), 
-            "investitie_eur": 101235,
-            "p_mai": f"€{round(mai_usd * 0.92, 0):,}", 
-            "p_fib": f"€{round(fib_usd * 0.92, 0):,}",
-            "coins": results, 
-            "total3": "0.98T", "fng": "9 (FnG)", "momentum": "STABLE",
+            "usdt_d": 7.73, "smri": 24.14, 
+            "portfolio_eur": round(val_usd * 0.92, 0), "investitie_eur": 101235,
+            "p_apr": f"€{round(apr_usd * 0.92, 0):,}", "p_fib": f"€{round(fib_usd * 0.92, 0):,}",
+            "coins": results, "total3": "0.98T", "fng": f"{fng_val} ({fng_txt})", "momentum": "STABLE",
             "vix": 14.2, "dxy": 101.1, "ml_prob": 10.1, "breadth": "15%",
-            "m2": "21.2T", "exhaustion": "12.1%", "volat": "HIGH", "liq": "HIGH",
-            "urpd": "84.2%" # Fix pentru eroarea undefined
+            "m2": "21.2T", "exhaustion": "12.1%", "volat": "HIGH", "liq": "HIGH", "urpd": "84.2%"
         }
         with open("data.json", "w") as f:
             json.dump(output, f, indent=4)
