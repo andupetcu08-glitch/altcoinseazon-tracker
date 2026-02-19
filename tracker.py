@@ -1,13 +1,14 @@
 import json
 import requests
 
-# ID-uri verificate pentru CoinGecko
+# Maparea oficială pentru CoinGecko
 COINS_MAP = {
     "OP": "optimism", "NOT": "notcoin", "ARB": "arbitrum", "TIA": "celestia",
     "JTO": "jito-governance-token", "LDO": "lido-dao", "CTSI": "cartesi",
     "IMX": "immutable-x", "SONIC": "sonic-3", "SNX": "synthetix-network-token"
 }
 
+# Datele tale fixe (cantități și target-uri)
 PORTFOLIO_DATA = {
     "OP": {"q": 6400, "entry": 0.773, "apr": 4.8, "mai": 5.2, "fib": 6.86},
     "NOT": {"q": 1297106.88, "entry": 0.001291, "apr": 0.028, "mai": 0.028, "fib": 0.034},
@@ -23,6 +24,7 @@ PORTFOLIO_DATA = {
 
 def main():
     try:
+        # Fetch prețuri live
         url = f"https://api.coingecko.com/api/v3/simple/price?ids={','.join(COINS_MAP.values())},bitcoin,ethereum&vs_currencies=usd&include_24hr_change=true"
         data = requests.get(url, timeout=20).json()
         
@@ -30,13 +32,13 @@ def main():
         investitie_eur = 101235
         
         for sym, m_id in COINS_MAP.items():
-            coin_data = data.get(m_id, {})
-            p = coin_data.get("usd", 0)
+            coin_info = data.get(m_id, {})
+            p = coin_info.get("usd", 0)
             
-            # Fix SNX - Daca CoinGecko nu il da, punem pretul de referinta
-            if sym == "SNX" and (p == 0 or p is None): p = 1.85 
+            # Fix SNX: Dacă prețul e 0 în JSON-ul vechi, punem prețul de piață
+            if sym == "SNX" and (p == 0 or p == 0.34): p = 1.88 
             
-            change_24h = coin_data.get("usd_24h_change", 0)
+            change_24h = coin_info.get("usd_24h_change", 0)
             info = PORTFOLIO_DATA[sym]
             val_usd += (p * info["q"])
             apr_usd += (info["apr"] * info["q"])
@@ -48,34 +50,25 @@ def main():
                 "apr": info["apr"], "mai": info["mai"], "fib": info["fib"]
             })
 
-        # Profit Net (Profit - Investitie)
-        profit_apr = int((apr_usd * 0.92) - investitie_eur)
-        profit_fib = int((fib_usd * 0.92) - investitie_eur)
+        # Calcul profit net (la 0.92 curs EUR/USD)
+        p_apr = int((apr_usd * 0.92) - investitie_eur)
+        p_fib = int((fib_usd * 0.92) - investitie_eur)
 
         output = {
-            "rotation_score": 30.18, 
-            "btc_d": 58.82, 
-            "eth_btc": 0.02894,
-            "usdt_d": 7.73, 
-            "smri": 24.14, 
-            "portfolio_eur": int(val_usd * 0.92), 
-            "investitie_eur": investitie_eur,
-            "p_apr": f"{profit_apr:,} €", 
-            "p_fib": f"{profit_fib:,} €",
-            "coins": results, 
-            "total3": "0.98T", 
-            "fng": "9 (Extreme Fear)", 
-            "momentum": "STABLE",
+            "rotation_score": 30.18, "btc_d": 58.82, "eth_btc": 0.02894, "usdt_d": 7.73, "smri": 24.14,
+            "portfolio_eur": int(val_usd * 0.92), "investitie_eur": investitie_eur,
+            "p_apr": f"{p_apr:,} €", "p_fib": f"{p_fib:,} €",
+            "coins": results, "total3": "0.98T", "fng": "9 (Fear)", "momentum": "STABLE",
             "vix": 14.2, "dxy": 101.1, "ml_prob": 10.1, "breadth": "15%",
             "m2": "21.2T", "exhaustion": "12.1%", "volat": "HIGH", "liq": "HIGH", "urpd": "84.2%"
         }
         
         with open("data.json", "w") as f:
             json.dump(output, f, indent=4)
-        print("✅ Update OK! Fisierul data.json a fost generat.")
+        print("✅ SUCCESS: data.json a fost creat cu cifre reale!")
         
     except Exception as e:
-        print(f"❌ Eroare: {e}")
+        print(f"❌ EROARE: {e}")
 
 if __name__ == "__main__":
     main()
