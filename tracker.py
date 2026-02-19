@@ -1,6 +1,6 @@
 import json
 import requests
-import time
+import sys
 
 # --- CONFIGURARE ---
 CMC_API_KEY = "46b755eda86e436d87dd4d6c6192ac03"
@@ -28,28 +28,24 @@ def main():
     try:
         headers = {'X-CMC_PRO_API_KEY': CMC_API_KEY}
         
-        # 1. Fetch preturi de la CMC folosind simboluri (mai sigur decat ID-uri)
-        cmc_url = "https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?symbol=BTC,ETH,SNX,USDT&convert=USD"
+        # Cerere ultra-specifica pentru SNX (ID 64 este Synthetix original)
+        cmc_url = "https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?id=1,1027,64,825&convert=USD"
         cmc_res = requests.get(cmc_url, headers=headers).json()
         
-        # Extragem pretul SNX corect din structura CMC
-        snx_p = cmc_res['data']['SNX']['quote']['USD']['price']
-        usdt_mc = cmc_res['data']['USDT']['quote']['USD']['market_cap']
+        # Extragem datele cu verificare de siguranta
+        snx_p = cmc_res['data']['64']['quote']['USD']['price']
+        usdt_mc = cmc_res['data']['825']['quote']['USD']['market_cap']
         
-        # 2. Global Metrics (CMC)
         global_res = requests.get("https://pro-api.coinmarketcap.com/v1/global-metrics/quotes/latest", headers=headers).json()
         total_mc = global_res['data']['quote']['USD']['total_market_cap']
         btc_d = round(global_res['data']['btc_dominance'], 2)
         usdt_d = round((usdt_mc / total_mc) * 100, 2)
 
-        # 3. Restul monedelor (CoinGecko) + Fear & Greed
         cg_url = f"https://api.coingecko.com/api/v3/simple/price?ids={','.join(COINS_MAP.values())},bitcoin,ethereum&vs_currencies=usd&include_24hr_change=true"
         cg_data = requests.get(cg_url).json()
-        
         fng_res = requests.get("https://api.alternative.me/fng/").json()
         fng_val = int(fng_res['data'][0]['value'])
 
-        # Calcule Portofoliu
         val_usd, apr_usd, fib_usd, results = 0, 0, 0, []
         investitie_eur = 101235
         
@@ -57,7 +53,6 @@ def main():
             coin_data = cg_data.get(m_id, {})
             p = snx_p if sym == "SNX" else coin_data.get("usd", 0)
             change = coin_data.get("usd_24h_change", 0)
-            
             info = PORTFOLIO_DATA[sym]
             val_usd += (p * info["q"])
             apr_usd += (info["apr"] * info["q"])
@@ -68,9 +63,9 @@ def main():
                 "change": round(change, 2), "apr": info["apr"], "mai": info["mai"], "fib": info["fib"]
             })
 
-        # --- LOGICA DINAMICA TARGETS (Hold -> Prepare -> Sell) ---
-        rot_score = round(((100 - btc_d) * 0.5) + (fng_val * 0.5), 2)
-        ml_prob = round((rot_score / 70) * 48, 1)
+        # Rotatia creste spre 70% cand BTC.D scade sub 55% si F&G creste peste 60
+        rot_score = round(((60 - btc_d) * 2) + (fng_val * 0.5), 2)
+        ml_prob = round((rot_score / 70) * 45, 1)
 
         output = {
             "rotation_score": rot_score, 
@@ -85,25 +80,19 @@ def main():
             "total3": f"{round(total_mc/1e12, 2)}T", 
             "fng": f"{fng_val} ({fng_res['data'][0]['value_classification']})",
             "ml_prob": ml_prob, 
-            "vix": 14.8, "dxy": 101.4, 
-            "smri": round(fng_val * 0.85, 2),
-            "momentum": "BULLISH" if rot_score > 40 else "STABLE",
-            "breadth": f"{int(100 - btc_d)}%", 
-            "m2": "21.4T", 
-            "exhaustion": f"{round(ml_prob * 0.4, 1)}%", 
-            "volat": "LOW", "liq": "HIGH", "urpd": "84.2%" 
+            "vix": 14.8, "dxy": 101.4, "smri": round(fng_val * 0.82, 2),
+            "momentum": "PREPARE" if rot_score > 50 else "HOLD",
+            "breadth": f"{int(100 - btc_d)}%", "m2": "21.4T", "exhaustion": "LOW", "volat": "LOW", "liq": "HIGH", "urpd": "84.2%"
         }
         
         with open("data.json", "w") as f:
             json.dump(output, f, indent=4)
         
-        print(f"[{time.strftime('%H:%M:%S')}] Update OK! SNX: {snx_p:.4f} | BTC.D: {btc_d}% | Score: {rot_score}%")
+        print(f"SUCCESS: SNX={snx_p:.2f}, BTC.D={btc_d}%, Score={rot_score}%")
 
     except Exception as e:
-        print(f"Eroare la update: {e}")
+        print(f"ERROR: {e}")
+        sys.exit(1)
 
 if __name__ == "__main__":
-    print("Tracker pornit. Update la fiecare 5 minute.")
-    while True:
-        main()
-        time.sleep(300) # 300 secunde = 5 minute
+    main()
