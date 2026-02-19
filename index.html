@@ -2,42 +2,58 @@
 <html lang="ro">
 <head>
     <meta charset="UTF-8">
+    <title>Altcoin Tracker - Command Center 2026</title>
     <style>
-        body { background: #0b0e14; color: #e1e1e1; font-family: sans-serif; padding: 15px; font-size: 11px; margin: 0; }
+        body { background: #0b0e14; color: #e1e1e1; font-family: 'Inter', sans-serif; padding: 20px; font-size: 11px; margin: 0; }
         
-        /* 5. Text titlu casete marit */
-        .m-label { font-size: 12px; color: #888; text-transform: uppercase; margin-bottom: 8px; font-weight: 800; letter-spacing: 0.5px; }
-        .m-val { font-weight: bold; font-size: 20px; }
+        /* 5. Text titlu casete marit (12px + Bold) */
+        .m-label { font-size: 12px; color: #888; text-transform: uppercase; margin-bottom: 10px; font-weight: 800; letter-spacing: 0.8px; }
+        .m-val { font-weight: bold; font-size: 22px; }
 
-        /* 6. Glow peste toate liniile la hover */
-        tr { transition: all 0.2s ease; border-bottom: 1px solid #1a1c24; }
+        /* 6. Glow pe toate liniile la hover */
+        tr { transition: all 0.3s ease; border-bottom: 1px solid #1a1c24; }
         tr:hover { 
-            background: rgba(0, 255, 136, 0.06) !important; 
-            box-shadow: inset 0 0 20px rgba(0, 255, 136, 0.1), 0 0 15px rgba(0, 255, 136, 0.1);
+            background: rgba(0, 255, 136, 0.08) !important; 
+            box-shadow: inset 0 0 25px rgba(0, 255, 136, 0.15), 0 0 15px rgba(0, 255, 136, 0.1);
         }
 
+        /* Banner Targets cu ML SELL PROB */
         .target-panel { 
             background: #052e16; border: 2px solid #22c55e; padding: 20px; border-radius: 12px; 
             margin-bottom: 25px; text-align: center; font-size: 16px; font-weight: bold; color: #fff;
+            box-shadow: 0 0 20px rgba(34, 197, 94, 0.2);
         }
-        .top-nav { display: grid; grid-template-columns: repeat(5, 1fr) 1.5fr; gap: 12px; margin-bottom: 20px; }
-        .m-card { background: #1a1c24; padding: 15px; border-radius: 10px; border: 1px solid #333; text-align: center; }
         
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th { text-align: left; color: #555; padding: 15px; font-size: 12px; border-bottom: 2px solid #222; }
-        td { padding: 18px 15px; }
-
-        .up { color: #00ff88; }
-        .down { color: #ef4444; }
-        .st-btn { background: #111; border: 1px solid #222; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #333; }
-        .active-h { border-color: #ef4444 !important; color: #ef4444 !important; box-shadow: 0 0 15px rgba(239, 68, 68, 0.3); }
+        .top-nav { display: grid; grid-template-columns: repeat(5, 1fr) 1.5fr; gap: 12px; margin-bottom: 15px; }
+        .macro-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin-bottom: 12px; }
+        
+        .m-card { 
+            background: #1a1c24; padding: 18px; border-radius: 10px; border: 1px solid #333; 
+            text-align: center; transition: transform 0.2s; 
+        }
+        .m-card:hover { border-color: #444; transform: translateY(-2px); }
+        
+        .up { color: #00ff88; text-shadow: 0 0 10px rgba(0, 255, 136, 0.3); }
+        .down { color: #ef4444; text-shadow: 0 0 10px rgba(239, 68, 68, 0.3); }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 25px; background: #0f1218; border-radius: 12px; overflow: hidden; }
+        th { text-align: left; color: #555; padding: 18px; border-bottom: 2px solid #222; text-transform: uppercase; font-size: 10px; }
+        td { padding: 20px 18px; font-size: 14px; }
+        
+        .st-btn { background: #111; border: 1px solid #222; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #333; cursor: default; }
+        .active-h { border-color: #ef4444 !important; color: #ef4444 !important; box-shadow: 0 0 20px rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.05) !important; }
+        
+        /* 7. Multiplier Verde */
+        .mult-val { color: #00ff88; font-weight: bold; }
     </style>
 </head>
 <body>
     <div class="target-panel">🎯 TARGETS: BTC.D: 48-50% | ROTATION: 70% | USDTD: 5.5% | ETH/BTC: 0.055+ | ML SELL PROB: 50%</div>
     
-    <div class="top-nav" id="top-nav-container"></div>
-    <div class="top-nav" style="grid-template-columns: repeat(6, 1fr);" id="macro-container"></div>
+    <div class="top-nav" id="top-nav"></div>
+
+    <div class="macro-grid" id="macro-r1"></div>
+    <div class="macro-grid" id="macro-r2"></div>
 
     <table>
         <thead>
@@ -54,50 +70,84 @@
 
     <script>
         async function load() {
-            const r = await fetch('data.json?v=' + Date.now());
-            const d = await r.json();
-            
-            // 4. Sageti in toate casetele
-            const arrow = (v, t, rev=false) => (rev ? v < t : v > t) ? '<span class="up">▲</span>' : '<span class="down">▼</span>';
+            try {
+                const r = await fetch('data.json?v=' + Date.now());
+                const d = await r.json();
+                
+                // 4. Functie pentru sageti in toate casetele
+                const getArr = (v, t, rev=false) => (rev ? v < t : v > t) ? '<span class="up">▲</span>' : '<span class="down">▼</span>';
 
-            // Top Indicators
-            const top = [
-                ['Rotation Score', d.rotation_score + '%', 70],
-                ['BTC.D LIVE', d.btc_d + '%', 48, true], // 1. BTC.D corectat
-                ['ETH / BTC', d.eth_btc, 0.055],
-                ['USDT.D LIVE', d.usdt_d + '%', 5.5, true],
-                ['S.M.R.I', d.exhaustion + '%', 75]
-            ];
+                // Render Top Nav (Rotation, BTC.D, ETH/BTC, USDT.D, SMRI)
+                const topItems = [
+                    ['Rotation Score', d.rotation_score + '%', 70],
+                    ['BTC.D LIVE', d.btc_d + '%', 48, true], // 1. BTC.D dinamic
+                    ['ETH / BTC', d.eth_btc, 0.055],
+                    ['USDT.D LIVE', d.usdt_d + '%', 5.5, true],
+                    ['S.M.R.I', d.smri + '%', 75]
+                ];
+                
+                document.getElementById('top-nav').innerHTML = topItems.map(i => `
+                    <div class="m-card">
+                        <div class="m-label">${i[0]}</div>
+                        <div class="m-val">${i[1]} ${getArr(parseFloat(i[1]), i[2], i[3])}</div>
+                    </div>
+                `).join('') + `
+                    <div class="status-box" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+                        <div class="st-btn ${d.rotation_score < 70 ? 'active-h' : ''}">HOLD</div>
+                        <div class="st-btn">PREPARE</div>
+                        <div class="st-btn ${d.rotation_score >= 70 ? 'active-h' : ''}" style="${d.rotation_score >= 70 ? 'border-color:#00ff88!important;color:#00ff88!important;box-shadow:0 0 20px rgba(0,255,136,0.4)!important':''}">SELL</div>
+                    </div>`;
 
-            document.getElementById('top-nav-container').innerHTML = top.map(i => `
-                <div class="m-card"><div class="m-label">${i[0]}</div><div class="m-val">${i[1]}${arrow(parseFloat(i[1]), i[2], i[3])}</div></div>
-            `).join('') + `<div class="status-box" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;"><div class="st-btn active-h">HOLD</div><div class="st-btn">PREPARE</div><div class="st-btn">SELL</div></div>`;
+                // Render Macro R1 (6 casete)
+                const r1 = [
+                    ['TOTAL 3', d.total3, 1.2],
+                    ['SENTIMENT', d.fng + ' (FnG)', 75], // 3. Sentiment Dinamic
+                    ['STRENGTH', d.momentum, 0],         // 3. Strength Dinamic
+                    ['VIX INDEX', d.vix, 13.8, true],
+                    ['DXY INDEX', d.dxy, 100, true],
+                    ['ML PROB', d.ml_prob + '%', 50]
+                ];
+                document.getElementById('macro-r1').innerHTML = r1.map(m => `
+                    <div class="m-card">
+                        <div class="m-label">${m[0]}</div>
+                        <div class="m-val">${m[1]} ${m[2] ? getArr(parseFloat(m[1]), m[2], m[3]) : '<span class="up">▲</span>'}</div>
+                    </div>
+                `).join('');
 
-            // 3. Sentiment & Strength (Strength preluat din Momentum/Rotation)
-            const macros = [
-                ['TOTAL 3', d.total3, 1.2],
-                ['SENTIMENT', d.fng + ' (FnG)', 75],
-                ['STRENGTH', d.momentum, 0],
-                ['VIX INDEX', d.vix, 13.8, true],
-                ['DXY INDEX', d.dxy, 100, true],
-                ['ML PROB', d.ml_prob + '%', 50]
-            ];
+                // Render Macro R2 (6 casete)
+                const r2 = [
+                    ['URPD PROFIT', d.urpd + '%', 85],
+                    ['M2 SUPPLY', d.m2, 21.1],
+                    ['BREADTH', d.breadth, 50],
+                    ['EXHAUSTION', d.exhaustion + '%', 35, true],
+                    ['VOLATILITY', d.volat, 0],
+                    ['LIQUIDITY', d.liq, 0]
+                ];
+                document.getElementById('macro-r2').innerHTML = r2.map(m => `
+                    <div class="m-card">
+                        <div class="m-label">${m[0]}</div>
+                        <div class="m-val">${m[1]} ${m[2] ? getArr(parseFloat(m[1]), m[2], m[3]) : '<span class="up">▲</span>'}</div>
+                    </div>
+                `).join('');
 
-            document.getElementById('macro-container').innerHTML = macros.map(m => `
-                <div class="m-card"><div class="m-label">${m[0]}</div><div class="m-val">${m[1]}${m[2] ? arrow(parseFloat(m[1]), m[2], m[3]) : ' <span class="up">▲</span>'}</div></div>
-            `).join('');
+                // Tabel Monede cu Multiplier si Glow
+                document.getElementById('rows').innerHTML = d.coins.map(c => `
+                    <tr>
+                        <td><b>${c.symbol}</b> <small class="${c.change >= 0 ? 'up':'down'}">(${c.change}%)</small><br><span style="color:#888">$${c.price.toFixed(4)}</span></td>
+                        <td>${c.q.toLocaleString()}</td>
+                        <td>$${c.entry}</td>
+                        <td style="color:#fbbf24">$${c.apr}</td>
+                        <td class="mult-val">${(c.apr/c.entry).toFixed(1)}x</td>
+                        <td style="color:#fbbf24">$${c.mai}</td>
+                        <td class="mult-val">${(c.mai/c.entry).toFixed(1)}x</td>
+                        <td style="color:#a855f7; font-weight:bold">$${c.fib}</td>
+                    </tr>
+                `).join('');
 
-            document.getElementById('rows').innerHTML = d.coins.map(c => `
-                <tr>
-                    <td><b>${c.symbol}</b> <small class="${c.change >= 0 ? 'up':'down'}">(${c.change}%)</small><br>$${c.price.toFixed(4)}</td>
-                    <td>${c.q.toLocaleString()}</td><td>$${c.entry}</td>
-                    <td style="color:#fbbf24">$${c.apr}</td><td style="color:#00ff88">${(c.apr/c.entry).toFixed(1)}x</td>
-                    <td style="color:#fbbf24">$${c.mai}</td><td style="color:#00ff88">${(c.mai/c.entry).toFixed(1)}x</td>
-                    <td style="color:#a855f7; font-weight:bold">$${c.fib}</td>
-                </tr>
-            `).join('');
+            } catch (e) { console.error("Eroare incarcare date:", e); }
         }
-        load(); setInterval(load, 30000);
+        load();
+        setInterval(load, 30000);
     </script>
 </body>
 </html>
