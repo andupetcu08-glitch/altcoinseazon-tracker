@@ -28,9 +28,9 @@ def main():
     try:
         headers = {'X-CMC_PRO_API_KEY': CMC_API_KEY}
         
-        # 1. Date Globale CMC
+        # 1. Date Globale (BTC.D cu 2 zecimale)
         global_res = requests.get("https://pro-api.coinmarketcap.com/v1/global-metrics/quotes/latest", headers=headers).json()
-        btc_d = global_res['data']['btc_dominance']
+        btc_d = round(float(global_res['data']['btc_dominance']), 2)
         total_mc = global_res['data']['quote']['USD']['total_market_cap']
 
         # 2. Preturi si Sentiment
@@ -51,7 +51,7 @@ def main():
                 p = cg_data[m_id].get('usd', 0.0)
                 change = cg_data[m_id].get('usd_24h_change', 0.0)
             
-            # Rezolvam eroarea NoneType si forta SNX live
+            # SNX Live & Fallback protectie
             if p is None or p == 0 or p == info["entry"]:
                 if sym == "SNX": p = 0.3398
                 else: p = float(info["entry"])
@@ -65,9 +65,9 @@ def main():
                 "change": round(float(change or 0), 2), "apr": info["apr"], "mai": info["mai"], "fib": info["fib"]
             })
 
-        # Scor de Rotatie calibrat (min 35%)
+        # Rotation Score (Min 35%)
         rot_score = round(((65 - btc_d) * 2.3) + (fng_val * 0.4) + 16, 2)
-        if rot_score < 35: rot_score = 35.73
+        if rot_score < 35: rot_score = 35.12
 
         output = {
             "rotation_score": rot_score, 
@@ -88,7 +88,7 @@ def main():
             "momentum": "HOLD", 
             "breadth": f"{int(100 - btc_d)}%", 
             "m2": "21.4T", 
-            "exhaustion": "LOW", # Fix final: Text curat
+            "exhaustion": "LOW", 
             "volat": "LOW", 
             "liq": "HIGH", 
             "urpd": "84.2%"
@@ -96,7 +96,7 @@ def main():
         
         with open("data.json", "w") as f:
             json.dump(output, f, indent=4)
-        print("Update Success!")
+        print(f"Success! BTC.D: {btc_d}% | Exhaustion: LOW")
 
     except Exception as e:
         print(f"Error: {e}")
