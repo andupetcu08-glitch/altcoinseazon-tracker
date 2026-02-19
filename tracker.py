@@ -24,23 +24,17 @@ def main():
     try:
         url = f"https://api.coingecko.com/api/v3/simple/price?ids={','.join(COINS_MAP.values())},bitcoin,ethereum&vs_currencies=usd&include_24hr_change=true"
         data = requests.get(url, timeout=20).json()
-        
-        results = []
-        val_usd, mai_usd, fib_usd = 0, 0, 0
-        
+        val_usd, mai_usd, fib_usd, results = 0, 0, 0, []
         for sym, m_id in COINS_MAP.items():
             p = data.get(m_id, {}).get("usd", 0.32 if sym == "SNX" else 0)
             info = PORTFOLIO_DATA[sym]
-            val_usd += (p * info["q"])
-            mai_usd += (info["mai"] * info["q"])
-            fib_usd += (info["fib"] * info["q"])
+            val_usd += (p * info["q"]); mai_usd += (info["mai"] * info["q"]); fib_usd += (info["fib"] * info["q"])
             results.append({"symbol": sym, "price": p, "entry": info["entry"], "q": info["q"], 
                            "change": round(data.get(m_id, {}).get("usd_24h_change", 0), 2),
                            "apr": info["apr"], "mai": info["mai"], "fib": info["fib"]})
-
         output = {
-            "rotation_score": 30.18, "btc_d": 56.32, "eth_btc": 0.02946, "usdt_d": 7.73, "smri": 24.14,
-            "portfolio_eur": round(val_usd * 0.92, 0), "investitie_eur": 101235,
+            "rotation_score": 30.18, "btc_d": 56.32, "eth_btc": round(data["ethereum"]["usd"]/data["bitcoin"]["usd"], 5),
+            "usdt_d": 7.73, "smri": 24.14, "portfolio_eur": round(val_usd * 0.92, 0), "investitie_eur": 101235,
             "p_mai": f"€{round(mai_usd * 0.92, 0):,}", "p_fib": f"€{round(fib_usd * 0.92, 0):,}",
             "coins": results, "total3": "0.98T", "fng": "9 (FnG)", "momentum": "STABLE",
             "vix": 14.2, "dxy": 101.1, "ml_prob": 10.1, "breadth": "0%", "urpd": 84.2,
@@ -49,5 +43,4 @@ def main():
         with open("data.json", "w") as f: json.dump(output, f, indent=4)
         print("Update OK")
     except Exception as e: print(f"Eroare: {e}")
-
 if __name__ == "__main__": main()
