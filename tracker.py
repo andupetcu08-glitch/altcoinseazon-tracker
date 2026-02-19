@@ -10,44 +10,51 @@ PORTFOLIO = {
     "cartesi": {"q": 49080, "entry": 0.19076, "apr": 0.2, "mai": 0.2, "fib": 0.24},
     "immutable-x": {"q": 1551.82, "entry": 3.4205, "apr": 3.5, "mai": 4.3, "fib": 4.85},
     "sonic-3": {"q": 13449.38, "entry": 0.81633, "apr": 1.05, "mai": 1.35, "fib": 1.55},
-    "synthetix-network-token": {"q": 20073.76, "entry": 0.32, "apr": 7.8, "mai": 9.3, "fib": 10.2}
+    "synthetix-network-token": {"q": 20073.76, "entry": 0.722, "apr": 7.8, "mai": 9.3, "fib": 10.2} # Entry la 0.722
 }
 
 def main():
-    ids = list(PORTFOLIO.keys()) + ["bitcoin", "ethereum"]
-    prices = urllib.request.urlopen(f"https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids={','.join(ids)}").read()
-    p_data = json.loads(prices)
-    global_data = json.loads(urllib.request.urlopen("https://api.coingecko.com/api/v3/global").read())
-    
-    p_map = {c["id"]: c for c in p_data}
-    btc_p = p_map["bitcoin"]["current_price"]
-    eth_p = p_map["ethereum"]["current_price"]
-    
-    # Calcule Macro
-    btc_d = round(global_data["data"]["market_cap_percentage"]["btc"], 2)
-    usdt_d = round(global_data["data"]["market_cap_percentage"]["usdt"], 2)
-    eth_btc = round(eth_p / btc_p, 5)
-    
-    # Fix Breadth (nu mai e 0%)
-    up_coins = sum(1 for c in p_data if c.get("price_change_percentage_24h", 0) > 0)
-    breadth_val = round((up_coins / len(p_data)) * 100, 1)
+    try:
+        ids = list(PORTFOLIO.keys()) + ["bitcoin", "ethereum"]
+        prices = json.loads(urllib.request.urlopen(f"https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids={','.join(ids)}").read())
+        global_data = json.loads(urllib.request.urlopen("https://api.coingecko.com/api/v3/global").read())
+        p_map = {c["id"]: c for c in prices}
+        
+        # 1. Module & Macro Logic
+        btc_d = round(global_data["data"]["market_cap_percentage"]["btc"], 2)
+        eth_p, btc_p = p_map["ethereum"]["current_price"], p_map["bitcoin"]["current_price"]
+        eth_btc = round(eth_p / btc_p, 5)
+        usdt_d = round(global_data["data"]["market_cap_percentage"]["usdt"], 2)
+        
+        # Breadth Dinamic (Fixat de la 0%)
+        up_coins = sum(1 for c in prices if (c.get("price_change_percentage_24h") or 0) > 0)
+        breadth_val = round((up_coins / len(prices)) * 100, 1)
 
-    results = []
-    total_val_usd = 0
-    for cid, d in PORTFOLIO.items():
-        price = 0.32 if "synthetix" in cid else p_map[cid]["current_price"]
-        total_val_usd += (price * d["q"])
-        results.append({"symbol": cid.upper()[:4], "price": price, "entry": d["entry"], "q": d["q"], 
-                        "change": p_map[cid].get("price_change_percentage_24h", 0), "apr": d["apr"], "mai": d["mai"], "fib": d["fib"]})
+        # 2. Portofoliu & SNX Fix
+        results = []
+        total_val_usd = 0
+        for cid, d in PORTFOLIO.items():
+            # Pretul actual SNX fixat la 0.32, Entry ramane 0.722
+            p_actual = 0.32 if "synthetix" in cid else p_map[cid]["current_price"]
+            total_val_usd += (p_actual * d["q"])
+            results.append({
+                "symbol": cid.upper()[:4] if "synthetix" not in cid else "SNX",
+                "price": p_actual, "entry": d["entry"], "q": d["q"],
+                "change": p_map[cid].get("price_change_percentage_24h", 0),
+                "apr": d["apr"], "mai": d["mai"], "fib": d["fib"]
+            })
 
-    output = {
-        "btc_d": btc_d, "eth_btc": eth_btc, "rotation_score": round((60-btc_d)*5, 2),
-        "usdt_d": usdt_d, "smri": 36.33, "fng": 25, "total3": "0.98T", "vix": 14.2, "dxy": 101.1,
-        "portfolio_eur": round(total_val_usd * 0.92, 0), "investitie": 101235,
-        "profit_mai": "€420,289 - €486,060", "coins": results, "ml_prob": 18.9,
-        "breadth": f"{breadth_val}%", "momentum": "STABLE", "exhaustion": 12.1,
-        "volat": "LOW", "liq": "HIGH", "div": "NORMAL", "m2": "21.2T", "urpd": 84.2
-    }
-    with open("data.json", "w") as f: json.dump(output, f)
+        output = {
+            "btc_d": btc_d, "eth_btc": eth_btc, "usdt_d": usdt_d,
+            "rotation_score": 19.84, "smri": 36.33, "fng": "9 (FnG)",
+            "portfolio_eur": round(total_val_usd * 0.92, 0), "investitie": 101235,
+            "profit_mai": "€420,289 - €486,060", "coins": results,
+            "total3": "0.98T", "vix": 14.2, "dxy": 101.1, "ml_prob": 18.9,
+            "breadth": f"{breadth_val}%", "momentum": "STABLE", "exhaustion": 12.1,
+            "volat": "LOW", "liq": "HIGH", "div": "NORMAL", "m2": "21.2T", "urpd": 84.2
+        }
+        with open("data.json", "w") as f: json.dump(output, f, indent=4)
+        print("Update OK")
+    except Exception as e: print(f"Eroare: {e}")
 
 if __name__ == "__main__": main()
