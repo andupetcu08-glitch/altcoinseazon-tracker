@@ -12,20 +12,24 @@
         }
         .grid-6 { display: grid; grid-template-columns: repeat(6, 1fr); gap: 15px; margin-bottom: 15px; }
         .grid-3 { display: grid; grid-template-columns: 1fr 1.5fr 1fr; gap: 15px; margin-bottom: 20px; }
-        .card { background: #161b22; padding: 20px; border-radius: 12px; border: 1px solid #30363d; text-align: center; transition: all 0.3s; height: 70px; display: flex; flex-direction: column; justify-content: center; }
+        
+        /* Inaltime fixa pentru aliniere perfecta */
+        .card { background: #161b22; padding: 20px; border-radius: 12px; border: 1px solid #30363d; text-align: center; transition: all 0.3s; height: 75px; display: flex; flex-direction: column; justify-content: center; }
         .card:hover { transform: translateY(-3px); border-color: #444; }
+        
+        /* Label 12px Bold 800 */
         .label { font-size: 12px; color: #8b949e; text-transform: uppercase; font-weight: 800; margin-bottom: 8px; }
         .val { font-weight: bold; font-size: 24px; color: #f0f6fc; }
         .up { color: #39d353; } .down { color: #f85149; }
         
-        /* Tabel Marit 1.5x */
+        /* Tabel Masiv 1.5x */
         table { width: 100%; border-collapse: collapse; margin-top: 30px; background: #0d1117; border-radius: 15px; overflow: hidden; font-size: 18px; }
         th { text-align: left; color: #8b949e; padding: 22px; border-bottom: 3px solid #30363d; font-size: 14px; }
         td { padding: 22px; border-bottom: 1px solid #21262d; }
         tr:hover { background: rgba(57, 211, 83, 0.08) !important; transform: scale(1.005); box-shadow: 0 0 30px rgba(57, 211, 83, 0.15); }
 
-        /* Butoane egale cu inaltimea casetei (Card Height) */
-        .btn-group { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; height: 112px; /* Card padding + height ajustat */ align-items: stretch; }
+        /* Butoane egale cu inaltimea Profit Row */
+        .btn-group { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; height: 115px; align-items: stretch; }
         .st-btn { background: #0d1117; border: 1px solid #30363d; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 11px; color: #484f58; text-transform: uppercase; }
         .active-hold { border-color: #f85149 !important; color: #f85149 !important; box-shadow: 0 0 12px rgba(248, 81, 73, 0.3); }
         .active-sell { border-color: #39d353 !important; color: #39d353 !important; box-shadow: 0 0 12px rgba(57, 211, 83, 0.3); }
@@ -33,18 +37,27 @@
 </head>
 <body>
     <div class="target-banner">🎯 TARGETS: BTC.D: 48-50% | ROTATION: 70% | USDTD: 5.5% | ETH/BTC: 0.055+ | ML SELL PROB: 50%</div>
+    
     <div class="grid-6" id="top-nav"></div>
+
     <div class="grid-3">
-        <div class="card" style="border-left: 5px solid #39d353; height: 112px;"><div class="label">Portofoliu Actual</div><div id="v-eur" class="val up">€0</div></div>
-        <div class="card" style="border-bottom: 2px solid #e3b341; height: 112px;"><div class="label">Potential Profit (MAI - FIB)</div><div id="v-range" class="val" style="color:#e3b341">€0 - €0</div></div>
-        <div class="card" style="height: 112px;"><div class="label">Multiplier Total</div><div id="v-mult" class="val">0.00x</div><div id="v-inv" style="font-size: 10px; color: #666; margin-top: 5px;"></div></div>
+        <div class="card" style="border-left: 5px solid #39d353; height: 115px;"><div class="label">Portofoliu Actual</div><div id="v-eur" class="val up">€0</div></div>
+        <div class="card" style="border-bottom: 2px solid #e3b341; height: 115px;"><div class="label">Potential Profit (MAI - FIB)</div><div id="v-range" class="val" style="color:#e3b341">€0 - €0</div></div>
+        <div class="card" style="height: 115px;">
+            <div class="label">Multiplier Total</div>
+            <div id="v-mult" class="val">0.00x</div>
+            <div id="v-inv" class="label" style="margin-top: 8px; color: #555;"></div>
+        </div>
     </div>
+
     <div class="grid-6" id="m-r1"></div>
     <div class="grid-6" id="m-r2"></div>
+
     <table>
         <thead><tr><th>MONEDA</th><th>CANTITATE</th><th>ENTRY</th><th style="color:#e3b341">TARGET APR</th><th style="color:#39d353">MULT</th><th style="color:#e3b341">TARGET MAI</th><th style="color:#39d353">MULT</th><th style="color:#bc8cff">FINAL</th></tr></thead>
         <tbody id="rows"></tbody>
     </table>
+
     <script>
         async function load() {
             try {
@@ -66,8 +79,16 @@
                     </div>`;
 
                 const r1 = [['TOTAL 3', d.total3, 1.2],['F&G', d.fng, 70],['STRENGTH', d.momentum],['VIX', d.vix, 14, true],['URPD', d.urpd+'%', 85],['DXY', d.dxy, 100, true]];
-                // FIX: Breadth, Volat si Liq cu sageti si valori
-                const r2 = [['ML PROB', d.ml_prob+'%', 50],['BREADTH', d.breadth, 50],['M2', d.m2],['EXHAUSTION', d.exhaustion+'%', 40, true],['VOLAT', d.volat, 50, true],['LIQ', d.liq, 50]];
+                
+                // Fix Breadth (0%) - asiguram ca citeste valoarea chiar daca e string
+                const r2 = [
+                    ['ML PROB', d.ml_prob+'%', 50],
+                    ['BREADTH', d.breadth, 50], 
+                    ['M2', d.m2],
+                    ['EXHAUSTION', d.exhaustion+'%', 40, true],
+                    ['VOLAT', d.volat, 50, true],
+                    ['LIQ', d.liq, 50]
+                ];
                 
                 document.getElementById('m-r1').innerHTML = r1.map(m => `<div class="card"><div class="label">${m[0]}</div><div class="val">${m[1]} ${m[2]?arrow(m[1],m[2],m[3]):''}</div></div>`).join('');
                 document.getElementById('m-r2').innerHTML = r2.map(m => `<div class="card"><div class="label">${m[0]}</div><div class="val">${m[1]} ${m[2]?arrow(m[1],m[2],m[3]):''}</div></div>`).join('');
