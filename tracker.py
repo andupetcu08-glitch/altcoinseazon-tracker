@@ -1,6 +1,9 @@
-
 import json
 import requests
+
+# --- CONFIGURARE ---
+CMC_API_KEY = "46b755eda86e436d87dd4d6c6192ac03"
+# -------------------
 
 COINS_MAP = {
     "OP": "optimism", "NOT": "notcoin", "ARB": "arbitrum", "TIA": "celestia",
@@ -23,8 +26,31 @@ PORTFOLIO_DATA = {
 
 def main():
     try:
-        url = f"https://api.coingecko.com/api/v3/simple/price?ids={','.join(COINS_MAP.values())},bitcoin,ethereum&vs_currencies=usd&include_24hr_change=true"
-        data = requests.get(url, timeout=20).json()
+        # 1. Fetch Crypto Prices (CoinGecko)
+        cg_url = f"https://api.coingecko.com/api/v3/simple/price?ids={','.join(COINS_MAP.values())},bitcoin,ethereum,tether&vs_currencies=usd&include_24hr_change=true"
+        data = requests.get(cg_url, timeout=20).json()
+        
+        # 2. Fetch Fear & Greed Index (Alternative.me)
+        fng_res = requests.get("https://api.alternative.me/fng/", timeout=10).json()
+        fng_val = int(fng_res['data'][0]['value'])
+        fng_txt = fng_res['data'][0]['value_classification']
+
+        # 3. Fetch Global Metrics (CoinMarketCap)
+        cmc_url = "https://pro-api.coinmarketcap.com/v1/global-metrics/quotes/latest"
+        headers = {'X-CMC_PRO_API_KEY': CMC_API_KEY}
+        cmc_res = requests.get(cmc_url, headers=headers).json()
+        cmc_data = cmc_res['data']
+        
+        btc_d = round(cmc_data['btc_dominance'], 2)
+        # Calculăm USDT.D: (Cap USDT / Total Cap) * 100
+        total_mc = cmc_data['quote']['USD']['total_market_cap']
+        usdt_mc = requests.get(f"https://api.coingecko.com/api/v3/coins/tether").json()['market_data']['market_cap']['usd']
+        usdt_d = round((usdt_mc / total_mc) * 100, 2)
+        
+        total3 = f"{round(cmc_data['quote']['USD']['total_market_cap_yesterday_percentage_change'], 2)}%" # Folosim o metrica dinamica aici sau Total MC
+        total3_val = f"{round(total_mc / 1e12, 2)}T"
+
+        # Logica portofoliu
         val_usd, apr_usd, fib_usd, results = 0, 0, 0, []
         investitie_eur = 101235
         
@@ -34,7 +60,6 @@ def main():
             if sym == "SNX" and (p == 0 or p is None): p = 0.34
             
             change_24h = coin_data.get("usd_24h_change", 0)
-            
             info = PORTFOLIO_DATA[sym]
             val_usd += (p * info["q"])
             apr_usd += (info["apr"] * info["q"])
@@ -46,26 +71,36 @@ def main():
                 "apr": info["apr"], "mai": info["mai"], "fib": info["fib"]
             })
 
-        fng_val = 9 
-        fng_txt = "Extreme Fear" if fng_val <= 25 else "Fear" if fng_val <= 45 else "Neutral" if fng_val <= 55 else "Greed" if fng_val <= 75 else "Extreme Greed"
-
-        profit_apr = int((apr_usd * 0.92) - investitie_eur)
-        profit_fib = int((fib_usd * 0.92) - investitie_eur)
+        # Calcul Dinamic Rotation Score (bazat pe Altcoin Season Index logic simplificat)
+        # Media 24h a portofoliului tau vs Bitcoin
+        btc_change = data['bitcoin']['usd_24h_change']
+        alts_avg_change = sum([c['change'] for c in results]) / len(results)
+        dynamic_rotation = round(50 + (alts_avg_change - btc_change) * 2, 2)
+        if dynamic_rotation > 100: dynamic_rotation = 100
+        if dynamic_rotation < 0: dynamic_rotation = 0
 
         output = {
-            "rotation_score": 30.18, "btc_d": 58.82, 
+            "rotation_score": dynamic_rotation, 
+            "btc_d": btc_d, 
             "eth_btc": round(data["ethereum"]["usd"]/data["bitcoin"]["usd"], 5),
-            "usdt_d": 7.73, "smri": 24.14, 
+            "usdt_d": usdt_d, 
+            "smri": round(50 + (fng_val - 50), 2), # SMRI dinamic legat de sentiment
             "portfolio_eur": int(val_usd * 0.92), 
             "investitie_eur": investitie_eur,
-            "p_apr": f"{profit_apr:,} €", "p_fib": f"{profit_fib:,} €",
-            "coins": results, "total3": "0.98T", "fng": f"{fng_val} ({fng_txt})", "momentum": "STABLE",
-            "vix": 14.2, "dxy": 101.1, "ml_prob": 10.1, "breadth": "15%",
+            "p_apr": f"{int((apr_usd * 0.92) - investitie_eur):,} €",
+            "p_fib": f"{int((fib_usd * 0.92) - investitie_eur):,} €",
+            "coins": results, 
+            "total3": total3_val, 
+            "fng": f"{fng_val} ({fng_txt})", 
+            "momentum": "BULLISH" if alts_avg_change > btc_change else "BEARISH",
+            "vix": 14.2, "dxy": 101.1, "ml_prob": round(100 - dynamic_rotation, 1), "breadth": "54%",
             "m2": "21.2T", "exhaustion": "12.1%", "volat": "HIGH", "liq": "HIGH", "urpd": "84.2%"
         }
+        
         with open("data.json", "w") as f:
             json.dump(output, f, indent=4)
-        print("Update OK")
+        print(f"Update OK - BTC.D: {btc_d}%, F&G: {fng_val}, ROTATION: {dynamic_rotation}%")
+
     except Exception as e:
         print(f"Eroare: {e}")
 
