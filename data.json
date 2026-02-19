@@ -1,1 +1,122 @@
-{"btc_d": 56.32, "eth_btc": 0.0294, "rotation_score": 19.84, "portfolio_eur": 16535.0, "usdt_d": 7.74, "fng": "9", "investit": 101235, "coins": [{"symbol": "OPTIMISM", "q": 6400, "entry": 0.773, "price": 0.142502, "change": -24.32, "apr": 4.8, "mai": 5.2, "fib": 6.86}, {"symbol": "NOTCOIN", "q": 1297106.88, "entry": 0.001291, "price": 0.00037736, "change": -5.52, "apr": 0.028, "mai": 0.028, "fib": 0.034}, {"symbol": "ARBITRUM", "q": 14326.44, "entry": 1.134, "price": 0.104495, "change": -8.08, "apr": 3.0, "mai": 3.4, "fib": 3.82}, {"symbol": "CELESTIA", "q": 4504.47, "entry": 5.911, "price": 0.321272, "change": -6.84, "apr": 12.0, "mai": 15.0, "fib": 18.5}, {"symbol": "JITO", "q": 7366.42, "entry": 2.711, "price": 0.288439, "change": -5.22, "apr": 8.0, "mai": 8.2, "fib": 9.2}, {"symbol": "LIDO-DAO", "q": 9296.65, "entry": 1.121, "price": 0.325022, "change": -5.72, "apr": 5.6, "mai": 6.2, "fib": 6.9}, {"symbol": "CARTESI", "q": 49080, "entry": 0.19076, "price": 0.02497375, "change": -6.72, "apr": 0.2, "mai": 0.2, "fib": 0.24}, {"symbol": "IMMUTABLE-X", "q": 1551.82, "entry": 3.4205, "price": 0.159169, "change": -7.68, "apr": 3.5, "mai": 4.3, "fib": 4.85}, {"symbol": "SONIC", "q": 13449.38, "entry": 0.81633, "price": 0.04346639, "change": -10.8, "apr": 1.05, "mai": 1.35, "fib": 1.55}, {"symbol": "SNX", "q": 20073.76, "entry": 0.32, "price": 0.32, "change": 0, "apr": 7.8, "mai": 9.3, "fib": 10.2}], "vix": 14.2, "dxy": 101.1, "total3": "0.98T", "ml_prob": 18.9, "momentum": "STABLE", "exhaustion": 36.33, "urpd": 84.2, "m2": "21.2T"}
+{
+    "btc_d": 56.32,
+    "eth_btc": 0.02946,
+    "rotation_score": 30.18,
+    "usdt_d": 7.73,
+    "fng": "9",
+    "portfolio_eur": 16552.0,
+    "coins": [
+        {
+            "symbol": "OPTIMISM",
+            "q": 6400,
+            "entry": 0.773,
+            "price": 0.142593,
+            "change": -24.2,
+            "apr": 4.8,
+            "mai": 5.2,
+            "fib": 6.86
+        },
+        {
+            "symbol": "NOTCOIN",
+            "q": 1297106.88,
+            "entry": 0.001291,
+            "price": 0.00037869,
+            "change": -5.19,
+            "apr": 0.028,
+            "mai": 0.028,
+            "fib": 0.034
+        },
+        {
+            "symbol": "ARBITRUM",
+            "q": 14326.44,
+            "entry": 1.134,
+            "price": 0.104484,
+            "change": -8.09,
+            "apr": 3.0,
+            "mai": 3.4,
+            "fib": 3.82
+        },
+        {
+            "symbol": "CELESTIA",
+            "q": 4504.47,
+            "entry": 5.911,
+            "price": 0.321938,
+            "change": -6.57,
+            "apr": 12.0,
+            "mai": 15.0,
+            "fib": 18.5
+        },
+        {
+            "symbol": "JITO",
+            "q": 7366.42,
+            "entry": 2.711,
+            "price": 0.289381,
+            "change": -4.95,
+            "apr": 8.0,
+            "mai": 8.2,
+            "fib": 9.2
+        },
+        {
+            "symbol": "LIDO-DAO",
+            "q": 9296.65,
+            "entry": 1.121,
+            "price": 0.325539,
+            "change": -5.51,
+            "apr": 5.6,
+            "mai": 6.2,
+            "fib": 6.9
+        },
+        {
+            "symbol": "CARTESI",
+            "q": 49080,
+            "entry": 0.19076,
+            "price": 0.02496796,
+            "change": -6.73,
+            "apr": 0.2,
+            "mai": 0.2,
+            "fib": 0.24
+        },
+        {
+            "symbol": "IMMUTABLE-X",
+            "q": 1551.82,
+            "entry": 3.4205,
+            "price": 0.159488,
+            "change": -7.26,
+            "apr": 3.5,
+            "mai": 4.3,
+            "fib": 4.85
+        },
+        {
+            "symbol": "SONIC",
+            "q": 13449.38,
+            "entry": 0.81633,
+            "price": 0.04353061,
+            "change": -10.5,
+            "apr": 1.05,
+            "mai": 1.35,
+            "fib": 1.55
+        },
+        {
+            "symbol": "SNX",
+            "q": 20073.76,
+            "entry": 0.32,
+            "price": 0.32,
+            "change": 0,
+            "apr": 7.8,
+            "mai": 9.3,
+            "fib": 10.2
+        }
+    ],
+    "vix": 14.2,
+    "dxy": 101.1,
+    "total3": "0.98T",
+    "ml_prob": 10.1,
+    "momentum": "STABLE",
+    "breadth": "0%",
+    "volat": "HIGH",
+    "liq": "HIGH",
+    "urpd": 84.2,
+    "m2": "21.2T",
+    "exhaustion": 12.1,
+    "smri": 24.14
+}
