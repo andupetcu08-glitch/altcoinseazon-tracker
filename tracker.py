@@ -1,79 +1,84 @@
 import json, urllib.request
 
 INVESTITIE_TOTALA_EUR = 101235
+# Target-uri noi conform cerinței
+TARGETS = {"BTCD": 48.0, "ROTATION": 70.0, "USDTD": 5.5, "ETHBTC": 0.055}
 
 PORTFOLIO = {
-    "optimism": {"q": 6400, "entry": 0.773, "apr": 4.8, "mai": 5.2, "fib": 6.86},
-    "notcoin": {"q": 1297106.88, "entry": 0.001291, "apr": 0.028, "mai": 0.028, "fib": 0.034},
-    "arbitrum": {"q": 14326.44, "entry": 1.134, "apr": 3.0, "mai": 3.4, "fib": 3.82},
-    "celestia": {"q": 4504.47, "entry": 5.911, "apr": 12.0, "mai": 15.0, "fib": 18.5},
-    "jito-governance-token": {"q": 7366.42, "entry": 2.711, "apr": 8.0, "mai": 8.2, "fib": 9.2},
-    "lido-dao": {"q": 9296.65, "entry": 1.121, "apr": 5.6, "mai": 6.2, "fib": 6.9},
-    "cartesi": {"q": 49080, "entry": 0.19076, "apr": 0.2, "mai": 0.2, "fib": 0.24},
-    "immutable-x": {"q": 1551.82, "entry": 3.4205, "apr": 3.5, "mai": 4.3, "fib": 4.85},
-    "sonic-3": {"q": 13449.38, "entry": 0.81633, "apr": 1.05, "mai": 1.35, "fib": 1.55},
-    "synthetix-network-token": {"q": 20073.76, "entry": 0.8773, "apr": 7.8, "mai": 9.3, "fib": 10.2}
+    "optimism": {"q": 6400, "entry": 0.773, "apr": 4.8, "mai": 5.2, "fib": 6.86, "symbol":"OP"},
+    "notcoin": {"q": 1297106.88, "entry": 0.001291, "apr": 0.028, "mai": 0.028, "fib": 0.034, "symbol":"NOT"},
+    "arbitrum": {"q": 14326.44, "entry": 1.134, "apr": 3.0, "mai": 3.4, "fib": 3.82, "symbol":"ARB"},
+    "celestia": {"q": 4504.47, "entry": 5.911, "apr": 12.0, "mai": 15.0, "fib": 18.5, "symbol":"TIA"},
+    "jito-governance-token": {"q": 7366.42, "entry": 2.711, "apr": 8.0, "mai": 8.2, "fib": 9.2, "symbol":"JTO"},
+    "lido-dao": {"q": 9296.65, "entry": 1.121, "apr": 5.6, "mai": 6.2, "fib": 6.9, "symbol":"LDO"},
+    "cartesi": {"q": 49080, "entry": 0.19076, "apr": 0.2, "mai": 0.2, "fib": 0.24, "symbol":"CTSI"},
+    "immutable-x": {"q": 1551.82, "entry": 3.4205, "apr": 3.5, "mai": 4.3, "fib": 4.85, "symbol":"IMX"},
+    "sonic-3": {"q": 13449.38, "entry": 0.81633, "apr": 1.05, "mai": 1.35, "fib": 1.55, "symbol":"SONIC"},
+    "synthetix-network-token": {"q": 20073.76, "entry": 0.8773, "apr": 7.8, "mai": 9.3, "fib": 10.2, "symbol":"SNX"}
 }
 
 def fetch(url):
     try:
-        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
-        with urllib.request.urlopen(req, timeout=15) as r: return json.loads(r.read().decode())
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=20) as r: return json.loads(r.read().decode())
     except: return None
+
+def normalize(v, min_v, max_v):
+    return max(0, min(100, (v - min_v) / (max_v - min_v) * 100))
 
 def main():
     ids = list(PORTFOLIO.keys()) + ["bitcoin", "ethereum"]
     prices = fetch(f"https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids={','.join(ids)}")
-    btc_eur_data = fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=eur")
     global_api = fetch("https://api.coingecko.com/api/v3/global")
-    
-    p_map = {c["id"]: c for c in prices} if prices else {}
-    btc_usd = p_map.get("bitcoin", {}).get("current_price", 1)
-    btc_eur = btc_eur_data.get("bitcoin", {}).get("eur", 1) if btc_eur_data else 1
-    usd_eur_live = btc_eur / btc_usd if btc_usd > 0 else 0.92
+    fng = fetch("https://api.alternative.me/fng/")
+    eur = fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=eur")
 
-    btc_d = 58.80
-    if global_api and "data" in global_api:
-        btc_d = round(global_api["data"]["market_cap_percentage"].get("btc", 58.80), 2)
-    
-    usdt_d = round(global_api["data"]["market_cap_percentage"].get("usdt", 7.44), 2) if global_api else 7.44
-    eth_p = p_map.get("ethereum", {}).get("current_price", 0)
-    eth_btc = round(eth_p / btc_usd, 4) if btc_usd > 0 else 0.0291
+    if not prices or not global_api: return
 
-    # Smart Money Index Logic: corelează ETH/BTC și scăderea USDT.D
-    smri = round(((0.07 / eth_btc if eth_btc > 0 else 1) * 35) + ((10 - usdt_d) * 5), 2)
-    
-    results = []
-    total_val_usd = 0
-    total_val_apr_usd = 0
-    total_val_fib_usd = 0
+    p_map = {c["id"]: c for c in prices}
+    btc_p = p_map["bitcoin"]["current_price"]
+    eth_p = p_map["ethereum"]["current_price"]
+    btc_d = global_api["data"]["market_cap_percentage"]["btc"]
+    usdt_d = global_api["data"]["market_cap_percentage"]["usdt"]
+    eth_btc = eth_p / btc_p
+    fng_val = int(fng["data"][0]["value"]) if fng else 50
 
+    # 1. Rotation Engine (30% BTCD + 25% ETHBTC + 15% USDTD + 10% T3 + 10% Sent + 10% Liq)
+    rot_score = (
+        normalize(60 - btc_d, 0, 15) * 0.30 +
+        normalize(eth_btc, 0.03, 0.07) * 0.25 +
+        normalize(10 - usdt_d, 2, 6) * 0.15 +
+        60 * 0.10 +  # Proxy Total3
+        normalize(fng_val, 20, 90) * 0.10 +
+        55 * 0.10    # Proxy Liquidity
+    )
+
+    smri = ((0.065 / eth_btc) * 40) + ((10 - usdt_d) * 4)
+    breadth = sum(1 for c in prices if (c.get("price_change_percentage_24h") or 0) > 0) / len(prices) * 100
+    exhaustion = (rot_score * 0.4) + (smri * 0.3) + (breadth * 0.3)
+    cycle_prob = normalize(rot_score + exhaustion, 60, 160)
+
+    # Status: HOLD roșu sub 70% (conform instrucțiunilor tale salvate)
+    status = "SELL" if rot_score >= 75 else ("PREPARE" if rot_score >= 68 else "HOLD")
+
+    coins = []
+    total_val = 0
     for cid, d in PORTFOLIO.items():
         p = p_map.get(cid, {}).get("current_price", d["entry"])
-        total_val_usd += (p * d["q"])
-        total_val_apr_usd += (d["apr"] * d["q"])
-        total_val_fib_usd += (d["fib"] * d["q"])
-        
-        symbol = cid.upper().replace("-NETWORK-TOKEN","").replace("-GOVERNANCE-TOKEN","").replace("-3","")
-        if "JITO" in symbol: symbol = "JTO"
-        results.append({
-            "symbol": symbol, "q": d["q"], "entry": d["entry"], 
-            "price": f"{p:.4f}", "change": round(p_map.get(cid, {}).get("price_change_percentage_24h", 0) or 0, 2),
-            "apr": d["apr"], "mai": d["mai"], "fib": d["fib"],
-            "x_apr": round(d["apr"] / d["entry"], 1), "x_mai": round(d["mai"] / d["entry"], 1)
-        })
+        total_val += p * d["q"]
+        heat = "red" if p < d["entry"] else ("orange" if p > d["apr"] else "#00ff88")
+        coins.append({"symbol": d["symbol"], "price": round(p, 4), "apr": d["apr"], "mai": d["mai"], "fib": d["fib"], "heat": heat, "change": round(p_map.get(cid, {}).get("price_change_percentage_24h", 0), 2)})
 
-    port_eur = total_val_usd * usd_eur_live
+    usd_eur = eur["bitcoin"]["eur"] / btc_p
+    
     with open("data.json", "w") as f:
         json.dump({
-            "btc_d": btc_d, "eth_btc": eth_btc, "rotation_score": 35, "smri": smri,
-            "portfolio_eur": round(port_eur, 0),
-            "profit_range": f"€{((total_val_apr_usd * usd_eur_live) - INVESTITIE_TOTALA_EUR):,.0f} - €{((total_val_fib_usd * usd_eur_live) - INVESTITIE_TOTALA_EUR):,.0f}",
-            "investit_eur": INVESTITIE_TOTALA_EUR,
-            "multiplier": round(port_eur / INVESTITIE_TOTALA_EUR, 2),
-            "coins": results, "vix": 14.2, "dxy": 101.1, "total3": "0.98T", 
-            "fng": "12 (Extreme Fear)", "usdt_d": usdt_d, "urpd": 84.2, "m2": "21.2T",
-            "ml_prob": 18.9, "momentum": "STABLE", "exhaustion": 27.7
+            "rotation": round(rot_score, 2), "smri": round(smri, 2), "btc_d": round(btc_d, 2),
+            "eth_btc": round(eth_btc, 4), "usdt_d": round(usdt_d, 2), "breadth": round(breadth, 2),
+            "exhaustion": round(exhaustion, 2), "cycle_prob": round(cycle_prob, 2),
+            "status": status, "portfolio_eur": round(total_val * usd_eur),
+            "vix": 14.2, "dxy": 101.1, "m2": "21.2T", "total3": "0.98T", "urpd": 84.2, "ml_prob": 18.9,
+            "coins": coins
         }, f)
 
 if __name__ == "__main__": main()
