@@ -1,40 +1,63 @@
-<div class="target-panel">🎯 TARGETS: BTC.D: 48-50% | ROTATION: 70% | USDTD: 5.5% | ETH/BTC: 0.055+ | ML SELL PROB: 50%</div>
-
-<div class="top-nav" id="top-nav"></div>
-
-<div class="macro-grid" style="grid-template-columns: 1fr 1.5fr 1fr; margin-bottom: 15px;">
-    <div class="m-card" style="border-color: #00ff88; box-shadow: 0 0 10px rgba(0,255,136,0.1);">
-        <div class="m-label">Portofoliu Actual (EUR)</div>
-        <div class="m-val" id="val-eur" style="color:#00ff88">€0</div>
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { background: #0b0e14; color: #e1e1e1; font-family: 'Inter', sans-serif; padding: 20px; font-size: 11px; margin: 0; }
+        .m-label { font-size: 12px; color: #888; text-transform: uppercase; font-weight: 800; margin-bottom: 5px; }
+        .m-val { font-weight: bold; font-size: 22px; }
+        .target-panel { background: #052e16; border: 2px solid #22c55e; padding: 15px; border-radius: 12px; margin-bottom: 20px; text-align: center; font-size: 15px; font-weight: bold; }
+        .macro-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin-bottom: 12px; }
+        .m-card { background: #1a1c24; padding: 18px; border-radius: 10px; border: 1px solid #333; text-align: center; }
+        .up { color: #00ff88; } .down { color: #ef4444; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #0f1218; border-radius: 10px; overflow: hidden; }
+        th { text-align: left; color: #555; padding: 15px; border-bottom: 2px solid #222; }
+        td { padding: 15px; border-bottom: 1px solid #1a1c24; font-size: 13px; }
+        tr:hover { background: rgba(0, 255, 136, 0.05); }
+    </style>
+</head>
+<body>
+    <div class="target-panel">🎯 TARGETS: BTC.D: 48-50% | ROTATION: 70% | USDTD: 5.5% | ETH/BTC: 0.055+ | ML SELL PROB: 50%</div>
+    
+    <div class="macro-grid" style="grid-template-columns: 1fr 1.5fr 1fr; margin-bottom: 20px;">
+        <div class="m-card" style="border-color: #00ff88;"><div class="m-label">Portofoliu Actual</div><div id="val-eur" class="m-val up">€0</div></div>
+        <div class="m-card" style="border-color: #fbbf24;"><div class="m-label">Potential Profit (MAI)</div><div id="prof-mai" class="m-val" style="color:#fbbf24">€0</div></div>
+        <div class="m-card"><div class="m-label">Multiplier Total</div><div id="mult-total" class="m-val">0.00x</div></div>
     </div>
-    <div class="m-card" style="border-color: #fbbf24;">
-        <div class="m-label">Potential Profit Teoretic (MAI-FIB)</div>
-        <div class="m-val" style="color:#fbbf24" id="prof-teoretic">€0</div>
-    </div>
-    <div class="m-card">
-        <div class="m-label">Multiplier Actual</div>
-        <div class="m-val" id="mult-total" style="color:#00ff88">0.00x</div>
-        <div id="inv-total" style="color:#666; font-size: 10px; margin-top:5px;"></div>
-    </div>
-</div>
 
-<div class="macro-grid" id="macro-r1"></div>
-<div class="macro-grid" id="macro-r2"></div>
+    <div class="macro-grid" id="macro-all"></div>
 
-<script>
-    async function load() {
-        const r = await fetch('data.json?v=' + Date.now());
-        const d = await r.json();
-        const arrow = (v, t, rev=false) => (rev ? v < t : v > t) ? '<span class="up">▲</span>' : '<span class="down">▼</span>';
+    <table>
+        <thead>
+            <tr><th>MONEDA</th><th>CANTITATE</th><th>ENTRY</th><th>TARGET APR</th><th>MULT</th><th>TARGET MAI</th><th>MULT</th><th>FINAL</th></tr>
+        </thead>
+        <tbody id="rows"></tbody>
+    </table>
 
-        // Update Middle Row
-        document.getElementById('val-eur').innerText = '€' + d.portfolio_eur.toLocaleString();
-        document.getElementById('prof-teoretic').innerText = d.profit_mai;
-        document.getElementById('mult-total').innerText = (d.portfolio_eur / d.investitie).toFixed(2) + 'x';
-        document.getElementById('inv-total').innerText = 'Investit: €' + d.investitie.toLocaleString();
+    <script>
+        async function load() {
+            try {
+                const r = await fetch('data.json?v=' + Date.now());
+                const d = await r.json();
 
-        // Top 5 & Macro R1/R2 (mapare completa)
-        // ... (codul de populare ramane cel anterior, dar cu toate cheile din tracker)
-    }
-    load();
-</script>
+                // Rand Mijloc
+                document.getElementById('val-eur').innerText = '€' + d.portfolio_eur.toLocaleString();
+                document.getElementById('prof-mai').innerText = '€' + d.profit_mai_eur.toLocaleString();
+                document.getElementById('mult-total').innerText = (d.portfolio_eur / d.investitie_eur).toFixed(2) + 'x';
+
+                // Tabel
+                document.getElementById('rows').innerHTML = d.coins.map(c => `
+                    <tr>
+                        <td><b>${c.symbol}</b> <small class="${c.change >= 0 ? 'up':'down'}">(${c.change}%)</small><br>$${c.price.toFixed(4)}</td>
+                        <td>${c.q.toLocaleString()}</td><td>$${c.entry}</td>
+                        <td style="color:#fbbf24">$${c.apr}</td><td class="up">${(c.apr/c.entry).toFixed(1)}x</td>
+                        <td style="color:#fbbf24">$${c.mai}</td><td class="up">${(c.mai/c.entry).toFixed(1)}x</td>
+                        <td style="color:#a855f7"><b>$${c.fib}</b></td>
+                    </tr>
+                `).join('');
+            } catch (e) { console.error("Data wait..."); }
+        }
+        load(); setInterval(load, 30000);
+    </script>
+</body>
+</html>
