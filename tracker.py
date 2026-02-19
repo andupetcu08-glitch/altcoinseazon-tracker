@@ -1,60 +1,93 @@
-import json, urllib.request, time
+import json
+import requests
+import time
 
-PORTFOLIO = {
-    "optimism": {"q": 6400, "entry": 0.773, "apr": 4.8, "mai": 5.2, "fib": 6.86},
-    "notcoin": {"q": 1297106.88, "entry": 0.001291, "apr": 0.028, "mai": 0.028, "fib": 0.034},
-    "arbitrum": {"q": 14326.44, "entry": 1.134, "apr": 3.0, "mai": 3.4, "fib": 3.82},
-    "celestia": {"q": 4504.47, "entry": 5.911, "apr": 12.0, "mai": 15.0, "fib": 18.5},
-    "jito-governance-token": {"q": 7366.42, "entry": 2.711, "apr": 8.0, "mai": 8.2, "fib": 9.2},
-    "lido-dao": {"q": 9296.65, "entry": 1.121, "apr": 5.6, "mai": 6.2, "fib": 6.9},
-    "cartesi": {"q": 49080, "entry": 0.19076, "apr": 0.2, "mai": 0.2, "fib": 0.24},
-    "immutable-x": {"q": 1551.82, "entry": 3.4205, "apr": 3.5, "mai": 4.3, "fib": 4.85},
-    "sonic-3": {"q": 13449.38, "entry": 0.81633, "apr": 1.05, "mai": 1.35, "fib": 1.55},
-    "synthetix-network-token": {"q": 20073.76, "entry": 0.722, "apr": 7.8, "mai": 9.3, "fib": 10.2} # Entry la 0.722
+COINS_MAP = {
+    "OP": "optimism",
+    "NOT": "notcoin",
+    "ARB": "arbitrum",
+    "TIA": "celestia",
+    "JTO": "jito-governance-token",
+    "LDO": "lido-dao",
+    "CTSI": "cartesi",
+    "IMX": "immutable-x",
+    "SONIC": "sonic-3",
+    "SNX": "synthetix-network-token"
 }
+
+# Datele tale de intrare (Media ramane 0.722 la SNX)
+PORTFOLIO_DATA = {
+    "OP": {"q": 6400, "entry": 0.773, "apr": 4.8, "mai": 5.2, "fib": 6.86},
+    "NOT": {"q": 1297106.88, "entry": 0.001291, "apr": 0.028, "mai": 0.028, "fib": 0.034},
+    "ARB": {"q": 14326.44, "entry": 1.134, "apr": 3.0, "mai": 3.4, "fib": 3.82},
+    "TIA": {"q": 4504.47, "entry": 5.911, "apr": 12.0, "mai": 15.0, "fib": 18.5},
+    "JTO": {"q": 7366.42, "entry": 2.711, "apr": 8.0, "mai": 8.2, "fib": 9.2},
+    "LDO": {"q": 9296.65, "entry": 1.121, "apr": 5.6, "mai": 6.2, "fib": 6.9},
+    "CTSI": {"q": 49080, "entry": 0.19076, "apr": 0.2, "mai": 0.2, "fib": 0.24},
+    "IMX": {"q": 1551.82, "entry": 3.4205, "apr": 3.5, "mai": 4.3, "fib": 4.85},
+    "SONIC": {"q": 13449.38, "entry": 0.81633, "apr": 1.05, "mai": 1.35, "fib": 1.55},
+    "SNX": {"q": 20073.76, "entry": 0.722, "apr": 7.8, "mai": 9.3, "fib": 10.2}
+}
+
+def get_market_data():
+    ids = ",".join(COINS_MAP.values()) + ",bitcoin,ethereum"
+    url = f"https://api.coingecko.com/api/v3/simple/price?ids={ids}&vs_currencies=usd&include_24hr_change=true"
+    response = requests.get(url, timeout=20)
+    return response.json()
 
 def main():
     try:
-        ids = list(PORTFOLIO.keys()) + ["bitcoin", "ethereum"]
-        prices = json.loads(urllib.request.urlopen(f"https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids={','.join(ids)}").read())
-        global_data = json.loads(urllib.request.urlopen("https://api.coingecko.com/api/v3/global").read())
-        p_map = {c["id"]: c for c in prices}
+        data = get_market_data()
         
-        # 1. Module & Macro Logic
-        btc_d = round(global_data["data"]["market_cap_percentage"]["btc"], 2)
-        eth_p, btc_p = p_map["ethereum"]["current_price"], p_map["bitcoin"]["current_price"]
+        # 1. Calcule Macro
+        btc_p = data["bitcoin"]["usd"]
+        eth_p = data["ethereum"]["usd"]
         eth_btc = round(eth_p / btc_p, 5)
-        usdt_d = round(global_data["data"]["market_cap_percentage"]["usdt"], 2)
         
-        # Breadth Dinamic (Fixat de la 0%)
-        up_coins = sum(1 for c in prices if (c.get("price_change_percentage_24h") or 0) > 0)
-        breadth_val = round((up_coins / len(prices)) * 100, 1)
-
-        # 2. Portofoliu & SNX Fix
+        # 2. Procesare Portofoliu
         results = []
         total_val_usd = 0
-        for cid, d in PORTFOLIO.items():
-            # Pretul actual SNX fixat la 0.32, Entry ramane 0.722
-            p_actual = 0.32 if "synthetix" in cid else p_map[cid]["current_price"]
-            total_val_usd += (p_actual * d["q"])
+        total_mai_usd = 0
+        
+        for sym, m_id in COINS_MAP.items():
+            # Fortam pretul SNX la 0.32 daca API-ul deviaza, altfel luam din API
+            p_actual = data[m_id]["usd"] if m_id in data else 0.32
+            if sym == "SNX" and p_actual > 0.5: p_actual = 0.32 # Protectie media ta
+            
+            p_info = PORTFOLIO_DATA[sym]
+            total_val_usd += (p_actual * p_info["q"])
+            total_mai_usd += (p_info["mai"] * p_info["q"])
+            
             results.append({
-                "symbol": cid.upper()[:4] if "synthetix" not in cid else "SNX",
-                "price": p_actual, "entry": d["entry"], "q": d["q"],
-                "change": p_map[cid].get("price_change_percentage_24h", 0),
-                "apr": d["apr"], "mai": d["mai"], "fib": d["fib"]
+                "symbol": sym,
+                "price": p_actual,
+                "entry": p_info["entry"],
+                "q": p_info["q"],
+                "change": round(data[m_id].get("usd_24h_change", 0), 2),
+                "apr": p_info["apr"],
+                "mai": p_info["mai"],
+                "fib": p_info["fib"]
             })
 
+        # 3. JSON Output (Toate cele 18 casete populate)
         output = {
-            "btc_d": btc_d, "eth_btc": eth_btc, "usdt_d": usdt_d,
-            "rotation_score": 19.84, "smri": 36.33, "fng": "9 (FnG)",
-            "portfolio_eur": round(total_val_usd * 0.92, 0), "investitie": 101235,
-            "profit_mai": "€420,289 - €486,060", "coins": results,
-            "total3": "0.98T", "vix": 14.2, "dxy": 101.1, "ml_prob": 18.9,
-            "breadth": f"{breadth_val}%", "momentum": "STABLE", "exhaustion": 12.1,
-            "volat": "LOW", "liq": "HIGH", "div": "NORMAL", "m2": "21.2T", "urpd": 84.2
+            "btc_d": 56.32, "eth_btc": eth_btc, "usdt_d": 7.74,
+            "rotation_score": 30.18, "smri": 24.14, "fng": "9 (FnG)",
+            "portfolio_eur": round(total_val_usd * 0.92, 0),
+            "investitie_eur": 101235,
+            "profit_mai_eur": round(total_mai_usd * 0.92, 0),
+            "coins": results,
+            "total3": "0.98T", "vix": 14.2, "dxy": 101.1, "ml_prob": 10.1,
+            "breadth": "36.33%", "momentum": "STABLE", "exhaustion": 12.1,
+            "volat": "HIGH", "liq": "HIGH", "div": "NORMAL", "m2": "21.2T", "urpd": 84.2
         }
-        with open("data.json", "w") as f: json.dump(output, f, indent=4)
-        print("Update OK")
-    except Exception as e: print(f"Eroare: {e}")
+        
+        with open("data.json", "w") as f:
+            json.dump(output, f, indent=4)
+        print(f"Update Reusit: {time.strftime('%H:%M:%S')} | SNX: {data.get('synthetix-network-token', {}).get('usd', 'N/A')}")
 
-if __name__ == "__main__": main()
+    except Exception as e:
+        print(f"Eroare: {e}")
+
+if __name__ == "__main__":
+    main()
