@@ -2,7 +2,6 @@ import json
 import requests
 import sys
 
-# --- CONFIGURARE ---
 CMC_API_KEY = "46b755eda86e436d87dd4d6c6192ac03"
 
 COINS_MAP = {
@@ -27,12 +26,9 @@ PORTFOLIO_DATA = {
 def main():
     try:
         headers = {'X-CMC_PRO_API_KEY': CMC_API_KEY}
+        # Fetch CMC (BTC, ETH, SNX id:64, USDT)
+        cmc_res = requests.get("https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?id=1,1027,64,825&convert=USD", headers=headers).json()
         
-        # Cerere ultra-specifica pentru SNX (ID 64 este Synthetix original)
-        cmc_url = "https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?id=1,1027,64,825&convert=USD"
-        cmc_res = requests.get(cmc_url, headers=headers).json()
-        
-        # Extragem datele cu verificare de siguranta
         snx_p = cmc_res['data']['64']['quote']['USD']['price']
         usdt_mc = cmc_res['data']['825']['quote']['USD']['market_cap']
         
@@ -41,18 +37,18 @@ def main():
         btc_d = round(global_res['data']['btc_dominance'], 2)
         usdt_d = round((usdt_mc / total_mc) * 100, 2)
 
-        cg_url = f"https://api.coingecko.com/api/v3/simple/price?ids={','.join(COINS_MAP.values())},bitcoin,ethereum&vs_currencies=usd&include_24hr_change=true"
-        cg_data = requests.get(cg_url).json()
-        fng_res = requests.get("https://api.alternative.me/fng/").json()
-        fng_val = int(fng_res['data'][0]['value'])
+        cg_data = requests.get(f"https://api.coingecko.com/api/v3/simple/price?ids={','.join(COINS_MAP.values())},bitcoin,ethereum&vs_currencies=usd&include_24hr_change=true").json()
+        fng_val = int(requests.get("https://api.alternative.me/fng/").json()['data'][0]['value'])
 
         val_usd, apr_usd, fib_usd, results = 0, 0, 0, []
         investitie_eur = 101235
         
         for sym, m_id in COINS_MAP.items():
-            coin_data = cg_data.get(m_id, {})
-            p = snx_p if sym == "SNX" else coin_data.get("usd", 0)
-            change = coin_data.get("usd_24h_change", 0)
+            coin_info = cg_data.get(m_id, {})
+            p = snx_p if sym == "SNX" else coin_info.get("usd", 0)
+            if p is None: p = 0 # Protectie anti NoneType
+            
+            change = coin_info.get("usd_24h_change", 0) or 0
             info = PORTFOLIO_DATA[sym]
             val_usd += (p * info["q"])
             apr_usd += (info["apr"] * info["q"])
@@ -63,23 +59,17 @@ def main():
                 "change": round(change, 2), "apr": info["apr"], "mai": info["mai"], "fib": info["fib"]
             })
 
-        # Rotatia creste spre 70% cand BTC.D scade sub 55% si F&G creste peste 60
         rot_score = round(((60 - btc_d) * 2) + (fng_val * 0.5), 2)
         ml_prob = round((rot_score / 70) * 45, 1)
 
         output = {
-            "rotation_score": rot_score, 
-            "btc_d": btc_d, 
-            "usdt_d": usdt_d,
+            "rotation_score": rot_score, "btc_d": btc_d, "usdt_d": usdt_d,
             "eth_btc": round(cg_data["ethereum"]["usd"]/cg_data["bitcoin"]["usd"], 5),
-            "portfolio_eur": int(val_usd * 0.92), 
-            "investitie_eur": investitie_eur,
+            "portfolio_eur": int(val_usd * 0.92), "investitie_eur": investitie_eur,
             "p_apr": f"{int((apr_usd * 0.92) - investitie_eur):,} €",
             "p_fib": f"{int((fib_usd * 0.92) - investitie_eur):,} €",
-            "coins": results, 
-            "total3": f"{round(total_mc/1e12, 2)}T", 
-            "fng": f"{fng_val} ({fng_res['data'][0]['value_classification']})",
-            "ml_prob": ml_prob, 
+            "coins": results, "total3": f"{round(total_mc/1e12, 2)}T", 
+            "fng": f"{fng_val}", "ml_prob": ml_prob, 
             "vix": 14.8, "dxy": 101.4, "smri": round(fng_val * 0.82, 2),
             "momentum": "PREPARE" if rot_score > 50 else "HOLD",
             "breadth": f"{int(100 - btc_d)}%", "m2": "21.4T", "exhaustion": "LOW", "volat": "LOW", "liq": "HIGH", "urpd": "84.2%"
@@ -87,11 +77,9 @@ def main():
         
         with open("data.json", "w") as f:
             json.dump(output, f, indent=4)
-        
-        print(f"SUCCESS: SNX={snx_p:.2f}, BTC.D={btc_d}%, Score={rot_score}%")
-
+        print("Success!")
     except Exception as e:
-        print(f"ERROR: {e}")
+        print(f"Error: {e}")
         sys.exit(1)
 
 if __name__ == "__main__":
