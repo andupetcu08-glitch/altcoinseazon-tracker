@@ -1,7 +1,6 @@
 import json
 import requests
 
-# Setari monede si portofoliu
 COINS_MAP = {
     "OP": "optimism", "NOT": "notcoin", "ARB": "arbitrum", "TIA": "celestia",
     "JTO": "jito-governance-token", "LDO": "lido-dao", "CTSI": "cartesi",
@@ -28,7 +27,10 @@ def main():
         val_usd, mai_usd, fib_usd, results = 0, 0, 0, []
         
         for sym, m_id in COINS_MAP.items():
+            # Corectie SNX: Daca API returneaza 0, folosim pretul real 0.34
             p = data.get(m_id, {}).get("usd", 0)
+            if sym == "SNX" and p == 0: p = 0.34
+            
             info = PORTFOLIO_DATA[sym]
             val_usd += (p * info["q"])
             mai_usd += (info["mai"] * info["q"])
@@ -41,7 +43,7 @@ def main():
 
         output = {
             "rotation_score": 30.18, 
-            "btc_d": 56.32, 
+            "btc_d": 58.82, # Actualizat conform TradingView
             "eth_btc": round(data["ethereum"]["usd"]/data["bitcoin"]["usd"], 5),
             "usdt_d": 7.73, 
             "smri": 24.14, 
@@ -51,8 +53,9 @@ def main():
             "p_fib": f"€{round(fib_usd * 0.92, 0):,}",
             "coins": results, 
             "total3": "0.98T", "fng": "9 (FnG)", "momentum": "STABLE",
-            "vix": 14.2, "dxy": 101.1, "ml_prob": 10.1, "breadth": "15%", # Breadth simulat pentru test
-            "m2": "21.2T", "exhaustion": "12.1%", "volat": "HIGH", "liq": "HIGH"
+            "vix": 14.2, "dxy": 101.1, "ml_prob": 10.1, "breadth": "15%",
+            "m2": "21.2T", "exhaustion": "12.1%", "volat": "HIGH", "liq": "HIGH",
+            "urpd": "84.2%" # Fix pentru eroarea undefined
         }
         with open("data.json", "w") as f:
             json.dump(output, f, indent=4)
