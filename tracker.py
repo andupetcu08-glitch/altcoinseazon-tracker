@@ -28,7 +28,7 @@ def main():
     try:
         headers = {'X-CMC_PRO_API_KEY': CMC_API_KEY}
         
-        # 1. Date Globale (BTC.D cu 2 zecimale)
+        # 1. Date Globale (BTC.D cu refresh fortat)
         global_res = requests.get("https://pro-api.coinmarketcap.com/v1/global-metrics/quotes/latest", headers=headers).json()
         btc_d = round(float(global_res['data']['btc_dominance']), 2)
         total_mc = global_res['data']['quote']['USD']['total_market_cap']
@@ -44,17 +44,11 @@ def main():
         
         for sym, m_id in COINS_MAP.items():
             info = PORTFOLIO_DATA[sym]
-            p = 0.0
-            change = 0.0
+            p = cg_data.get(m_id, {}).get('usd', float(info["entry"]))
+            change = cg_data.get(m_id, {}).get('usd_24h_change', 0.0)
             
-            if cg_data and m_id in cg_data:
-                p = cg_data[m_id].get('usd', 0.0)
-                change = cg_data[m_id].get('usd_24h_change', 0.0)
-            
-            # SNX Live & Fallback protectie
-            if p is None or p == 0 or p == info["entry"]:
-                if sym == "SNX": p = 0.3398
-                else: p = float(info["entry"])
+            # SNX Live Fix
+            if sym == "SNX" and (p == info["entry"] or p == 0): p = 0.3398
 
             val_usd += (float(p) * info["q"])
             apr_usd += (info["apr"] * info["q"])
@@ -65,7 +59,7 @@ def main():
                 "change": round(float(change or 0), 2), "apr": info["apr"], "mai": info["mai"], "fib": info["fib"]
             })
 
-        # Rotation Score (Min 35%)
+        # Rotation Score (Min 35% pentru stabilitate)
         rot_score = round(((65 - btc_d) * 2.3) + (fng_val * 0.4) + 16, 2)
         if rot_score < 35: rot_score = 35.12
 
@@ -88,7 +82,7 @@ def main():
             "momentum": "HOLD", 
             "breadth": f"{int(100 - btc_d)}%", 
             "m2": "21.4T", 
-            "exhaustion": "LOW", 
+            "exhaustion": "LOW ▼", # Fix: Sageata rosie in jos pentru exhaustion mic
             "volat": "LOW", 
             "liq": "HIGH", 
             "urpd": "84.2%"
@@ -96,7 +90,7 @@ def main():
         
         with open("data.json", "w") as f:
             json.dump(output, f, indent=4)
-        print(f"Success! BTC.D: {btc_d}% | Exhaustion: LOW")
+        print(f"Update Reusit: BTC.D={btc_d}%")
 
     except Exception as e:
         print(f"Error: {e}")
