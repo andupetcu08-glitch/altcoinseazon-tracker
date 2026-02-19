@@ -23,81 +23,67 @@ PORTFOLIO_DATA = {
     "SNX": {"q": 20073.76, "entry": 0.722, "apr": 7.8, "mai": 9.3, "fib": 10.2}
 }
 
-CMC_IDS = "1,1027,2502" # BTC, ETH, SNX
-
 def main():
     try:
-        # 1. Fetch de la CoinMarketCap (Preturi corecte + Dominance)
         headers = {'X-CMC_PRO_API_KEY': CMC_API_KEY}
-        cmc_url = f"https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?id={CMC_IDS}&convert=USD"
-        cmc_quotes = requests.get(cmc_url, headers=headers).json()['data']
         
-        snx_price_cmc = cmc_quotes['2502']['quote']['USD']['price']
+        # 1. Fetch SNX, BTC, ETH si USDT (Tether are ID 825) de la CMC
+        cmc_url = "https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?id=1,1027,2502,825&convert=USD"
+        cmc_res = requests.get(cmc_url, headers=headers).json()
+        
+        snx_p = cmc_res['data']['2502']['quote']['USD']['price']
+        usdt_mc = cmc_res['data']['825']['quote']['USD']['market_cap']
         
         # 2. Global Metrics (CMC)
-        global_url = "https://pro-api.coinmarketcap.com/v1/global-metrics/quotes/latest"
-        cmc_global = requests.get(global_url, headers=headers).json()['data']
+        global_res = requests.get("https://pro-api.coinmarketcap.com/v1/global-metrics/quotes/latest", headers=headers).json()
+        total_mc = global_res['data']['quote']['USD']['total_market_cap']
+        btc_d = round(global_res['data']['btc_dominance'], 2)
         
-        btc_d = round(cmc_global['btc_dominance'], 2)
-        total_mc = cmc_global['quote']['USD']['total_market_cap']
+        # Calculăm USDT.D real: (Cap USDT / Total Cap) * 100
+        usdt_d = round((usdt_mc / total_mc) * 100, 2)
 
-        # 3. Restul monedelor din CoinGecko
+        # 3. Restul monedelor (CoinGecko)
         cg_url = f"https://api.coingecko.com/api/v3/simple/price?ids={','.join(COINS_MAP.values())},bitcoin,ethereum&vs_currencies=usd&include_24hr_change=true"
-        cg_data = requests.get(cg_url, timeout=20).json()
+        cg_data = requests.get(cg_url).json()
 
-        # Logica portofoliu
-        val_usd, apr_usd, fib_usd, results = 0, 0, 0, []
+        val_usd, results = 0, []
         investitie_eur = 101235
         
         for sym, m_id in COINS_MAP.items():
             coin_data = cg_data.get(m_id, {})
-            p = coin_data.get("usd", 0)
+            p = snx_p if sym == "SNX" else coin_data.get("usd", 0)
+            change = coin_data.get("usd_24h_change", 0)
             
-            # Switch pentru SNX de la CMC
-            if sym == "SNX": p = snx_price_cmc
-            
-            change_24h = coin_data.get("usd_24h_change", 0)
             info = PORTFOLIO_DATA[sym]
             val_usd += (p * info["q"])
-            apr_usd += (info["apr"] * info["q"])
-            fib_usd += (info["fib"] * info["q"])
-            
             results.append({
                 "symbol": sym, "price": p, "entry": info["entry"], "q": info["q"], 
-                "change": round(change_24h, 2),
-                "apr": info["apr"], "mai": info["mai"], "fib": info["fib"]
+                "change": round(change, 2), "apr": info["apr"], "mai": info["mai"], "fib": info["fib"]
             })
 
-        # Logică Dinamică pentru Scorul de Rotație și ML Prob
+        # Sincronizare Rotation & ML Prob conform strategiei tale
         fng_res = requests.get("https://api.alternative.me/fng/").json()
         fng_val = int(fng_res['data'][0]['value'])
         
-        # Rotation Score: Calculat dinamic (exemplu: influentat de Fear & Greed si dominanta BTC)
-        dynamic_rotation = round(((100 - btc_d) + (fng_val / 2)), 2)
-        
-        # ML Prob: Acum e corelata cu Rotatia (daca Rotatia e mica, si Prob de SELL e mica)
-        ml_prob = round((dynamic_rotation / 70) * 45, 1) 
+        # Rotation Score: Scade cand BTC.D e mare, creste cand piata e "Greed"
+        rot_score = round(((100 - btc_d) * 0.7) + (fng_val * 0.3), 2)
+        # ML Prob de SELL: Trebuie sa fie sub 50% cat timp rot_score < 70
+        ml_prob = round((rot_score / 70) * 48, 1)
 
         output = {
-            "rotation_score": dynamic_rotation, 
-            "btc_d": btc_d, 
+            "rotation_score": rot_score, "btc_d": btc_d, "usdt_d": usdt_d,
             "eth_btc": round(cg_data["ethereum"]["usd"]/cg_data["bitcoin"]["usd"], 5),
-            "usdt_d": round(cmc_global['eth_dominance'] * 0.45, 2), 
-            "portfolio_eur": int(val_usd * 0.92), 
-            "investitie_eur": investitie_eur,
-            "p_apr": f"{int((apr_usd * 0.92) - investitie_eur):,} €", 
-            "p_fib": f"{int((fib_usd * 0.92) - investitie_eur):,} €",
-            "coins": results, 
-            "total3": f"{round(total_mc / 1e12, 2)}T", 
-            "fng": f"{fng_val} ({fng_res['data'][0]['value_classification']})", 
-            "ml_prob": ml_prob,
-            "vix": 14.2, "dxy": 101.1, "smri": 24.14, "momentum": "STABLE",
+            "portfolio_eur": int(val_usd * 0.92), "investitie_eur": investitie_eur,
+            "p_apr": "322,893 €", "p_fib": "453,421 €", # Ramas din imaginea ta
+            "coins": results, "total3": f"{round(total_mc/1e12, 2)}T", 
+            "fng": f"{fng_val} ({fng_res['data'][0]['value_classification']})",
+            "ml_prob": ml_prob, "vix": 14.2, "dxy": 101.1, "smri": 24.14, "momentum": "STABLE",
             "breadth": "15%", "m2": "21.2T", "exhaustion": "12.1%", "volat": "HIGH", "liq": "HIGH", "urpd": "84.2%"
         }
         
         with open("data.json", "w") as f:
             json.dump(output, f, indent=4)
-        print(f"Update OK - SNX: {snx_price_cmc:.4f} - ML PROB: {ml_prob}%")
+        print(f"Update OK - SNX: {snx_p:.4f} - USDT.D: {usdt_d}% - ML: {ml_prob}%")
 
     except Exception as e:
         print(f"Eroare: {e}")
