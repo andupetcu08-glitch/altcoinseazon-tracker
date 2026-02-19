@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <style>
         body { background: #0b0e14; color: #e1e1e1; font-family: 'Inter', sans-serif; padding: 25px; margin: 0; }
+        /* Banner Mare 18px */
         .target-banner { 
             background: linear-gradient(90deg, #052e16 0%, #064e3b 100%); 
             border: 2px solid #22c55e; padding: 20px; border-radius: 12px; 
@@ -14,11 +15,12 @@
         .grid-3 { display: grid; grid-template-columns: 1fr 1.5fr 1fr; gap: 15px; margin-bottom: 20px; }
         .card { background: #161b22; padding: 20px; border-radius: 12px; border: 1px solid #30363d; text-align: center; transition: all 0.3s; }
         .card:hover { transform: translateY(-3px); border-color: #444; }
+        /* Label 12px Bold 800 */
         .label { font-size: 12px; color: #8b949e; text-transform: uppercase; font-weight: 800; margin-bottom: 8px; }
         .val { font-weight: bold; font-size: 24px; color: #f0f6fc; }
         .up { color: #39d353; } .down { color: #f85149; }
         
-        /* Glow & Magnify la Hover */
+        /* Glow & Magnify pe Tabel */
         tr { transition: all 0.2s; border-bottom: 1px solid #21262d; }
         tr:hover { 
             background: rgba(57, 211, 83, 0.08) !important; 
@@ -38,39 +40,52 @@
 </head>
 <body>
     <div class="target-banner">🎯 TARGETS: BTC.D: 48-50% | ROTATION: 70% | USDTD: 5.5% | ETH/BTC: 0.055+ | ML SELL PROB: 50%</div>
+    
     <div class="grid-6" id="top-nav"></div>
+
     <div class="grid-3">
         <div class="card" style="border-left: 5px solid #39d353;"><div class="label">Portofoliu Actual</div><div id="v-eur" class="val up">€0</div></div>
         <div class="card" style="border-bottom: 2px solid #e3b341;"><div class="label">Potential Profit (MAI - FIB)</div><div id="v-range" class="val" style="color:#e3b341">€0 - €0</div></div>
         <div class="card"><div class="label">Multiplier Total</div><div id="v-mult" class="val">0.00x</div><div id="v-inv" style="font-size: 10px; color: #666; margin-top: 5px;"></div></div>
     </div>
+
     <div class="grid-6" id="m-r1"></div>
     <div class="grid-6" id="m-r2"></div>
+
     <table>
         <thead><tr><th>MONEDA</th><th>CANTITATE</th><th>ENTRY</th><th style="color:#e3b341">TARGET APR</th><th style="color:#39d353">MULT</th><th style="color:#e3b341">TARGET MAI</th><th style="color:#39d353">MULT</th><th style="color:#bc8cff">FINAL</th></tr></thead>
         <tbody id="rows"></tbody>
     </table>
+
     <script>
         async function load() {
             try {
                 const r = await fetch('data.json?v=' + Date.now());
                 const d = await r.json();
+                /* Logica de Sageti Dinamice ▲ ▼ */
                 const arrow = (v, t, rev=false) => (rev ? v < t : v > t) ? '<span class="up">▲</span>' : '<span class="down">▼</span>';
+
                 document.getElementById('v-eur').innerText = '€' + d.portfolio_eur.toLocaleString();
                 document.getElementById('v-range').innerText = `${d.p_mai} - ${d.p_fib}`;
                 document.getElementById('v-mult').innerText = (d.portfolio_eur / d.investitie_eur).toFixed(2) + 'x';
                 document.getElementById('v-inv').innerText = 'INVESTIT: €' + d.investitie_eur.toLocaleString();
+
                 const top = [['Rotation Score', d.rotation_score+'%', 70], ['BTC.D LIVE', d.btc_d+'%', 48, true], ['ETH / BTC', d.eth_btc, 0.055], ['USDT.D LIVE', d.usdt_d+'%', 5.5, true], ['S.M.R.I', d.smri+'%', 75]];
-                document.getElementById('top-nav').innerHTML = top.map(i => `<div class="card"><div class="label">${i[0]}</div><div class="val" style="${i[0]==='Rotation Score'&&parseFloat(i[1])>=70?'color:#39d353':''}">${i[1]} ${arrow(parseFloat(i[1]),i[2],i[3])}</div></div>`).join('') + `
+                document.getElementById('top-nav').innerHTML = top.map(i => `
+                    <div class="card"><div class="label">${i[0]}</div><div class="val" style="${i[0]==='Rotation Score'&&parseFloat(i[1])>=70?'color:#39d353':''}">${i[1]} ${arrow(parseFloat(i[1]),i[2],i[3])}</div></div>
+                `).join('') + `
                     <div class="btn-group">
                         <div class="st-btn ${parseFloat(d.rotation_score)<70?'active-hold':''}">HOLD</div>
                         <div class="st-btn">PREPARE</div>
                         <div class="st-btn ${parseFloat(d.rotation_score)>=70?'active-sell':''}">SELL</div>
                     </div>`;
+
                 const r1 = [['TOTAL 3', d.total3, 1.2],['F&G', d.fng, 70],['STRENGTH', d.momentum],['VIX', d.vix, 14, true],['URPD', d.urpd+'%', 85],['DXY', d.dxy, 100, true]];
                 const r2 = [['ML PROB', d.ml_prob+'%', 50],['BREADTH', d.breadth, 50],['M2', d.m2],['EXHAUSTION', d.exhaustion+'%', 40, true],['VOLAT', d.volat],['LIQ', d.liq]];
+                
                 document.getElementById('m-r1').innerHTML = r1.map(m => `<div class="card"><div class="label">${m[0]}</div><div class="val">${m[1]} ${m[2]?arrow(parseFloat(m[1]),m[2],m[3]):''}</div></div>`).join('');
                 document.getElementById('m-r2').innerHTML = r2.map(m => `<div class="card"><div class="label">${m[0]}</div><div class="val">${m[1]}</div></div>`).join('');
+
                 document.getElementById('rows').innerHTML = d.coins.map(c => `<tr><td><b>${c.symbol}</b> <small class="${c.change >= 0 ? 'up':'down'}">(${c.change}%)</small><br><span style="color:#8b949e">$${c.price.toFixed(c.price < 1 ? 4 : 2)}</span></td><td>${c.q.toLocaleString()}</td><td>$${c.entry}</td><td style="color:#e3b341">$${c.apr}</td><td class="up"><b>${(c.apr/c.entry).toFixed(1)}x</b></td><td style="color:#e3b341">$${c.mai}</td><td class="up"><b>${(c.mai/c.entry).toFixed(1)}x</b></td><td style="color:#bc8cff"><b>$${c.fib}</b></td></tr>`).join('');
             } catch (e) { console.error(e); }
         }
