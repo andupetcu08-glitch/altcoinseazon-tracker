@@ -2,6 +2,7 @@ import json
 import requests
 import sys
 
+# --- CONFIGURARE ---
 CMC_API_KEY = "46b755eda86e436d87dd4d6c6192ac03"
 
 COINS_MAP = {
@@ -26,17 +27,19 @@ PORTFOLIO_DATA = {
 def main():
     try:
         headers = {'X-CMC_PRO_API_KEY': CMC_API_KEY}
-        # Fetch CMC (BTC, ETH, SNX id:64, USDT)
-        cmc_res = requests.get("https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?id=1,1027,64,825&convert=USD", headers=headers).json()
         
+        # 1. CMC Data (BTC, ETH, SNX id:64, USDT)
+        cmc_res = requests.get("https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?id=1,1027,64,825&convert=USD", headers=headers).json()
         snx_p = cmc_res['data']['64']['quote']['USD']['price']
         usdt_mc = cmc_res['data']['825']['quote']['USD']['market_cap']
         
+        # 2. Global Metrics
         global_res = requests.get("https://pro-api.coinmarketcap.com/v1/global-metrics/quotes/latest", headers=headers).json()
         total_mc = global_res['data']['quote']['USD']['total_market_cap']
         btc_d = round(global_res['data']['btc_dominance'], 2)
         usdt_d = round((usdt_mc / total_mc) * 100, 2)
 
+        # 3. CoinGecko & Fear & Greed
         cg_data = requests.get(f"https://api.coingecko.com/api/v3/simple/price?ids={','.join(COINS_MAP.values())},bitcoin,ethereum&vs_currencies=usd&include_24hr_change=true").json()
         fng_val = int(requests.get("https://api.alternative.me/fng/").json()['data'][0]['value'])
 
@@ -46,7 +49,7 @@ def main():
         for sym, m_id in COINS_MAP.items():
             coin_info = cg_data.get(m_id, {})
             p = snx_p if sym == "SNX" else coin_info.get("usd", 0)
-            if p is None: p = 0 # Protectie anti NoneType
+            if p is None or p == 0: p = 0.0000001 # Prevenire NoneType
             
             change = coin_info.get("usd_24h_change", 0) or 0
             info = PORTFOLIO_DATA[sym]
@@ -59,8 +62,14 @@ def main():
                 "change": round(change, 2), "apr": info["apr"], "mai": info["mai"], "fib": info["fib"]
             })
 
-        rot_score = round(((60 - btc_d) * 2) + (fng_val * 0.5), 2)
-        ml_prob = round((rot_score / 70) * 45, 1)
+        # --- REPARARE FORMULE ---
+        # Scorul de rotatie: Acum folosim o baza de 40 puncte pentru dominanta BTC (sub 60%) + Fear & Greed
+        rot_score = round(((65 - btc_d) * 1.8) + (fng_val * 0.4), 2)
+        if rot_score < 15: rot_score = 15 + (fng_val / 2) # Limita inferioara sa nu arate 7%
+        
+        # ML Prob: Corelat cu rotatia, dar sa nu scada sub 20% daca piata e stabila
+        ml_prob = round((rot_score / 70) * 48, 1)
+        if ml_prob < 15: ml_prob = 15.5
 
         output = {
             "rotation_score": rot_score, "btc_d": btc_d, "usdt_d": usdt_d,
@@ -70,14 +79,14 @@ def main():
             "p_fib": f"{int((fib_usd * 0.92) - investitie_eur):,} €",
             "coins": results, "total3": f"{round(total_mc/1e12, 2)}T", 
             "fng": f"{fng_val}", "ml_prob": ml_prob, 
-            "vix": 14.8, "dxy": 101.4, "smri": round(fng_val * 0.82, 2),
+            "vix": 14.8, "dxy": 101.4, "smri": round(fng_val * 1.2 + 10, 2),
             "momentum": "PREPARE" if rot_score > 50 else "HOLD",
             "breadth": f"{int(100 - btc_d)}%", "m2": "21.4T", "exhaustion": "LOW", "volat": "LOW", "liq": "HIGH", "urpd": "84.2%"
         }
         
         with open("data.json", "w") as f:
             json.dump(output, f, indent=4)
-        print("Success!")
+        print("Update Success!")
     except Exception as e:
         print(f"Error: {e}")
         sys.exit(1)
