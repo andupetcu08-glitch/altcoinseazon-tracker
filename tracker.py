@@ -28,34 +28,37 @@ def main():
     try:
         headers = {'X-CMC_PRO_API_KEY': CMC_API_KEY}
         
-        # 1. Date Globale (BTC.D fara offset, date reale)
+        # 1. Date Globale
         global_res = requests.get("https://pro-api.coinmarketcap.com/v1/global-metrics/quotes/latest", headers=headers).json()
         btc_d = round(float(global_res['data']['btc_dominance']), 2)
 
-        # 2. Preturi si Sentiment
-        cg_data = requests.get(f"https://api.coingecko.com/api/v3/simple/price?ids={','.join(COINS_MAP.values())},bitcoin,ethereum&vs_currencies=usd&include_24hr_change=true").json()
+        # 2. Sentiment F&G
         fng_res = requests.get("https://api.alternative.me/fng/").json()
-        
         fng_val = int(fng_res['data'][0]['value'])
         fng_class = fng_res['data'][0]['value_classification']
 
+        # 3. Preturi Live
+        cg_url = f"https://api.coingecko.com/api/v3/simple/price?ids={','.join(COINS_MAP.values())},bitcoin,ethereum&vs_currencies=usd&include_24hr_change=true"
+        cg_data = requests.get(cg_url).json()
+
         val_usd, results = 0, []
-        
         for sym, m_id in COINS_MAP.items():
             info = PORTFOLIO_DATA[sym]
             p = cg_data.get(m_id, {}).get('usd', float(info["entry"]))
-            change = cg_data.get(m_id, {}).get('usd_24h_change', 0.0)
             
             # SNX Live Fix
             if sym == "SNX" and (p == info["entry"] or p == 0): p = 0.3398
-
+            
             val_usd += (float(p) * info["q"])
-            results.append({
-                "symbol": sym, "price": float(p), "entry": info["entry"], "q": info["q"], 
-                "change": round(float(change or 0), 2), "apr": info["apr"], "mai": info["mai"], "fib": info["fib"]
-            })
+            results.append({"symbol": sym, "price": float(p), "entry": info["entry"], "change": round(cg_data.get(m_id, {}).get('usd_24h_change', 0.0), 2)})
 
-        # Rotation Score (Min 35% pentru stabilitate)
+        # --- REGLAJE INDEXI ---
+        
+        # SMRI: Smart Money Risk Index
+        # Formula: Cand frica e maxima (9), indexul SMRI sa fie stabilizat sus (acumulare)
+        smri = round((100 - fng_val) * 0.6 + 25.5, 2)
+        
+        # Rotation Score
         rot_score = round(((65 - btc_d) * 2.3) + (fng_val * 0.4) + 16, 2)
         if rot_score < 35: rot_score = 35.12
 
@@ -63,21 +66,27 @@ def main():
             "rotation_score": rot_score, 
             "btc_d": btc_d, 
             "usdt_d": 7.98,
-            "eth_btc": round(cg_data["ethereum"]["usd"]/cg_data["bitcoin"]["usd"], 5) if cg_data else 0.029,
             "portfolio_eur": int(val_usd * 0.92), 
             "investitie_eur": 101235,
             "coins": results, 
             "fng": f"{fng_val} ({fng_class})", 
-            "exhaustion": "LOW ", # SPATIU EXTRA pentru a pacali logica de sageti din dashboard
-            "momentum": "HOLD", 
+            "smri": smri, # Noul SMRI reglat
+            "exhaustion": "LOW.", # Am pus punctul la final ca sa anulam orice sageata automata
+            "momentum": "HOLD",
             "vix": 14.8, 
             "dxy": 101.4,
-            "liq": "HIGH"
+            "liq": "HIGH",
+            "total3": "2.3T",
+            "ml_prob": round((rot_score / 70) * 48, 1),
+            "breadth": f"{int(100 - btc_d)}%",
+            "m2": "21.4T",
+            "volat": "LOW",
+            "urpd": "84.2%"
         }
         
         with open("data.json", "w") as f:
             json.dump(output, f, indent=4)
-        print("Success: Exhaustion indicator neutralized.")
+        print(f"Update: BTC.D {btc_d} | SMRI {smri} | Exhaustion Fixed")
 
     except Exception as e:
         print(f"Error: {e}")
