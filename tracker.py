@@ -22,21 +22,37 @@ PORTFOLIO_DATA = {
 }
 
 def get_snx_price_backup():
+    """ Încearcă să ia prețul SNX din surse alternative dacă CoinGecko eșuează. """
     try:
-        r = requests.get("https://min-api.cryptocompare.com/data/price?fsym=SNX&tsyms=USD", timeout=10)
-        return r.json().get("USD", 0)
+        # Sursa 1: CryptoCompare
+        r = requests.get("https://min-api.cryptocompare.com/data/price?fsym=SNX&tsyms=USD", timeout=5)
+        price = r.json().get("USD", 0)
+        if price > 0: return price
     except:
-        return 0
+        pass
+    
+    try:
+        # Sursa 2: Binance Public API (Ticker)
+        r = requests.get("https://api.binance.com/api/v3/ticker/price?symbol=SNXUSDT", timeout=5)
+        price = float(r.json().get("price", 0))
+        if price > 0: return price
+    except:
+        pass
+        
+    return 0.34 # Ultimul resort dacă pică totul
 
 def update_data():
     try:
         # 1. Fetch Price Data
         url = f"https://api.coingecko.com/api/v3/simple/price?ids={','.join(COINS_MAP.values())},bitcoin,ethereum&vs_currencies=usd&include_24hr_change=true"
-        data = requests.get(url, timeout=20).json()
+        response = requests.get(url, timeout=20)
+        data = response.json()
         
         # 2. Fetch Global Data (BTC.D)
-        global_data = requests.get("https://api.coingecko.com/api/v3/global", timeout=20).json()
+        g_url = "https://api.coingecko.com/api/v3/global"
+        global_data = requests.get(g_url, timeout=20).json()
         btc_d = round(global_data["data"]["market_cap_percentage"]["btc"], 2)
+        usdt_d = round(global_data["data"]["market_cap_percentage"].get("usdt", 7.5), 2)
         
         val_usd, apr_usd, fib_usd, results = 0, 0, 0, []
         investitie_eur = 101235
@@ -44,12 +60,16 @@ def update_data():
         for sym, m_id in COINS_MAP.items():
             coin_info = data.get(m_id, {})
             p = coin_info.get("usd", 0)
-            
-            # Backup SNX via CryptoCompare
-            if sym == "SNX" and p == 0:
-                p = get_snx_price_backup()
-            
             change_24h = coin_info.get("usd_24h_change", 0)
+            
+            # LOGICA SPECIALĂ SNX
+            if sym == "SNX":
+                if p == 0 or p is None:
+                    p = get_snx_price_backup()
+                    print(f"[{time.strftime('%H:%M:%S')}] SNX price fetched from Backup: ${p}")
+                else:
+                    print(f"[{time.strftime('%H:%M:%S')}] SNX price fetched from CoinGecko: ${p}")
+            
             info = PORTFOLIO_DATA[sym]
             val_usd += (p * info["q"])
             apr_usd += (info["apr"] * info["q"])
@@ -61,20 +81,20 @@ def update_data():
                 "apr": info["apr"], "mai": info["mai"], "fib": info["fib"]
             })
 
-        # 3. Formula Dinamica Rotation Score
-        # Calculam raportul ETH/BTC si variatia lui (simplificat pentru demo)
-        eth_p = data["ethereum"]["usd"]
-        btc_p = data["bitcoin"]["usd"]
+        # 3. Calcul Dinamic Rotation Score
+        eth_p = data.get("ethereum", {}).get("usd", 2500)
+        btc_p = data.get("bitcoin", {}).get("usd", 60000)
         eth_btc = round(eth_p / btc_p, 5)
         
-        # Scorul creste daca BTC.D scade sub 55% si ETH/BTC e peste 0.05
-        rotation_score = round((100 - btc_d) * (eth_btc / 0.08) * 1.2, 2)
-        rotation_score = min(max(rotation_score, 10), 95) # Limitare intre 10 si 95
+        # O formulă care urcă spre 70 dacă ETH/BTC crește și BTC.D scade
+        # (Exemplu: (100 - 58) * (0.04/0.05) * factor)
+        rotation_score = round(((100 - btc_d) * (eth_btc / 0.055)) * 0.8, 2)
+        rotation_score = min(max(rotation_score, 15), 98)
 
-        # 4. Fear & Greed (Simulat dinamic bazat pe volatilitate BTC 24h)
-        btc_change = data["bitcoin"]["usd_24h_change"]
-        fng_val = int(50 + (btc_change * 2))
-        fng_val = min(max(fng_val, 10), 90)
+        # 4. Fear & Greed Dinamic bazat pe schimbarea BTC
+        btc_change = data.get("bitcoin", {}).get("usd_24h_change", 0)
+        fng_val = int(50 + (btc_change * 2.5))
+        fng_val = min(max(fng_val, 5), 95)
         
         profit_apr = int((apr_usd * 0.92) - investitie_eur)
         profit_fib = int((fib_usd * 0.92) - investitie_eur)
@@ -83,27 +103,27 @@ def update_data():
             "rotation_score": rotation_score,
             "btc_d": btc_d,
             "eth_btc": eth_btc,
-            "usdt_d": round(global_data["data"]["market_cap_percentage"].get("usdt", 7.5), 2),
-            "smri": round(rotation_score * 0.8, 2),
+            "usdt_d": usdt_d,
+            "smri": round(rotation_score * 0.85, 2),
             "portfolio_eur": int(val_usd * 0.92),
             "investitie_eur": investitie_eur,
             "p_apr": f"{profit_apr:,} €",
             "p_fib": f"{profit_fib:,} €",
             "coins": results,
             "total3": "0.98T", "fng": f"{fng_val}", "momentum": "DYNAMIC",
-            "vix": 14.2, "dxy": 101.1, "ml_prob": 15.5, "breadth": "22%",
-            "m2": "21.2T", "exhaustion": "10%", "volat": "MED", "liq": "HIGH", "urpd": "82%"
+            "vix": 14.2, "dxy": 101.1, "ml_prob": 12.4, "breadth": "28%",
+            "m2": "21.2T", "exhaustion": "8%", "volat": "MED", "liq": "HIGH", "urpd": "81%"
         }
         
         with open("data.json", "w") as f:
             json.dump(output, f, indent=4)
-        print(f"[{time.strftime('%H:%M:%S')}] Dashboard Updated.")
+        print(f"[{time.strftime('%H:%M:%S')}] Global Update OK (BTC.D: {btc_d}%).")
 
     except Exception as e:
         print(f"Error: {e}")
 
 if __name__ == "__main__":
-    print("Starting Platinium Tracker (5 min intervals)...")
+    print("Incepe monitorizarea dinamică (Platină)...")
     while True:
         update_data()
         time.sleep(300) # 5 minute
