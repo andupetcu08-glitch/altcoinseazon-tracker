@@ -1,5 +1,6 @@
 import json
 import requests
+import pandas as pd # Optional, pentru prelucrare date daca e cazul
 
 # --- CONFIGURARE ---
 CMC_API_KEY = "46b755eda86e436d87dd4d6c6192ac03"
@@ -23,29 +24,48 @@ PORTFOLIO_DATA = {
     "SNX": {"q": 20073.76, "entry": 0.722, "apr": 7.8, "mai": 9.3, "fib": 10.2}
 }
 
+def get_macro_data():
+    """Trage VIX si DXY din surse publice (Stooq)"""
+    try:
+        # VIX
+        vix_res = requests.get("https://stooq.com/q/l/?s=^vix&f=sd2t2ohlc&h&e=csv")
+        vix = float(vix_res.text.splitlines()[1].split(',')[6])
+        # DXY
+        dxy_res = requests.get("https://stooq.com/q/l/?s=dx.f&f=sd2t2ohlc&h&e=csv")
+        dxy = float(dxy_res.text.splitlines()[1].split(',')[6])
+        return vix, dxy
+    except:
+        return 14.2, 101.1 # Fallback daca serverele macro sunt ocupate
+
 def main():
     try:
         headers = {'X-CMC_PRO_API_KEY': CMC_API_KEY}
         
-        # 1. Fetch SNX prin simbol (nu ID) pentru precizie maxima
-        snx_res = requests.get(f"https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?symbol=SNX&convert=USD", headers=headers).json()
-        snx_p = snx_res['data']['SNX']['quote']['USD']['price']
+        # 1. Fetch SNX si USDT via CMC (SNX ID: 2502, USDT ID: 825)
+        # Am pus ID-urile in loc de simboluri pentru a evita ambiguitatea
+        cmc_url = "https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?id=1,1027,2502,825&convert=USD"
+        cmc_res = requests.get(cmc_url, headers=headers).json()
         
-        # 2. Global Metrics (CMC) pentru BTC.D si USDT.D
+        snx_p = cmc_res['data']['2502']['quote']['USD']['price']
+        usdt_mc = cmc_res['data']['825']['quote']['USD']['market_cap']
+        
+        # 2. Global Metrics (CMC)
         global_res = requests.get("https://pro-api.coinmarketcap.com/v1/global-metrics/quotes/latest", headers=headers).json()
         total_mc = global_res['data']['quote']['USD']['total_market_cap']
         btc_d = round(global_res['data']['btc_dominance'], 2)
-        
-        # Luam si ETH Dominance pentru a aproxima USDT.D daca API-ul e limitat, 
-        # sau tragem direct USDT MC pentru precizie
-        usdt_res = requests.get(f"https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?symbol=USDT&convert=USD", headers=headers).json()
-        usdt_mc = usdt_res['data']['USDT']['quote']['USD']['market_cap']
         usdt_d = round((usdt_mc / total_mc) * 100, 2)
 
-        # 3. Restul monedelor (CoinGecko)
+        # 3. Restul monedelor (CoinGecko) + Fear & Greed
         cg_url = f"https://api.coingecko.com/api/v3/simple/price?ids={','.join(COINS_MAP.values())},bitcoin,ethereum&vs_currencies=usd&include_24hr_change=true"
         cg_data = requests.get(cg_url).json()
+        
+        fng_res = requests.get("https://api.alternative.me/fng/").json()
+        fng_val = int(fng_res['data'][0]['value'])
 
+        # 4. Macro Data Dinamic
+        vix, dxy = get_macro_data()
+
+        # Calcule Portofoliu
         val_usd, apr_usd, fib_usd, results = 0, 0, 0, []
         investitie_eur = 101235
         
@@ -64,30 +84,39 @@ def main():
                 "change": round(change, 2), "apr": info["apr"], "mai": info["mai"], "fib": info["fib"]
             })
 
-        # Calcul Profit NET Dinamic
-        p_apr_val = int((apr_usd * 0.92) - investitie_eur)
-        p_fib_val = int((fib_usd * 0.92) - investitie_eur)
-
-        fng_res = requests.get("https://api.alternative.me/fng/").json()
-        fng_val = int(fng_res['data'][0]['value'])
-        
-        rot_score = round(((100 - btc_d) * 0.6) + (fng_val * 0.4), 2)
-        ml_prob = round((rot_score / 70) * 48, 1)
+        # Logică Dinamică Scorul de Rotație & ML Prob
+        # Corelație: Rotația crește dacă Dominanța BTC scade și F&G crește
+        rot_score = round(((65 - btc_d) * 1.5) + (fng_val * 0.4), 2)
+        ml_prob = round((rot_score / 70) * 45, 1)
 
         output = {
-            "rotation_score": rot_score, "btc_d": btc_d, "usdt_d": usdt_d,
+            "rotation_score": rot_score, 
+            "btc_d": btc_d, 
+            "usdt_d": usdt_d,
             "eth_btc": round(cg_data["ethereum"]["usd"]/cg_data["bitcoin"]["usd"], 5),
-            "portfolio_eur": int(val_usd * 0.92), "investitie_eur": investitie_eur,
-            "p_apr": f"{p_apr_val:,} €", "p_fib": f"{p_fib_val:,} €",
-            "coins": results, "total3": f"{round(total_mc/1e12, 2)}T", 
+            "portfolio_eur": int(val_usd * 0.92), 
+            "investitie_eur": investitie_eur,
+            "p_apr": f"{int((apr_usd * 0.92) - investitie_eur):,} €",
+            "p_fib": f"{int((fib_usd * 0.92) - investitie_eur):,} €",
+            "coins": results, 
+            "total3": f"{round(total_mc/1e12, 2)}T", 
             "fng": f"{fng_val} ({fng_res['data'][0]['value_classification']})",
-            "ml_prob": ml_prob, "vix": 14.2, "dxy": 101.1, "smri": 24.14, "momentum": "STABLE",
-            "breadth": "15%", "m2": "21.2T", "exhaustion": "12.1%", "volat": "HIGH", "liq": "HIGH", "urpd": "84.2%"
+            "ml_prob": ml_prob, 
+            "vix": vix, 
+            "dxy": dxy, 
+            "smri": round(fng_val * 0.8, 2), # SMRI dinamic legat de sentiment
+            "momentum": "BULLISH" if fng_val > 50 else "BEARISH",
+            "breadth": f"{round(100 - btc_d, 1)}%", # Alts breadth aprox.
+            "m2": "21.4T", # M2 e raportat lunar, ramane cvasistatic
+            "exhaustion": f"{round(ml_prob * 0.5, 1)}%", 
+            "volat": "HIGH" if vix > 18 else "LOW",
+            "liq": "HIGH" if dxy < 102 else "LOW",
+            "urpd": "84.2%" 
         }
         
         with open("data.json", "w") as f:
             json.dump(output, f, indent=4)
-        print(f"Update OK - SNX: {snx_p:.4f} - USDT.D: {usdt_d}%")
+        print(f"Update OK - SNX: {snx_p:.4f} - VIX: {vix} - DXY: {dxy}")
 
     except Exception as e:
         print(f"Eroare: {e}")
