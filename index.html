@@ -24,8 +24,12 @@
         th { text-align: left; color: #8b949e; padding: 22px; border-bottom: 3px solid #30363d; font-size: 14px; }
         td { padding: 22px; border-bottom: 1px solid #21262d; }
         tr:hover { background: rgba(57, 211, 83, 0.1) !important; transform: scale(1.01); box-shadow: 0 0 30px rgba(57, 211, 83, 0.2); }
+        
         .btn-group { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; height: 115px; align-items: stretch; }
-        .st-btn { background: #0d1117; border: 1px solid #30363d; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 11px; color: #484f58; text-transform: uppercase; }
+        
+        /* Modificare marime butoane 1.5x (16.5px) */
+        .st-btn { background: #0d1117; border: 1px solid #30363d; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 16.5px; color: #484f58; text-transform: uppercase; }
+        
         .active-hold { border-color: #f85149 !important; color: #f85149 !important; box-shadow: 0 0 15px rgba(248, 81, 73, 0.4); }
         .active-sell { border-color: #39d353 !important; color: #39d353 !important; box-shadow: 0 0 15px rgba(57, 211, 83, 0.4); }
     </style>
@@ -62,9 +66,19 @@
                 document.getElementById('v-mult').innerText = (d.portfolio_eur / d.investitie_eur).toFixed(2) + 'x';
                 document.getElementById('v-inv').innerText = 'INVEST ' + d.investitie_eur.toLocaleString() + ' €';
 
+                const rotVal = parseFloat(d.rotation_score);
                 const top = [['Rotation Score', d.rotation_score+'%', 70], ['BTC.D LIVE', d.btc_d+'%', 48, true], ['ETH / BTC', d.eth_btc, 0.055], ['USDT.D LIVE', d.usdt_d+'%', 5.5, true], ['S.M.R.I', d.smri+'%', 75]];
-                document.getElementById('top-nav').innerHTML = top.map(i => `<div class="card" style="${i[0]==='Rotation Score'&&parseFloat(i[1])<70?'border-color:#f85149':''}"><div class="label">${i[0]}</div><div class="val" style="${i[0]==='Rotation Score'?(parseFloat(i[1])>=70?'color:#39d353':'color:#f85149'):''}">${i[1]} ${arrow(i[1], i[2], i[3])}</div></div>`).join('') + `
-                    <div class="btn-group"><div class="st-btn ${parseFloat(d.rotation_score)<70?'active-hold':''}">HOLD</div><div class="st-btn">PREPARE</div><div class="st-btn ${parseFloat(d.rotation_score)>=70?'active-sell':''}">SELL</div></div>`;
+                
+                document.getElementById('top-nav').innerHTML = top.map(i => {
+                    let borderCol = i[0] === 'Rotation Score' && rotVal < 70 ? 'border-color:#f85149' : '';
+                    let valCol = i[0] === 'Rotation Score' ? (rotVal >= 70 ? 'color:#39d353' : 'color:#f85149') : '';
+                    return `<div class="card" style="${borderCol}"><div class="label">${i[0]}</div><div class="val" style="${valCol}">${i[1]} ${arrow(i[1], i[2], i[3])}</div></div>`;
+                }).join('') + `
+                    <div class="btn-group">
+                        <div class="st-btn ${rotVal < 70 ? 'active-hold' : ''}">HOLD</div>
+                        <div class="st-btn">PREPARE</div>
+                        <div class="st-btn ${rotVal >= 70 ? 'active-sell' : ''}">SELL</div>
+                    </div>`;
                 
                 const r1 = [['TOTAL 3', d.total3, 1.2],['F&G', d.fng, 70],['STRENGTH', d.momentum],['VIX', d.vix, 14, true],['URPD', d.urpd, 85],['DXY', d.dxy, 100, true]];
                 const r2 = [['ML PROB', d.ml_prob+'%', 50],['BREADTH', d.breadth, 50],['M2 SUPPLY', d.m2, 20],['EXHAUSTION', d.exhaustion, 40, true],['VOLAT', d.volat, 50],['LIQUIDITY', d.liq, 50]];
