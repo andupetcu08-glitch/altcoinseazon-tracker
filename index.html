@@ -12,18 +12,12 @@
         }
         .grid-6 { display: grid; grid-template-columns: repeat(6, 1fr); gap: 15px; margin-bottom: 15px; }
         .grid-3 { display: grid; grid-template-columns: 1fr 1.5fr 1fr; gap: 15px; margin-bottom: 20px; }
-        .card { 
-            background: #161b22; padding: 20px; border-radius: 12px; border: 1px solid #30363d; 
-            text-align: center; transition: all 0.3s; height: 75px; 
-            display: flex; flex-direction: column; justify-content: center;
-        }
+        .card { background: #161b22; padding: 20px; border-radius: 12px; border: 1px solid #30363d; text-align: center; transition: all 0.3s; height: 75px; display: flex; flex-direction: column; justify-content: center; }
         .card:hover { transform: translateY(-4px); border-color: #39d353; box-shadow: 0 0 20px rgba(57, 211, 83, 0.2); }
         .label { font-size: 12px; color: #8b949e; text-transform: uppercase; font-weight: 800; margin-bottom: 8px; }
         .val { font-weight: bold; font-size: 24px; color: #f0f6fc; }
         .up { color: #39d353; text-shadow: 0 0 10px rgba(57, 211, 83, 0.5); } 
         .down { color: #f85149; text-shadow: 0 0 10px rgba(248, 81, 73, 0.5); }
-        
-        /* Stil micșorat INVEST conform cerinței */
         .invest-label { font-size: 16px !important; color: #8b949e !important; font-weight: bold !important; margin-top: 5px; }
 
         table { width: 100%; border-collapse: collapse; margin-top: 30px; background: #0d1117; border-radius: 15px; overflow: hidden; font-size: 18px; }
@@ -71,11 +65,25 @@
                 const top = [['Rotation Score', d.rotation_score+'%', 70], ['BTC.D LIVE', d.btc_d+'%', 48, true], ['ETH / BTC', d.eth_btc, 0.055], ['USDT.D LIVE', d.usdt_d+'%', 5.5, true], ['S.M.R.I', d.smri+'%', 75]];
                 document.getElementById('top-nav').innerHTML = top.map(i => `<div class="card" style="${i[0]==='Rotation Score'&&parseFloat(i[1])<70?'border-color:#f85149':''}"><div class="label">${i[0]}</div><div class="val" style="${i[0]==='Rotation Score'?(parseFloat(i[1])>=70?'color:#39d353':'color:#f85149'):''}">${i[1]} ${arrow(i[1], i[2], i[3])}</div></div>`).join('') + `
                     <div class="btn-group"><div class="st-btn ${parseFloat(d.rotation_score)<70?'active-hold':''}">HOLD</div><div class="st-btn">PREPARE</div><div class="st-btn ${parseFloat(d.rotation_score)>=70?'active-sell':''}">SELL</div></div>`;
+                
                 const r1 = [['TOTAL 3', d.total3, 1.2],['F&G', d.fng, 70],['STRENGTH', d.momentum],['VIX', d.vix, 14, true],['URPD', d.urpd, 85],['DXY', d.dxy, 100, true]];
                 const r2 = [['ML PROB', d.ml_prob+'%', 50],['BREADTH', d.breadth, 50],['M2 SUPPLY', d.m2, 20],['EXHAUSTION', d.exhaustion, 40, true],['VOLAT', d.volat, 50],['LIQUIDITY', d.liq, 50]];
                 document.getElementById('m-r1').innerHTML = r1.map(m => `<div class="card"><div class="label">${m[0]}</div><div class="val">${m[1]} ${m[2]?arrow(m[1],m[2],m[3]):''}</div></div>`).join('');
                 document.getElementById('m-r2').innerHTML = r2.map(m => `<div class="card"><div class="label">${m[0]}</div><div class="val">${m[1]} ${m[2]?arrow(m[1],m[2],m[3]):''}</div></div>`).join('');
-                document.getElementById('rows').innerHTML = d.coins.map(c => `<tr><td><b>${c.symbol}</b><br><span style="color:#8b949e">$${c.price.toFixed(c.price < 1 ? 4 : 2)}</span></td><td>${c.q.toLocaleString()}</td><td>$${c.entry}</td><td style="color:#e3b341">$${c.apr}</td><td class="up"><b>${(c.apr/c.entry).toFixed(1)}x</b></td><td style="color:#e3b341">$${c.mai}</td><td class="up"><b>${(c.mai/c.entry).toFixed(1)}x</b></td><td style="color:#bc8cff"><b>$${c.fib}</b></td></tr>`).join('');
+                
+                document.getElementById('rows').innerHTML = d.coins.map(c => {
+                    const priceClass = c.change >= 0 ? 'up' : 'down';
+                    return `<tr>
+                        <td><b>${c.symbol}</b><br><span class="${priceClass}">$${c.price.toFixed(c.price < 1 ? 4 : 2)}</span></td>
+                        <td>${c.q.toLocaleString()}</td>
+                        <td>$${c.entry}</td>
+                        <td style="color:#e3b341">$${c.apr}</td>
+                        <td class="up"><b>${(c.apr/c.entry).toFixed(1)}x</b></td>
+                        <td style="color:#e3b341">$${c.mai}</td>
+                        <td class="up"><b>${(c.mai/c.entry).toFixed(1)}x</b></td>
+                        <td style="color:#bc8cff"><b>$${c.fib}</b></td>
+                    </tr>`;
+                }).join('');
             } catch (e) { console.error(e); }
         }
         load(); setInterval(load, 30000);
