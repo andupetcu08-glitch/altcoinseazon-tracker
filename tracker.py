@@ -41,24 +41,25 @@ def main():
         cg_url = f"https://api.coingecko.com/api/v3/simple/price?ids={','.join(COINS_MAP.values())},bitcoin,ethereum&vs_currencies=usd&include_24hr_change=true"
         cg_data = requests.get(cg_url).json()
 
-        val_usd, results = 0, []
+        val_usd, apr_usd, fib_usd, results = 0, 0, 0, []
         for sym, m_id in COINS_MAP.items():
             info = PORTFOLIO_DATA[sym]
             p = cg_data.get(m_id, {}).get('usd', float(info["entry"]))
             
-            # SNX Live Fix
             if sym == "SNX" and (p == info["entry"] or p == 0): p = 0.3398
             
             val_usd += (float(p) * info["q"])
-            results.append({"symbol": sym, "price": float(p), "entry": info["entry"], "change": round(cg_data.get(m_id, {}).get('usd_24h_change', 0.0), 2)})
+            apr_usd += (info["apr"] * info["q"])
+            fib_usd += (info["fib"] * info["q"])
+            
+            results.append({
+                "symbol": sym, "price": float(p), "entry": info["entry"], "q": info["q"],
+                "change": round(cg_data.get(m_id, {}).get('usd_24h_change', 0.0), 2),
+                "apr": info["apr"], "mai": info["mai"], "fib": info["fib"]
+            })
 
-        # --- REGLAJE INDEXI ---
-        
-        # SMRI: Smart Money Risk Index
-        # Formula: Cand frica e maxima (9), indexul SMRI sa fie stabilizat sus (acumulare)
+        # --- REGLAJE FINALE ---
         smri = round((100 - fng_val) * 0.6 + 25.5, 2)
-        
-        # Rotation Score
         rot_score = round(((65 - btc_d) * 2.3) + (fng_val * 0.4) + 16, 2)
         if rot_score < 35: rot_score = 35.12
 
@@ -66,12 +67,15 @@ def main():
             "rotation_score": rot_score, 
             "btc_d": btc_d, 
             "usdt_d": 7.98,
+            "eth_btc": round(cg_data["ethereum"]["usd"]/cg_data["bitcoin"]["usd"], 5) if cg_data else 0.029,
             "portfolio_eur": int(val_usd * 0.92), 
             "investitie_eur": 101235,
+            "p_apr": f"{int((apr_usd * 0.92) - 101235):,} €", # FIX pentru undefined
+            "p_fib": f"{int((fib_usd * 0.92) - 101235):,} €", # FIX pentru undefined
             "coins": results, 
             "fng": f"{fng_val} ({fng_class})", 
-            "smri": smri, # Noul SMRI reglat
-            "exhaustion": "LOW.", # Am pus punctul la final ca sa anulam orice sageata automata
+            "smri": f"{smri}%",
+            "exhaustion": "LOW.", # Punctul anuleaza sageata verde
             "momentum": "HOLD",
             "vix": 14.8, 
             "dxy": 101.4,
@@ -86,7 +90,7 @@ def main():
         
         with open("data.json", "w") as f:
             json.dump(output, f, indent=4)
-        print(f"Update: BTC.D {btc_d} | SMRI {smri} | Exhaustion Fixed")
+        print("PERFECT SYNC!")
 
     except Exception as e:
         print(f"Error: {e}")
