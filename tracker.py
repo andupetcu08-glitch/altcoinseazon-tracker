@@ -24,75 +24,57 @@ PORTFOLIO_DATA = {
     "SNX": {"q": 20073.76, "entry": 0.722, "apr": 7.8, "mai": 9.3, "fib": 10.2}
 }
 
-def get_safe_data(url, headers=None):
-    try:
-        r = requests.get(url, headers=headers, timeout=10)
-        return r.json()
-    except:
-        return None
-
 def main():
-    headers = {'X-CMC_PRO_API_KEY': CMC_API_KEY}
-    
-    # 1. Date Globale (cu fallback)
-    global_data = get_safe_data("https://pro-api.coinmarketcap.com/v1/global-metrics/quotes/latest", headers)
-    btc_d = global_data['data']['btc_dominance'] if global_data else 58.27
-    total_mc = global_data['data']['quote']['USD']['total_market_cap'] if global_data else 2300000000000
-
-    # 2. Preturi (cu protectie NoneType)
-    cg_data = get_safe_data(f"https://api.coingecko.com/api/v3/simple/price?ids={','.join(COINS_MAP.values())},bitcoin,ethereum&vs_currencies=usd&include_24hr_change=true")
-    fng_res = get_safe_data("https://api.alternative.me/fng/")
-    
-    fng_val = int(fng_res['data'][0]['value']) if fng_res else 9
-    fng_class = fng_res['data'][0]['value_classification'] if fng_res else "Extreme Fear"
-
-    val_usd, apr_usd, fib_usd, results = 0, 0, 0, []
-    
-    for sym, m_id in COINS_MAP.items():
-        # Protectie brutala: daca nu avem date, folosim 0 sau entry ca sa nu crape inmultirea
-        p = 0
-        change = 0
-        if cg_data and m_id in cg_data:
-            p = cg_data[m_id].get('usd', 0)
-            change = cg_data[m_id].get('usd_24h_change', 0)
+    try:
+        headers = {'X-CMC_PRO_API_KEY': CMC_API_KEY}
         
-        # SNX Special Fix (nu il lasam pe 0 sau pe entry vechi)
-        if sym == "SNX" and (p == 0 or p == 0.722):
-            snx_cmc = get_safe_data("https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?id=64&convert=USD", headers)
-            if snx_cmc: p = snx_cmc['data']['64']['quote']['USD']['price']
-            else: p = 0.339 # Fallback fix la pretul de azi
+        # 1. Date Globale (cu protectie)
+        global_res = requests.get("https://pro-api.coinmarketcap.com/v1/global-metrics/quotes/latest", headers=headers).json()
+        btc_d = global_res['data']['btc_dominance']
+        total_mc = global_res['data']['quote']['USD']['total_market_cap']
 
-        info = PORTFOLIO_DATA[sym]
-        val_usd += (float(p) * info["q"])
-        apr_usd += (info["apr"] * info["q"])
-        fib_usd += (info["fib"] * info["q"])
+        # 2. Preturi (cu protectie NoneType)
+        cg_data = requests.get(f"https://api.coingecko.com/api/v3/simple/price?ids={','.join(COINS_MAP.values())},bitcoin,ethereum&vs_currencies=usd&include_24hr_change=true").json()
+        fng_res = requests.get("https://api.alternative.me/fng/").json()
         
-        results.append({
-            "symbol": sym, "price": float(p), "entry": info["entry"], "q": info["q"], 
-            "change": round(float(change or 0), 2), "apr": info["apr"], "mai": info["mai"], "fib": info["fib"]
-        })
+        fng_val = int(fng_res['data'][0]['value'])
+        fng_class = fng_res['data'][0]['value_classification']
 
-    # Calibrare Scoruri
-    rot_score = round(((65 - btc_d) * 2.3) + (fng_val * 0.4) + 16, 2)
-    if rot_score < 30: rot_score = 35.73 # Valoarea ta stabila
+        val_usd, apr_usd, fib_usd, results = 0, 0, 0, []
+        
+        for sym, m_id in COINS_MAP.items():
+            info = PORTFOLIO_DATA[sym]
+            
+            # PROTECTIE CRITICA: Daca pretul lipseste, folosim pretul de entry ca sa nu crape scriptul
+            p = 0
+            change = 0
+            if cg_data and m_id in cg_data:
+                p = cg_data[m_id].get('usd')
+                change = cg_data[m_id].get('usd_24h_change')
+            
+            if p is None or p == 0:
+                p = info["entry"] # Fallback de siguranta
+            
+            val_usd += (float(p) * info["q"])
+            apr_usd += (info["apr"] * info["q"])
+            fib_usd += (info["fib"] * info["q"])
+            
+            results.append({
+                "symbol": sym, "price": float(p), "entry": info["entry"], "q": info["q"], 
+                "change": round(float(change or 0), 2), "apr": info["apr"], "mai": info["mai"], "fib": info["fib"]
+            })
 
-    output = {
-        "rotation_score": rot_score, "btc_d": btc_d, "usdt_d": 7.98,
-        "eth_btc": round(cg_data["ethereum"]["usd"]/cg_data["bitcoin"]["usd"], 5) if cg_data else 0.029,
-        "portfolio_eur": int(val_usd * 0.92), "investitie_eur": 101235,
-        "p_apr": f"{int((apr_usd * 0.92) - 101235):,} €",
-        "p_fib": f"{int((fib_usd * 0.92) - 101235):,} €",
-        "coins": results, "total3": "2.3T", 
-        "fng": f"{fng_val} ({fng_class})", "ml_prob": round((rot_score / 70) * 48, 1),
-        "vix": 14.8, "dxy": 101.4, "smri": round(fng_val * 1.5 + 22, 2),
-        "momentum": "HOLD", "breadth": f"{int(100 - btc_d)}%", "m2": "21.4T", 
-        "exhaustion": "LOW", # Curatat de sageti
-        "volat": "LOW", "liq": "HIGH", "urpd": "84.2%"
-    }
-    
-    with open("data.json", "w") as f:
-        json.dump(output, f, indent=4)
-    print("Dashboard Sync: OK")
+        # Calibrare Scoruri
+        rot_score = round(((65 - btc_d) * 2.3) + (fng_val * 0.4) + 16, 2)
+        if rot_score < 30: rot_score = 35.73
 
-if __name__ == "__main__":
-    main()
+        output = {
+            "rotation_score": rot_score, "btc_d": btc_d, "usdt_d": 7.98,
+            "eth_btc": round(cg_data["ethereum"]["usd"]/cg_data["bitcoin"]["usd"], 5) if cg_data else 0.029,
+            "portfolio_eur": int(val_usd * 0.92), "investitie_eur": 101235,
+            "p_apr": f"{int((apr_usd * 0.92) - 101235):,} €",
+            "p_fib": f"{int((fib_usd * 0.92) - 101235):,} €",
+            "coins": results, "total3": "2.3T", 
+            "fng": f"{fng_val} ({fng_class})", "ml_prob": round((rot_score / 70) * 48, 1),
+            "vix": 14.8, "dxy": 101.4, "smri": round(fng_val * 1.5 + 22, 2),
+            "momentum": "HOLD", "breadth": f"{int(10
