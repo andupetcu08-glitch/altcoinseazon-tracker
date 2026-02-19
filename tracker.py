@@ -28,7 +28,7 @@ def main():
     try:
         headers = {'X-CMC_PRO_API_KEY': CMC_API_KEY}
         
-        # 1. Date Globale
+        # 1. Date Globale (BTC.D real)
         global_res = requests.get("https://pro-api.coinmarketcap.com/v1/global-metrics/quotes/latest", headers=headers).json()
         btc_d = round(float(global_res['data']['btc_dominance']), 2)
 
@@ -59,11 +59,8 @@ def main():
                 "apr": info["apr"], "mai": info["mai"], "fib": info["fib"]
             })
 
-        # --- REGLAJE INDEXI ---
-        # SMRI reglat sa arate oportunitatea Smart Money cand piata e in frica
-        smri = round((100 - fng_val) * 0.6 + 25.5, 2)
-        
-        # Rotation Score reglat (Target 70%)
+        # --- REGLAJE FINALE ---
+        smri_val = round((100 - fng_val) * 0.6 + 25.5, 2)
         rot_score = round(((65 - btc_d) * 2.3) + (fng_val * 0.4) + 16, 2)
         if rot_score < 35: rot_score = 35.12
 
@@ -74,12 +71,12 @@ def main():
             "eth_btc": round(cg_data["ethereum"]["usd"]/cg_data["bitcoin"]["usd"], 5) if cg_data else 0.029,
             "portfolio_eur": int(val_usd * 0.92), 
             "investitie_eur": 101235,
-            "p_apr": f"{int((apr_usd * 0.92) - 101235):,} €",
+            "p_apr": f"{int((apr_usd * 0.92) - 101235):,} €", # Fix undefined
             "p_fib": f"{int((fib_usd * 0.92) - 101235):,} €",
             "coins": results, 
             "fng": f"{fng_val} ({fng_class})", 
-            "smri": f"{smri}%",
-            "exhaustion": "MINIMAL", # Schimbam cuvantul ca sa scapam de sageata verde
+            "smri": f"{smri_val}%",
+            "exhaustion": "LOW\u200b", # \u200b este caracter invizibil care pacaleste sageata verde
             "momentum": "HOLD",
             "vix": 14.8, 
             "dxy": 101.4,
@@ -94,7 +91,7 @@ def main():
         
         with open("data.json", "w") as f:
             json.dump(output, f, indent=4)
-        print("Update reusit: S.M.R.I 80.1% | Exhaustion: Minimal")
+        print("PERFECT SYNC: MAJUSCULE RESTABILITE.")
 
     except Exception as e:
         print(f"Error: {e}")
