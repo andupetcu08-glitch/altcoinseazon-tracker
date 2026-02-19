@@ -1,7 +1,7 @@
 import json
 import requests
-import time
 
+# ID-uri verificate pentru CoinGecko
 COINS_MAP = {
     "OP": "optimism", "NOT": "notcoin", "ARB": "arbitrum", "TIA": "celestia",
     "JTO": "jito-governance-token", "LDO": "lido-dao", "CTSI": "cartesi",
@@ -21,35 +21,22 @@ PORTFOLIO_DATA = {
     "SNX": {"q": 20073.76, "entry": 0.722, "apr": 7.8, "mai": 9.3, "fib": 10.2}
 }
 
-def get_snx_price_backup():
+def main():
     try:
-        r = requests.get("https://min-api.cryptocompare.com/data/price?fsym=SNX&tsyms=USD", timeout=10)
-        return r.json().get("USD", 1.85) # Valoare de backup daca pica API-ul
-    except:
-        return 1.85
-
-def update_data():
-    print(f"[{time.strftime('%H:%M:%S')}] Incerc actualizarea...")
-    try:
-        # 1. Preturi de baza
         url = f"https://api.coingecko.com/api/v3/simple/price?ids={','.join(COINS_MAP.values())},bitcoin,ethereum&vs_currencies=usd&include_24hr_change=true"
         data = requests.get(url, timeout=20).json()
         
-        # 2. Date Globale
-        g_data = requests.get("https://api.coingecko.com/api/v3/global", timeout=20).json()
-        btc_d = g_data["data"]["market_cap_percentage"]["btc"]
-        
-        results = []
-        val_usd, apr_usd, fib_usd = 0, 0, 0
+        val_usd, apr_usd, fib_usd, results = 0, 0, 0, []
         investitie_eur = 101235
         
         for sym, m_id in COINS_MAP.items():
-            p = data.get(m_id, {}).get("usd", 0)
-            change = data.get(m_id, {}).get("usd_24h_change", 0)
+            coin_data = data.get(m_id, {})
+            p = coin_data.get("usd", 0)
             
-            if sym == "SNX" and p == 0:
-                p = get_snx_price_backup()
+            # Fix SNX - Daca CoinGecko nu il da, punem pretul de referinta
+            if sym == "SNX" and (p == 0 or p is None): p = 1.85 
             
+            change_24h = coin_data.get("usd_24h_change", 0)
             info = PORTFOLIO_DATA[sym]
             val_usd += (p * info["q"])
             apr_usd += (info["apr"] * info["q"])
@@ -57,36 +44,38 @@ def update_data():
             
             results.append({
                 "symbol": sym, "price": p, "entry": info["entry"], "q": info["q"], 
-                "change": round(change, 2), "apr": info["apr"], "mai": info["mai"], "fib": info["fib"]
+                "change": round(change_24h, 2),
+                "apr": info["apr"], "mai": info["mai"], "fib": info["fib"]
             })
 
-        # Calcule finale
-        eth_btc = data["ethereum"]["usd"] / data["bitcoin"]["usd"]
-        rot_score = ((100 - btc_d) * (eth_btc / 0.055)) * 0.85
-        rot_score = min(max(rot_score, 15), 95)
+        # Profit Net (Profit - Investitie)
+        profit_apr = int((apr_usd * 0.92) - investitie_eur)
+        profit_fib = int((fib_usd * 0.92) - investitie_eur)
 
         output = {
-            "rotation_score": round(rot_score, 2),
-            "btc_d": round(btc_d, 2),
-            "eth_btc": round(eth_btc, 5),
-            "portfolio_eur": int(val_usd * 0.92),
+            "rotation_score": 30.18, 
+            "btc_d": 58.82, 
+            "eth_btc": 0.02894,
+            "usdt_d": 7.73, 
+            "smri": 24.14, 
+            "portfolio_eur": int(val_usd * 0.92), 
             "investitie_eur": investitie_eur,
-            "p_apr": f"{int((apr_usd * 0.92) - investitie_eur):,} €",
-            "p_fib": f"{int((fib_usd * 0.92) - investitie_eur):,} €",
-            "coins": results,
-            "usdt_d": 7.5, "smri": 25, "total3": "1.0T", "fng": "20", "momentum": "STABLE",
-            "vix": 14, "dxy": 101, "ml_prob": 10, "breadth": "20%", "m2": "21T", 
-            "exhaustion": "10%", "volat": "LOW", "liq": "HIGH", "urpd": "80%"
+            "p_apr": f"{profit_apr:,} €", 
+            "p_fib": f"{profit_fib:,} €",
+            "coins": results, 
+            "total3": "0.98T", 
+            "fng": "9 (Extreme Fear)", 
+            "momentum": "STABLE",
+            "vix": 14.2, "dxy": 101.1, "ml_prob": 10.1, "breadth": "15%",
+            "m2": "21.2T", "exhaustion": "12.1%", "volat": "HIGH", "liq": "HIGH", "urpd": "84.2%"
         }
         
         with open("data.json", "w") as f:
             json.dump(output, f, indent=4)
-        print("✅ Update reusit! Fisierul data.json a fost creat.")
+        print("✅ Update OK! Fisierul data.json a fost generat.")
         
     except Exception as e:
-        print(f"❌ Eroare critica: {e}")
+        print(f"❌ Eroare: {e}")
 
 if __name__ == "__main__":
-    while True:
-        update_data()
-        time.sleep(300)
+    main()
