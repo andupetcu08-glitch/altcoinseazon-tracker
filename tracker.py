@@ -2,27 +2,18 @@ import json
 import requests
 import time
 
-# Mapping exact pentru CoinGecko API
 COINS_MAP = {
-    "OP": "optimism",
-    "NOT": "notcoin",
-    "ARB": "arbitrum",
-    "TIA": "celestia",
-    "JTO": "jito-governance-token",
-    "LDO": "lido-dao",
-    "CTSI": "cartesi",
-    "IMX": "immutable-x",
-    "SONIC": "sonic-3",
-    "SNX": "synthetix-network-token"
+    "OP": "optimism", "NOT": "notcoin", "ARB": "arbitrum", "TIA": "celestia",
+    "JTO": "jito-governance-token", "LDO": "lido-dao", "CTSI": "cartesi",
+    "IMX": "immutable-x", "SONIC": "sonic-3", "SNX": "synthetix-network-token"
 }
 
-# Date Portofoliu - Media SNX ramane 0.722 conform cerintei
 PORTFOLIO_DATA = {
     "OP": {"q": 6400, "entry": 0.773, "apr": 4.8, "mai": 5.2, "fib": 6.86},
     "NOT": {"q": 1297106.88, "entry": 0.001291, "apr": 0.028, "mai": 0.028, "fib": 0.034},
-    "ARB": {"q": 14326.44, "entry": 1.134, "apr": 3.0, "mai": 3.4, "fib": 3.82},
-    "TIA": {"q": 4504.47, "entry": 5.911, "apr": 12.0, "mai": 15.0, "fib": 18.5},
-    "JTO": {"q": 7366.42, "entry": 2.711, "apr": 8.0, "mai": 8.2, "fib": 9.2},
+    "ARB": {"q": 14326.44, "entry": 1.134, "apr": 3, "mai": 3.4, "fib": 3.82},
+    "TIA": {"q": 4504.47, "entry": 5.911, "apr": 12, "mai": 15, "fib": 18.5},
+    "JTO": {"q": 7366.42, "entry": 2.711, "apr": 8, "mai": 8.2, "fib": 9.2},
     "LDO": {"q": 9296.65, "entry": 1.121, "apr": 5.6, "mai": 6.2, "fib": 6.9},
     "CTSI": {"q": 49080, "entry": 0.19076, "apr": 0.2, "mai": 0.2, "fib": 0.24},
     "IMX": {"q": 1551.82, "entry": 3.4205, "apr": 3.5, "mai": 4.3, "fib": 4.85},
@@ -34,19 +25,20 @@ def main():
     try:
         ids = ",".join(COINS_MAP.values()) + ",bitcoin,ethereum"
         url = f"https://api.coingecko.com/api/v3/simple/price?ids={ids}&vs_currencies=usd&include_24hr_change=true"
-        response = requests.get(url, timeout=20)
-        data = response.json()
+        data = requests.get(url, timeout=20).json()
         
         results = []
         total_val_usd = 0
         total_mai_usd = 0
+        total_fib_usd = 0
         
         for sym, m_id in COINS_MAP.items():
-            # Pretul actual SNX este forțat la 0.32 dacă API-ul nu raspunde corect
+            # Pret SNX fortat la 0.32 daca API-ul nu e precis
             p_actual = data.get(m_id, {}).get("usd", 0.32 if sym == "SNX" else 0)
             p_info = PORTFOLIO_DATA[sym]
             total_val_usd += (p_actual * p_info["q"])
             total_mai_usd += (p_info["mai"] * p_info["q"])
+            total_fib_usd += (p_info["fib"] * p_info["q"])
             
             results.append({
                 "symbol": sym, "price": p_actual, "entry": p_info["entry"], "q": p_info["q"],
@@ -55,10 +47,16 @@ def main():
             })
 
         output = {
-            "rotation_score": 30.18, "btc_d": 56.32, "eth_btc": round(data["ethereum"]["usd"]/data["bitcoin"]["usd"], 5),
-            "usdt_d": 7.73, "smri": 24.14, "portfolio_eur": round(total_val_usd * 0.92, 0),
-            "investitie_eur": 101235, "profit_mai_eur": round(total_mai_usd * 0.92, 0),
-            "coins": results, "total3": "0.98T", "fng": "9 (FnG)", "momentum": "STABLE",
+            "rotation_score": 30.18, 
+            "btc_d": 56.32, 
+            "eth_btc": round(data["ethereum"]["usd"]/data["bitcoin"]["usd"], 5),
+            "usdt_d": 7.73, 
+            "smri": 24.14, 
+            "portfolio_eur": round(total_val_usd * 0.92, 0),
+            "investitie_eur": 101235,
+            "profit_range": f"€{round(total_mai_usd * 0.92, 0):,} - €{round(total_fib_usd * 0.92, 0):,}",
+            "coins": results, 
+            "total3": "0.98T", "fng": "9 (FnG)", "momentum": "STABLE",
             "vix": 14.2, "dxy": 101.1, "ml_prob": 10.1, "breadth": "0%", "urpd": 84.2,
             "m2": "21.2T", "exhaustion": 12.1, "volat": "HIGH", "liq": "HIGH", "div": "NORMAL"
         }
