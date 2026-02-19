@@ -1,6 +1,7 @@
 import json
 import requests
 
+# Setari monede si portofoliu
 COINS_MAP = {
     "OP": "optimism", "NOT": "notcoin", "ARB": "arbitrum", "TIA": "celestia",
     "JTO": "jito-governance-token", "LDO": "lido-dao", "CTSI": "cartesi",
@@ -25,10 +26,11 @@ def main():
         url = f"https://api.coingecko.com/api/v3/simple/price?ids={','.join(COINS_MAP.values())},bitcoin,ethereum&vs_currencies=usd&include_24hr_change=true"
         data = requests.get(url, timeout=20).json()
         val_usd, apr_usd, fib_usd, results = 0, 0, 0, []
+        investitie_eur = 101235
         
         for sym, m_id in COINS_MAP.items():
             p = data.get(m_id, {}).get("usd", 0)
-            if sym == "SNX" and (p == 0 or p is None): p = 0.34
+            if sym == "SNX" and (p == 0 or p is None): p = 0.34 # Fix SNX
             
             info = PORTFOLIO_DATA[sym]
             val_usd += (p * info["q"])
@@ -41,16 +43,25 @@ def main():
                 "apr": info["apr"], "mai": info["mai"], "fib": info["fib"]
             })
 
+        # Logic Fear & Greed
         fng_val = 9 
         fng_txt = "Extreme Fear" if fng_val <= 25 else "Fear" if fng_val <= 45 else "Neutral" if fng_val <= 55 else "Greed" if fng_val <= 75 else "Extreme Greed"
 
+        # Calcul Profit NET (Valoare Target - Investitie Initiale)
+        profit_apr = (apr_usd * 0.92) - investitie_eur
+        profit_fib = (fib_usd * 0.92) - investitie_eur
+
         output = {
-            "rotation_score": 30.18, "btc_d": 58.82, 
+            "rotation_score": 30.18, 
+            "btc_d": 58.82, 
             "eth_btc": round(data["ethereum"]["usd"]/data["bitcoin"]["usd"], 5),
             "usdt_d": 7.73, "smri": 24.14, 
-            "portfolio_eur": round(val_usd * 0.92, 0), "investitie_eur": 101235,
-            "p_apr": f"€{round(apr_usd * 0.92, 0):,}", "p_fib": f"€{round(fib_usd * 0.92, 0):,}",
-            "coins": results, "total3": "0.98T", "fng": f"{fng_val} ({fng_txt})", "momentum": "STABLE",
+            "portfolio_eur": round(val_usd * 0.92, 0), 
+            "investitie_eur": investitie_eur,
+            "p_apr": f"{round(profit_apr, 0):,} €", # Format cerut: Valoare €
+            "p_fib": f"{round(profit_fib, 0):,} €",
+            "coins": results, 
+            "total3": "0.98T", "fng": f"{fng_val} ({fng_txt})", "momentum": "STABLE",
             "vix": 14.2, "dxy": 101.1, "ml_prob": 10.1, "breadth": "15%",
             "m2": "21.2T", "exhaustion": "12.1%", "volat": "HIGH", "liq": "HIGH", "urpd": "84.2%"
         }
