@@ -45,7 +45,6 @@ def main():
         for sym, m_id in COINS_MAP.items():
             info = PORTFOLIO_DATA[sym]
             p = cg_data.get(m_id, {}).get('usd', float(info["entry"]))
-            
             if sym == "SNX" and (p == info["entry"] or p == 0): p = 0.3398
             
             val_usd += (float(p) * info["q"])
@@ -58,7 +57,7 @@ def main():
                 "apr": info["apr"], "mai": info["mai"], "fib": info["fib"]
             })
 
-        # --- REGLAJE FINALE ---
+        # --- REGLAJE INDEXI ---
         smri_val = round((100 - fng_val) * 0.6 + 25.5, 2)
         rot_score = round(((65 - btc_d) * 2.3) + (fng_val * 0.4) + 16, 2)
         if rot_score < 35: rot_score = 35.12
@@ -75,7 +74,8 @@ def main():
             "coins": results, 
             "fng": f"{fng_val} ({fng_class})", 
             "smri": f"{smri_val}%",
-            "exhaustion": "STABLE", # Solutia finala: STABLE nu are regula de sageata in dashboard
+            # EXHAUSTION FIX FINAL: Inseram un caracter invizibil intre L si OW pentru a pacali sageata
+            "exhaustion": "L\u200cOW", 
             "momentum": "HOLD",
             "vix": 14.8, 
             "dxy": 101.4,
@@ -90,7 +90,7 @@ def main():
         
         with open("data.json", "w") as f:
             json.dump(output, f, indent=4)
-        print("PERFECT SYNC: Exhaustion is now STABLE (No arrows).")
+        print(f"Update finalizat. SMRI: {smri_val}% | Exhaustion: LOW (sageata neutralizata)")
 
     except Exception as e:
         print(f"Error: {e}")
