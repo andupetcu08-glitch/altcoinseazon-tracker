@@ -2,39 +2,41 @@
 <html lang="ro">
 <head>
     <meta charset="UTF-8">
-    <title>Altcoin Tracker Final - SMRI Edition</title>
+    <title>Altcoin Season Tracker - FINAL GOLDEN</title>
     <style>
         body { background: #0b0e14; color: #e1e1e1; font-family: 'Segoe UI', sans-serif; padding: 20px; font-size: 11px; margin: 0; }
-        .target-panel { background: #052e16; border: 1px solid #22c55e; padding: 12px; border-radius: 8px; margin-bottom: 20px; text-align: center; font-size: 13px; font-weight: 900; color: #fff; text-transform: uppercase; }
+        .target-panel { background: #052e16; border: 1px solid #22c55e; padding: 10px; border-radius: 6px; margin-bottom: 20px; text-align: center; font-size: 11px; font-weight: 900; color: #fff; text-transform: uppercase; letter-spacing: 1px; }
         
-        /* Grid Layout */
-        .top-grid { display: grid; grid-template-columns: repeat(4, 1fr) 1.5fr; gap: 12px; margin-bottom: 20px; }
-        .card, .st-btn { background: #1a1c24; border: 1px solid #333; padding: 15px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); text-align: center; }
-        .card:hover { border-color: #00ff88; box-shadow: 0 0 15px rgba(0, 255, 136, 0.1); }
+        .grid-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 10px; }
+        .card { background: #161920; border: 1px solid #262a33; padding: 12px; border-radius: 4px; text-align: center; }
+        
+        .m-label { color: #666; font-size: 9px; text-transform: uppercase; display: block; margin-bottom: 4px; }
+        .m-val { font-size: 18px; font-weight: bold; }
 
-        .m-label { color: #888; font-size: 10px; text-transform: uppercase; display: block; margin-bottom: 5px; }
-        .m-val { font-size: 20px; font-weight: bold; }
+        /* Culori Scor Rotație conform cerinței */
+        .score-red { color: #ef4444; }
+        .score-green { color: #00ff88; text-shadow: 0 0 10px rgba(0, 255, 136, 0.4); }
 
-        /* Regime States */
+        /* Regim Buttons */
         .regime-box { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; }
-        .st-btn { font-size: 10px; font-weight: 900; color: #444; opacity: 0.5; }
-        .active-hold { border-color: #00ff88 !important; color: #00ff88 !important; opacity: 1; background: rgba(0, 255, 136, 0.05); }
-        .active-prepare { border-color: #fbbf24 !important; color: #fbbf24 !important; opacity: 1; background: rgba(251, 191, 36, 0.05); }
-        .active-sell { border-color: #ef4444 !important; color: #ef4444 !important; opacity: 1; background: rgba(239, 68, 68, 0.1); box-shadow: 0 0 20px rgba(239, 68, 68, 0.2); }
-
-        /* Stats Main */
-        .stats-row { display: grid; grid-template-columns: 1fr 1.2fr 1fr; gap: 15px; margin-bottom: 20px; }
-        .val-big { font-size: 28px; font-weight: bold; color: #00ff88; }
-
-        /* Table Style */
-        .table-container { background: #1a1c24; border: 1px solid #333; border-radius: 10px; box-shadow: 0 0 30px rgba(0, 255, 136, 0.05); overflow: hidden; }
-        table { width: 100%; border-collapse: collapse; }
-        th { background: #15171e; color: #666; font-size: 10px; text-transform: uppercase; padding: 15px; text-align: left; }
-        td { padding: 15px; border-bottom: 1px solid #222; font-size: 13px; }
-
-        .prog-bg { width: 120px; background: #000; height: 5px; border-radius: 3px; margin-top: 6px; }
-        .prog-bar { height: 100%; border-radius: 3px; transition: width 1s ease-in-out; }
+        .st-btn { border: 1px solid #222; padding: 15px; border-radius: 4px; font-weight: 900; opacity: 0.3; color: #444; font-size: 10px; display: flex; align-items: center; justify-content: center; }
         
+        /* HOLD e ROȘU, SELL e VERDE */
+        .active-hold { border-color: #ef4444 !important; color: #ef4444 !important; opacity: 1; background: rgba(239, 68, 68, 0.1); box-shadow: 0 0 10px rgba(239, 68, 68, 0.2); }
+        .active-prepare { border-color: #fbbf24 !important; color: #fbbf24 !important; opacity: 1; background: rgba(251, 191, 36, 0.1); }
+        .active-sell { border-color: #00ff88 !important; color: #00ff88 !important; opacity: 1; background: rgba(0, 255, 136, 0.1); box-shadow: 0 0 15px rgba(0, 255, 136, 0.3); }
+
+        .stats-row { display: grid; grid-template-columns: 1fr 1.2fr 1fr; gap: 15px; margin-bottom: 15px; }
+        .val-big { font-size: 26px; font-weight: bold; }
+
+        /* Table */
+        .table-container { background: #161920; border: 1px solid #262a33; border-radius: 4px; margin-top: 20px; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #1c212b; color: #555; font-size: 9px; padding: 12px; text-align: left; text-transform: uppercase; }
+        td { padding: 12px; border-bottom: 1px solid #1f232d; font-size: 12px; }
+
+        .prog-bg { width: 100px; background: #000; height: 4px; border-radius: 2px; margin-top: 5px; }
+        .prog-bar { height: 100%; border-radius: 2px; }
         .up { color: #00ff88; } .down { color: #ef4444; }
     </style>
 </head>
@@ -42,9 +44,9 @@
 
 <div class="target-panel">🎯 TARGETS: BTC.D: 46% | ROTATION: 70% | SMRI: 75% | VIX: 13.8 | USDT.D: 5.1%</div>
 
-<div class="top-grid">
+<div class="grid-row">
     <div class="card"><span class="m-label">Rotation Score</span><span id="score" class="m-val">--</span></div>
-    <div class="card"><span class="m-label">SMART MONEY INDEX</span><span id="smri" class="m-val" style="color:#a855f7">--</span></div>
+    <div class="card"><span class="m-label">Smart Money Index</span><span id="smri" class="m-val" style="color:#a855f7">--</span></div>
     <div class="card"><span class="m-label">BTC.D LIVE</span><span id="btcd" class="m-val">--</span></div>
     <div class="card"><span class="m-label">ETH / BTC</span><span id="ethbtc" class="m-val">--</span></div>
     <div class="regime-box">
@@ -55,9 +57,18 @@
 </div>
 
 <div class="stats-row">
-    <div class="card"><span class="m-label">VALOARE PORTOFOLIU (USD)</span><div id="v" class="val-big">--</div></div>
-    <div class="card"><span class="m-label">ML TOP PROBABILITY</span><div id="prob" class="val-big" style="color:#fbbf24;">--</div></div>
-    <div class="card"><span class="m-label">AVG EXHAUSTION</span><div id="exh" class="val-big" style="color:#a855f7;">--</div></div>
+    <div class="card"><span class="m-label">Valoare Portofoliu (USD)</span><div id="v" class="val-big" style="color:#00ff88;">--</div></div>
+    <div class="card"><span class="m-label">ML Top Probability</span><div id="prob" class="val-big" style="color:#fbbf24;">--</div></div>
+    <div class="card"><span class="m-label">Avg Exhaustion</span><div id="exh" class="val-big" style="color:#a855f7;">--</div></div>
+</div>
+
+<div class="grid-row" style="grid-template-columns: repeat(6, 1fr);">
+    <div class="card"><span class="m-label">Liquidity</span><span id="liq" class="m-val" style="font-size:14px;">--</span></div>
+    <div class="card"><span class="m-label">Leverage</span><span id="lev" class="m-val" style="font-size:14px;">--</span></div>
+    <div class="card"><span class="m-label">VIX Index</span><span id="vix" class="m-val" style="font-size:14px;">--</span></div>
+    <div class="card"><span class="m-label">DXY Index</span><span id="dxy" class="m-val" style="font-size:14px;">--</span></div>
+    <div class="card"><span class="m-label">M2 Supply</span><span id="m2" class="m-val" style="font-size:14px;">--</span></div>
+    <div class="card"><span class="m-label">Total 3</span><span id="t3" class="m-val" style="font-size:14px;">--</span></div>
 </div>
 
 <div class="table-container">
@@ -75,10 +86,10 @@ async function sync() {
         const r = await fetch('data.json?v=' + Date.now());
         const d = await r.json();
 
-        // Top Metrics
-        const scoreEl = document.getElementById('score');
-        scoreEl.innerText = d.rotation_score + "%";
-        scoreEl.style.color = d.rotation_score >= 70 ? "#00ff88" : "#fff";
+        // Populate Rând 1 & 2
+        const s = document.getElementById('score');
+        s.innerText = d.rotation_score + "%";
+        s.className = "m-val " + (d.rotation_score >= 70 ? "score-green" : "score-red");
         
         document.getElementById('smri').innerText = d.smri + "%";
         document.getElementById('btcd').innerText = d.btc_d + "%";
@@ -87,33 +98,36 @@ async function sync() {
         document.getElementById('prob').innerText = d.probability_top + "%";
         document.getElementById('exh').innerText = d.exhaustion_score + "%";
 
-        // Regime Buttons
-        ["HOLD", "PREPARE", "SELL"].forEach(s => {
-            const b = document.getElementById('btn-' + s);
-            b.className = 'st-btn ' + (d.regime === s ? 'active-' + s.toLowerCase() : '');
+        // Populate Casete Macro
+        document.getElementById('liq').innerText = d.liquidity_score + "%";
+        document.getElementById('lev').innerText = d.leverage_score + "%";
+        document.getElementById('vix').innerText = d.vix;
+        document.getElementById('dxy').innerText = d.dxy;
+        document.getElementById('m2').innerText = d.m2 + "T";
+        document.getElementById('t3').innerText = d.total3 + "T";
+
+        // Regime logic: HOLD e Roșu, SELL e Verde
+        ["HOLD", "PREPARE", "SELL"].forEach(state => {
+            const btn = document.getElementById('btn-' + state);
+            btn.className = 'st-btn ' + (d.regime === state ? 'active-' + state.toLowerCase() : '');
         });
 
-        // Table
+        // Tabel
         document.getElementById('rows').innerHTML = d.coins.map(c => {
-            const color = c.change >= 0 ? 'up' : 'down';
-            const arrow = c.change >= 0 ? '▲' : '▼';
-            const pColor = c.progress > 80 ? '#00ff88' : (c.progress > 45 ? '#fbbf24' : '#f97316');
+            const col = c.change >= 0 ? 'up' : 'down';
+            const barCol = c.progress > 80 ? '#00ff88' : (c.progress > 40 ? '#fbbf24' : '#f97316');
             return `<tr>
                 <td><b>${c.symbol}</b></td>
                 <td>$${c.price}</td>
-                <td class="${color}">${arrow} ${c.change}%</td>
-                <td>
-                    ${c.progress}%
-                    <div class="prog-bg"><div class="prog-bar" style="width:${c.progress}%; background:${pColor}"></div></div>
-                </td>
+                <td class="${col}">${c.change >= 0 ? '▲':'▼'} ${Math.abs(c.change)}%</td>
+                <td>${c.progress}%<div class="prog-bg"><div class="prog-bar" style="width:${c.progress}%; background:${barCol}"></div></div></td>
                 <td>${c.exhaustion}%</td>
             </tr>`;
         }).join('');
 
-    } catch(e) { console.log(e); }
+    } catch(e) { console.error(e); }
 }
-sync();
-setInterval(sync, 30000);
+sync(); setInterval(sync, 30000);
 </script>
 </body>
 </html>
